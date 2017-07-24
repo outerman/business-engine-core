@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>business-engine</artifactId>
+    <artifactId>business-engine-core</artifactId>
     <groupId>com.rt.be</groupId>
 
     <properties>
