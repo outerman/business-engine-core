@@ -21,6 +21,7 @@ public class TemplateIndustryValidator implements ITemplateValidatable {
     @Override
     public String validate(AcmDocAccountTemplateDto docAccountTemplateDto, AcmPaymentTemplateDto paymentTemplateDto, AcmUITemplateDto uiTemplateDto) {
         //TODO:支持的行业是否一致
+        //TODO:在UITemplate里在某行业显示, 那在DocAccountTemplate里该行业也要支持
         return null;
     }
 }
