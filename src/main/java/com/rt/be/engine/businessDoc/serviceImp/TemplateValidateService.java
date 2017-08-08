@@ -7,14 +7,11 @@ import com.rt.be.engine.businessDoc.businessTemplate.BusinessTemplate;
 import com.rt.be.engine.businessDoc.dataProvider.IFiDocProvider;
 import com.rt.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.rt.be.engine.businessDoc.dataProvider.ITestGenerateProvider;
-import com.rt.be.engine.businessDoc.validator.IBusinessDocValidatable;
 import com.rt.be.engine.businessDoc.validator.ValidatorManager;
 import com.rt.be.engine.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,14 +76,16 @@ public class TemplateValidateService implements ITemplateValidateService {
 
     private String validateTemplate(SetOrg setOrg, Long businessCode, BusinessTemplate businessTemplate) {
         //1, 先检查模板
-        businessTemplate.validate();
-
+        String errorMessage = businessTemplate.validate();
+        if (!StringUtil.isEmpty(errorMessage)) {
+            return errorMessage;
+        }
         //1.5, TODO:清空现有流水账?
 
-        //2, 后模拟生成凭证
-//        AcmTestServiceImpl testService = new AcmTestServiceImpl();
-//        a）构建dto的模拟数据,遍历各个影响因素
-        //TODO: 后续在工程内生成测试用例, 去掉testGenerateProvider
+        // 2, 后模拟生成凭证
+        // AcmTestServiceImpl testService = new AcmTestServiceImpl();
+        // a）构建dto的模拟数据,遍历各个影响因素
+        // TODO: 后续在工程内生成测试用例, 去掉testGenerateProvider
         String errMsg = testGenerateProvider.constructSortReceiptByCode(setOrg.getId(), businessCode);//testService.constructSortReceiptByCode(setOrg.getId(), businessCode);
         if (!StringUtil.isEmpty(errMsg)) {
             return errMsg;

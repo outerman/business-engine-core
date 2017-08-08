@@ -61,13 +61,14 @@ public class BusinessTemplate implements IValidatable {
 //        a）各模板是否同时结算或不结算
 //        b）影响因素字段的必填是否一致（凭证模板没有“默认”则为必填）
 //        c）支持的行业是否一致
-        validatorManager.getTemplateValidators()
+        String errorMessage = validatorManager.getTemplateValidators()
                 .parallelStream()
                 .map(validator -> validator.validate(docAccountTemplate.getDocTemplateDto(),
                         paymentTemplate.getPaymentTemplateDto(),
                         uiTemplate.getUiTemplateDto()))
+                .filter(message -> !StringUtil.isEmpty(message))
                 .collect(Collectors.joining(";"));
-        return "";
+        return errorMessage;
     }
 
     public Long getBusinessCode() {
