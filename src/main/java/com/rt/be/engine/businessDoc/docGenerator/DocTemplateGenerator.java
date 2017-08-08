@@ -3,6 +3,7 @@ package com.rt.be.engine.businessDoc.docGenerator;
 
 import com.rt.be.api.constant.*;
 import com.rt.be.api.dto.FiDocGenetateResultDto;
+import com.rt.be.api.dto.FiDocGenetateResultDto.ReceiptResult;
 import com.rt.be.api.vo.*;
 import com.rt.be.engine.businessDoc.BusinessUtil;
 import com.rt.be.engine.businessDoc.businessTemplate.AmountGetter;
@@ -69,10 +70,16 @@ public class DocTemplateGenerator {
                 List<DocAccountTemplateItem> fiBillDocTemplateList = businessTemplate.getDocAccountTemplate()
                         .getTemplate(setOrg.getId(), setOrg.getAccountingStandards().intValue(), setOrg.getIndustry(), setOrg.getVatTaxpayer(), acmSortReceiptDetail);
 
+                // TODO 科目编码处理
+                List<String> codeList = new ArrayList<>();
+                for (DocAccountTemplateItem docTemplate : fiBillDocTemplateList) {
+                    codeList.add(docTemplate.getAccountCode());
+                }
+                Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), codeList, acmSortReceiptDetailList);
                 for (int h = 0 ; h < fiBillDocTemplateList.size(); h++ ) {
                     DocAccountTemplateItem fiBillDocTemplate = fiBillDocTemplateList.get(h);
                     //根据反馈建议, 调整模板
-                    fiBillDocTemplate = updateTemplateByAdvice(acmSortReceiptDetail, fiBillDocTemplate, resultDto);
+                    fiBillDocTemplate = updateTemplateByAdvice(acmSortReceiptDetail, fiBillDocTemplate, resultDto, codeMap, templateProvider);
 
                 	if(fiBillDocTemplate == null){
                         throw new BusinessEngineException(ErrorCode.ENGINE_DOC_GENETARE_EMPTY_BUSINESS_ERROR_CODE, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_BUSINESS_ERROR_MSG);
@@ -126,6 +133,9 @@ public class DocTemplateGenerator {
 
             //TODO: 结算方式暂时没有和businessCode挂钩, 所以取任何一个都会返回所有
             BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg.getId(), acmSortReceiptDetailList.get(0).getBusinessCode(), templateProvider);
+            // TODO 科目编码处理
+            List<String> accountCodeList = businessTemplate.getPaymentTemplate().getAccountCodeList();
+            Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), accountCodeList, acmSortReceiptDetailList);
             //查询结算方式生成凭证
             for (int i = 0 ; i< acmSortReceiptSettlestyleList.size(); i++) {
             	AcmSortReceiptSettlestyle sett = acmSortReceiptSettlestyleList.get(i);
@@ -139,7 +149,7 @@ public class DocTemplateGenerator {
                 String memo = getMemo(acmSortReceipt, acmPayDocTemplate);
 
                 //根据反馈建议, 调整模板
-                acmPayDocTemplate = getPayTemplateByAdvice(sett, acmPayDocTemplate);
+                acmPayDocTemplate = getPayTemplateByAdvice(sett, acmPayDocTemplate, codeMap, templateProvider);
 
                 //模板为空,或者模板不对
                 if (acmPayDocTemplate == null || (!acmPayDocTemplate.getSettlement().equals(sett.getSettleStyle()) &&
@@ -190,29 +200,27 @@ public class DocTemplateGenerator {
         return resultDto;
     }
 
-    private PaymentTemplateItem getPayTemplateByAdvice(AcmSortReceiptSettlestyle sett, PaymentTemplateItem acmPayDocTemplate) {
-        return acmPayDocTemplate;
-        //TODO: 增加反馈逻辑
-//        return acmFeedbackService.requestAdvice(acmPayDocTemplate,codeMap,sett);
+    private PaymentTemplateItem getPayTemplateByAdvice(AcmSortReceiptSettlestyle sett, PaymentTemplateItem acmPayDocTemplate, Map<String, FiAccount> codeMap, ITemplateProvider templateProvider) {
+        return templateProvider.requestAdvice(acmPayDocTemplate, codeMap, sett);
     }
 
 
-    private DocAccountTemplateItem updateTemplateByAdvice(AcmSortReceiptDetail acmSortReceiptDetail, DocAccountTemplateItem fiBillDocTemplate, FiDocGenetateResultDto resultDto) {
-        return fiBillDocTemplate;
+    private DocAccountTemplateItem updateTemplateByAdvice(AcmSortReceiptDetail acmSortReceiptDetail, DocAccountTemplateItem fiBillDocTemplate, FiDocGenetateResultDto resultDto,
+            Map<String, FiAccount> codeMap, ITemplateProvider templateProvider) {
 
-        //TODO: 增加反馈逻辑, 如果失败, 则需要添加到resultDto里
-//        Long bankAccountId;
-//        if ((String.valueOf(acmSortReceiptDetail.getBusinessCode()).equals(BusinessCode.BUSINESS_402000)
-//                && "accountInAttr".equals(fiBillDocTemplate.getInfluence()))
-//                || (String.valueOf(acmSortReceiptDetail.getBusinessCode()).equals(BusinessCode.BUSINESS_401050)
-//                && "1002".equals(fiBillDocTemplate.getAccountCode()) && acmSortReceiptDetail.getInBankAccountId() != null)) {
-//            bankAccountId = acmSortReceiptDetail.getInBankAccountId();
-//        } else {
-//            bankAccountId = acmSortReceiptDetail.getBankAccountId();
-//        }
-//
-//        fiBillDocTemplate = acmFeedbackService.requestAdvice(fiBillDocTemplate, codeMap, bankAccountId, fiDocReturnFailList, acmSortReceiptDetail.getSortReceiptId());
-//        return fiBillDocTemplate;
+        Long bankAccountId;
+        if ((String.valueOf(acmSortReceiptDetail.getBusinessCode()).equals(BusinessCode.BUSINESS_402000)
+                && "accountInAttr".equals(fiBillDocTemplate.getInfluence()))
+                || (String.valueOf(acmSortReceiptDetail.getBusinessCode()).equals(BusinessCode.BUSINESS_401050)
+                && "1002".equals(fiBillDocTemplate.getAccountCode()) && acmSortReceiptDetail.getInBankAccountId() != null)) {
+            bankAccountId = acmSortReceiptDetail.getInBankAccountId();
+        } else {
+            bankAccountId = acmSortReceiptDetail.getBankAccountId();
+        }
+        List<ReceiptResult> fiDocReturnFailList = new ArrayList<>();
+        fiBillDocTemplate = templateProvider.requestAdvice(fiBillDocTemplate, codeMap, bankAccountId, fiDocReturnFailList, acmSortReceiptDetail.getSortReceiptId());
+        resultDto.getFailedReceipt().addAll(fiDocReturnFailList);
+        return fiBillDocTemplate;
     }
 
 

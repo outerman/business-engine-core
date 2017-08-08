@@ -1,5 +1,8 @@
 package com.rt.be.api.constant;
 
+import java.util.Arrays;
+import java.util.List;
+
 public final class AcmConst {
 
     /**
@@ -389,4 +392,23 @@ public final class AcmConst {
 
 
     public static final String BUSINESS_TEMPLATE = "BusinessTemplate";
+
+    /** 银行账号（结算方式）column id */
+    public static final Long BANK_ACCOUNT_COLUMN_ID = 14L;
+
+    /** 结算方式 column id */
+    public static final Long SETTLE_STYLE_COLUMN_ID = 12L;
+
+    /** 税率 column id */
+    public static final Long TAX_RATE_COLUMN_ID = 16L;
+
+    /** 一般纳税人 column id */
+    public static final Long VAT_TAX_PAYER_41_COLUMN_ID = 33L;
+
+    /** 小规模纳税人 column id */
+    public static final Long VAT_TAX_PAYER_42_COLUMN_ID = 32L;
+
+    /** 会计准则 id 列表 */
+    public static final List<Long> ACCOUNTING_STANDARD_ID_LIST = Arrays.asList(18L, 19L);
+
 }

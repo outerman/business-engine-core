@@ -1,5 +1,6 @@
 package com.rt.be.engine.businessDoc.dataProvider;
 
+import com.rt.be.api.dto.FiDocGenetateResultDto.ReceiptResult;
 import com.rt.be.api.vo.*;
 
 import java.util.List;
@@ -22,4 +23,11 @@ public interface ITemplateProvider {
     List<SetTaxRateDto> getTaxRateList(Long orgId);
 
     SetCurrency getBaseCurrency(Long orgId);
+
+    Map<String, FiAccount> getAccountCode(Long orgId, List<String> codeList, List<AcmSortReceiptDetail> detailList);
+
+    DocAccountTemplateItem requestAdvice(DocAccountTemplateItem acmBusinessDoc, Map<String, FiAccount> codeMap, Long bankAccountId, List<ReceiptResult> fiDocReturnFailList, Long sortId);
+
+    PaymentTemplateItem requestAdvice(PaymentTemplateItem acmPayDoc, Map<String, FiAccount> codeMap, AcmSortReceiptSettlestyle sett);
+
 }

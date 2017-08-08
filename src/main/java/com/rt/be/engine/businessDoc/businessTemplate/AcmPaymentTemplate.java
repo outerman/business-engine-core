@@ -8,6 +8,9 @@ import com.rt.be.api.vo.PaymentTemplateItem;
 import com.rt.be.engine.businessDoc.BusinessUtil;
 import com.rt.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.rt.be.engine.businessDoc.validator.IValidatable;
+
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -20,6 +23,7 @@ import java.util.Map;
  * 流水账生成凭证的结算类 相关模板
  */
 @Component
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class AcmPaymentTemplate implements IValidatable {
 
     private AcmPaymentTemplateDto paymentTemplateDto;
@@ -38,6 +42,14 @@ public class AcmPaymentTemplate implements IValidatable {
 
         paymentTemplateDto.setOrgId(orgId);
         paymentTemplateDto.setBusinessCode(businessCode);
+    }
+
+    public List<String> getAccountCodeList() {
+        List<String> accountCodeList = new ArrayList<>();
+        if (paymentTemplateDto != null && paymentTemplateDto.getCodeList() != null) {
+            accountCodeList.addAll(paymentTemplateDto.getCodeList());
+        }
+        return accountCodeList;
     }
 
     private final String PAYTYPE_501 = "501";
