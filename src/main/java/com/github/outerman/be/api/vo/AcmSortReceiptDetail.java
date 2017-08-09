@@ -177,6 +177,9 @@ public class AcmSortReceiptDetail {
 	/** 债务人名称  */
 	private String debtorName;
 	
+	/** 投资人 id 对应表 set_investor */
+	private Long investorId;
+	
 	/**Double类型扩展字段*/
 	private Double ext0;
 	private Double ext1;
@@ -837,6 +840,24 @@ public class AcmSortReceiptDetail {
 		this.debtorName = debtorName;
 	}
 
+
+    /**
+     * 获取投资人 id 对应表 set_investor
+     * @return 投资人 id 对应表 set_investor
+     */
+    public Long getInvestorId() {
+        return investorId;
+    }
+
+    /**
+     * 设置投资人 id 对应表 set_investor
+     * @param investorId 投资人 id 对应表 set_investor
+     */
+    public void setInvestorId(Long investorId) {
+        this.investorId = investorId;
+    }
+
+	
 	public String getExtString0() {
 		return extString0;
 	}

@@ -117,6 +117,18 @@ public class AcmPaymentTemplate implements IValidatable {
         return "";
     }
 
+    public Long getPaymentsType(AcmSortReceipt acmSortReceipt) {
+        Long paymentType = acmSortReceipt.getPaymentsType();
+        if (paymentType.equals(AcmConst.PAYMENTSTYPE_50)) {  //收付款
+            if (isDebit(acmSortReceipt)) {
+                paymentType = Long.parseLong(paymentType + PAYTYPE_501);
+            } else {
+                paymentType = Long.parseLong(paymentType + PAYTYPE_502);
+            }
+        }
+        return paymentType;
+    }
+
     public AcmPaymentTemplateDto getPaymentTemplateDto() {
         return paymentTemplateDto;
     }

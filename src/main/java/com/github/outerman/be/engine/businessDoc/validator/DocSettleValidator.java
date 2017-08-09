@@ -1,11 +1,20 @@
 package com.github.outerman.be.engine.businessDoc.validator;
 
-import com.github.outerman.be.api.vo.*;
-import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
-import com.github.outerman.be.engine.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.github.outerman.be.api.vo.AcmSortReceipt;
+import com.github.outerman.be.api.vo.AcmSortReceiptSettlestyle;
+import com.github.outerman.be.api.vo.FiDocDto;
+import com.github.outerman.be.api.vo.FiDocEntryDto;
+import com.github.outerman.be.api.vo.PaymentTemplateItem;
+import com.github.outerman.be.api.vo.SetOrg;
+import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
+import com.github.outerman.be.engine.util.StringUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -23,7 +32,7 @@ public class DocSettleValidator implements IBusinessDocValidatable {
 
     @Override
     public String validate(SetOrg setOrg, BusinessTemplate businessTemplate, AcmSortReceipt acmSortReceipt, FiDocDto doc) {
-        //遍历检查分录
+        // 根据凭证分录（没有分类标识、科目、金额）反查对应的结算凭证模板数据
         return doc.getEntrys()
                 .stream()
                 .filter(entry -> entry.getSourceFlag() == null)
@@ -33,21 +42,38 @@ public class DocSettleValidator implements IBusinessDocValidatable {
     }
 
     private String validateEntry(BusinessTemplate businessTemplate, AcmSortReceipt acmSortReceipt, FiDocEntryDto entry) {
-        AcmSortReceiptSettlestyle settlestyle = acmSortReceipt.getAcmSortReceiptSettlestyleList().get(0); // TODO: 假设前提, 模拟数据里只有一个结算方式
-        //3.5)没有分类的分录(结算情况),与结算情况比较
-        //TODO: 此处的模板选择逻辑, 和生成凭证的相同, 作为验证, 应该考虑另一套逻辑
-        PaymentTemplateItem payDocTemplate = businessTemplate.getPaymentTemplate().getTemplate(acmSortReceipt, settlestyle);
-        //模板上的可能不是末级, 凭证上是下级
-        if (!entry.getAccountCode().startsWith(payDocTemplate.getSubjectDefault())) {
-            return "结算方式的分录的会计科目和模板不一致";
-        }
-
-        //3.6)结算金额检查, 由于有对调借贷方的情况, 此处暂时仅校验数值,不校验方向
+        // 根据凭证分录科目和金额，查找结算凭证模板数据
+        AcmSortReceiptSettlestyle settlestyle = acmSortReceipt.getAcmSortReceiptSettlestyleList().get(0); // TODO:假设前提,模拟数据里只有一个结算方式
+        String accountCode = entry.getAccountCode();
         Double amount = entry.getAmountDr() == null ? entry.getAmountCr() : entry.getAmountDr();
-        if (!settlestyle.getTaxInclusiveAmount().equals(Math.abs(amount))) {
-            return "结算方式的金额与业务单据不一致";
+        Map<String, PaymentTemplateItem> payTemplateMap = businessTemplate.getPaymentTemplate().getPaymentTemplateDto().getPayMap();
+        List<PaymentTemplateItem> docTemplateWithAccountList = new ArrayList<>();
+        for (PaymentTemplateItem payTemplate : payTemplateMap.values()) {
+            if (!accountCode.startsWith(payTemplate.getSubjectDefault())) {
+                continue;
+            }
+            if (!settlestyle.getTaxInclusiveAmount().equals(Math.abs(amount))) {
+                continue;
+            }
+            docTemplateWithAccountList.add(payTemplate);
+        }
+        if (docTemplateWithAccountList.isEmpty()) {
+            return "分录的会计科目、金额和结算凭证模板不一致";
         }
 
-        return  "";
+        // 根据业务单据结算数据和结算凭证模板 accountType、paymentsType，查找结算凭证模板数据
+        List<PaymentTemplateItem> resultList = new ArrayList<>();
+        for (PaymentTemplateItem payTemplate : docTemplateWithAccountList) {
+            String accountType = payTemplate.getAccountType().toString();
+            Long paymentsType = payTemplate.getPaymentsType();
+            Long paymentsTypeTemp = businessTemplate.getPaymentTemplate().getPaymentsType(acmSortReceipt);
+            if (accountType.equals(settlestyle.getBankAccountAttr()) && paymentsType.equals(paymentsTypeTemp)) {
+                resultList.add(payTemplate);
+            }
+        }
+        if (resultList.size() != 1) {
+            return "分录没有找到或者找到多个一致的结算凭证模板数据";
+        }
+        return "";
     }
 }

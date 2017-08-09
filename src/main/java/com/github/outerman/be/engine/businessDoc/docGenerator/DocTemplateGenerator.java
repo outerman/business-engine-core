@@ -218,7 +218,7 @@ public class DocTemplateGenerator {
             bankAccountId = acmSortReceiptDetail.getBankAccountId();
         }
         List<ReceiptResult> fiDocReturnFailList = new ArrayList<>();
-        fiBillDocTemplate = templateProvider.requestAdvice(fiBillDocTemplate, codeMap, bankAccountId, fiDocReturnFailList, acmSortReceiptDetail.getSortReceiptId());
+        fiBillDocTemplate = templateProvider.requestAdvice(fiBillDocTemplate, codeMap, bankAccountId, acmSortReceiptDetail.getInvestorId(), fiDocReturnFailList, acmSortReceiptDetail.getSortReceiptId());
         resultDto.getFailedReceipt().addAll(fiDocReturnFailList);
         return fiBillDocTemplate;
     }

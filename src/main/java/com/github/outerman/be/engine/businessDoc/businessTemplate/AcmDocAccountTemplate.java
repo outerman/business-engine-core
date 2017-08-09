@@ -1,18 +1,20 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
-import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
-import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
-import com.github.outerman.be.api.vo.SetTaxRateDto;
-import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
-import com.github.outerman.be.engine.util.StringUtil;
-import com.github.outerman.be.api.constant.AcmConst;
-import com.github.outerman.be.api.constant.BusinessEngineException;
-import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.BusinessEngineException;
+import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
+import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
+import com.github.outerman.be.api.vo.DocAccountTemplateItem;
+import com.github.outerman.be.api.vo.SetOrg;
+import com.github.outerman.be.api.vo.SetTaxRateDto;
+import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
+import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
+import com.github.outerman.be.engine.util.StringUtil;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -76,15 +78,40 @@ public class AcmDocAccountTemplate implements IValidatable {
     // 获取具体模板,orgId不能为0
     public List<DocAccountTemplateItem> getTemplate(Long orgId, Integer accountingStandardsId, Long industry, Long vatTaxpayer, AcmSortReceiptDetail acmSortReceiptDetail) {
         // 获取当前"行业 + 准则"的模板
+        List<DocAccountTemplateItem> result = new ArrayList<>();
+        Long businessCode = docTemplateDto.getBusinessCode();
+        if (!businessCode.equals(acmSortReceiptDetail.getBusinessCode())) {
+            return result;
+        }
         List<DocAccountTemplateItem> templatesForOrg = docTemplateDto.getAllPossibleTemplate().get(getKey(industry, accountingStandardsId));
-        // TODO: 原有逻辑, 可优化, 因为此处只有一个业务
-        Map<String, List<List<DocAccountTemplateItem>>> busMap = getBusniess(null, null, null, templatesForOrg);
-        List<List<DocAccountTemplateItem>> fiBillDocTemplateListABCDEFG = busMap.get(acmSortReceiptDetail.getBusinessType().toString());// (docTemplateDto.getBusinessCode().toString());
-        if (fiBillDocTemplateListABCDEFG == null || fiBillDocTemplateListABCDEFG.isEmpty()) {
-            // 返回空 消息体增加空
-            return null;
+        List<List<DocAccountTemplateItem>> fiBillDocTemplateListABCDEFG = getBusniess(templatesForOrg);
+        if (fiBillDocTemplateListABCDEFG.isEmpty()) {
+            return result;
         }
         return getBusinessTemplate(fiBillDocTemplateListABCDEFG, acmSortReceiptDetail, vatTaxpayer);
+    }
+
+    /**
+     * 获取当前业务对应组织的所有凭证模板信息
+     * @param org 组织信息
+     * @return 凭证模板信息，以 flag（A,B,C...）为 key 的 map
+     */
+    public Map<String, List<DocAccountTemplateItem>> getDocTemplateMap(SetOrg org) {
+        Map<String, List<DocAccountTemplateItem>> docTemplateMap = new HashMap<>();
+        String key = getKey(org.getIndustry(), org.getAccountingStandards().intValue());
+        List<DocAccountTemplateItem> docTemplateList = docTemplateDto.getAllPossibleTemplate().get(key);
+        for (DocAccountTemplateItem docTemplate : docTemplateList) {
+            String flag = docTemplate.getFlag();
+            List<DocAccountTemplateItem> docTemplateWithFlagList;
+            if (docTemplateMap.containsKey(flag)) {
+                docTemplateWithFlagList = docTemplateMap.get(flag);
+            } else {
+                docTemplateWithFlagList = new ArrayList<>();
+                docTemplateMap.put(flag, docTemplateWithFlagList);
+            }
+            docTemplateWithFlagList.add(docTemplate);
+        }
+        return docTemplateMap;
     }
 
     @Override
@@ -137,6 +164,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                 }
             }
         }
+        // TODO 相同分类标识下，相同影响因素只能有一条凭证模板数据
         return errorMessage.toString();
     }
 
@@ -144,9 +172,8 @@ public class AcmDocAccountTemplate implements IValidatable {
         if (docTemplate == null) {
             return false;
         }
-        return docTemplate.getVatTaxpayer() != null || docTemplate.getDepartmentAttr() != null
-                || docTemplate.getPersonAttr() != null || (docTemplate.getExtendAttr() != null && docTemplate.getExtendAttr() != 9999999999L)
-                || docTemplate.getTaxType() != null || docTemplate.getQualification() != null;
+        return docTemplate.getVatTaxpayer() != null || docTemplate.getDepartmentAttr() != null || docTemplate.getPersonAttr() != null
+                || (docTemplate.getExtendAttr() != null && docTemplate.getExtendAttr() != 9999999999L) || docTemplate.getTaxType() != null || docTemplate.getQualification() != null;
     }
 
     public static String getKey(Long industry, Integer standard) {
@@ -167,6 +194,14 @@ public class AcmDocAccountTemplate implements IValidatable {
             return Integer.parseInt(keyArray[1]);
         }
         return null;
+    }
+
+    public boolean isSimple(Long taxRateId) {
+        return simple.contains(taxRateId);
+    }
+
+    public boolean isGeneral(Long taxRateId) {
+        return general.contains(taxRateId);
     }
 
     // TODO: 原有方法,有待优化
@@ -198,8 +233,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                     if (fiBillDocTemplate.getDepartmentAttr() != null || fiBillDocTemplate.getPersonAttr() != null || fiBillDocTemplate.getExtendAttr() != null) {// 查看影响因素内是否有默认值，如果有默认值增加
 
                         if (fiBillDocTemplate.getDepartmentAttr() != null) {// 有部门影响因素
-                            if (fiBillDocTemplate.getDepartmentAttr() == 0) {// 模板等于默认--
-                                                                             // 添加部门默认
+                            if (fiBillDocTemplate.getDepartmentAttr() == 0) {// 模板等于默认，添加部门默认
                                 fiBillDocTemplateDefault = fiBillDocTemplate;
                             }
 
@@ -227,9 +261,7 @@ public class AcmDocAccountTemplate implements IValidatable {
 
                         switch (fiBillDocTemplate.getInfluence()) {
                         case "departmentAttr": {
-                            if (acmSortReceiptDetail.getDepartmentProperty() != null) {// 部门属性
-                                                                                       // 是否为空
-                                                                                       // 取默认
+                            if (acmSortReceiptDetail.getDepartmentProperty() != null) {// 部门属性 是否为空 取默认
                                 if (acmSortReceiptDetail.getDepartmentProperty().equals(fiBillDocTemplate.getDepartmentAttr())) {
                                     fiBillDocTemplateList.add(fiBillDocTemplate);
                                 }
@@ -237,14 +269,11 @@ public class AcmDocAccountTemplate implements IValidatable {
                         }
                             break;
                         case "departmentAttr,personAttr": {
-                            if (acmSortReceiptDetail.getDepartmentProperty() != null) {// 部门属性
-                                                                                       // 是否为空
-                                                                                       // 取默认
+                            if (acmSortReceiptDetail.getDepartmentProperty() != null) {// 部门属性 是否为空 取默认
                                 if (acmSortReceiptDetail.getDepartmentProperty().equals(fiBillDocTemplate.getDepartmentAttr())) {
                                     if (acmSortReceiptDetail.getDepartmentProperty().equals(AcmConst.DEPTPROPERTY_002)) {// 如果是生产部门才取人员属性
                                         if (acmSortReceiptDetail.getEmployeeAttribute() != null) {
-                                            if (acmSortReceiptDetail.getEmployeeAttribute().equals(fiBillDocTemplate.getPersonAttr())) {// 不为空
-                                                                                                                                        // 取属性值相等的
+                                            if (acmSortReceiptDetail.getEmployeeAttribute().equals(fiBillDocTemplate.getPersonAttr())) {// 不为空 取属性值相等的
                                                 fiBillDocTemplateList.add(fiBillDocTemplate);
                                             }
                                         }
@@ -328,8 +357,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                         // }
                         // break;
                         case "accountInAttr": {// 账户属性
-                            if (acmSortReceiptDetail.getInBankAccountTypeId() != null) {// 借是流入
-                                                                                        // 贷是流出
+                            if (acmSortReceiptDetail.getInBankAccountTypeId() != null) {// 借是流入 贷是流出
                                 if (acmSortReceiptDetail.getInBankAccountTypeId().equals(fiBillDocTemplate.getExtendAttr())) {
                                     fiBillDocTemplateList.add(fiBillDocTemplate);
                                 }
@@ -337,8 +365,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                         }
                             break;
                         case "accountOutAttr": {// 账户属性
-                            if (acmSortReceiptDetail.getBankAccountTypeId() != null) {// 借是流入
-                                                                                      // 贷是流出
+                            if (acmSortReceiptDetail.getBankAccountTypeId() != null) {// 借是流入 贷是流出
                                 if (acmSortReceiptDetail.getBankAccountTypeId().equals(fiBillDocTemplate.getExtendAttr())) {
                                     fiBillDocTemplateList.add(fiBillDocTemplate);
                                 }
@@ -362,12 +389,12 @@ public class AcmDocAccountTemplate implements IValidatable {
         return fiBillDocTemplateList;
     }
 
-    // TODO: 原有方法,有待优化
-    private Map<String, List<List<DocAccountTemplateItem>>> getBusniess(Long orgId, Long accountingStandardsId, Long industry, List<DocAccountTemplateItem> busniessTemp) {
-        Map<String, List<List<DocAccountTemplateItem>>> busMap = new HashMap<>();
+    private List<List<DocAccountTemplateItem>> getBusniess(List<DocAccountTemplateItem> busniessTemp) {
+        List<List<DocAccountTemplateItem>> result = new ArrayList<>();
+        if (busniessTemp == null || busniessTemp.isEmpty()) {
+            return result;
+        }
 
-        Long indexId = busniessTemp.get(0).getBusinessId();
-        List<List<DocAccountTemplateItem>> list = new ArrayList<>();
         List<DocAccountTemplateItem> listA = new ArrayList<>();
         List<DocAccountTemplateItem> listB = new ArrayList<>();
         List<DocAccountTemplateItem> listC = new ArrayList<>();
@@ -377,132 +404,63 @@ public class AcmDocAccountTemplate implements IValidatable {
         List<DocAccountTemplateItem> listG = new ArrayList<>();
         List<DocAccountTemplateItem> listH = new ArrayList<>();
 
-        List<Long> idList = new ArrayList<>();
         for (int i = 0; i < busniessTemp.size(); i++) {
             DocAccountTemplateItem acmBusinessDocTemplate = busniessTemp.get(i);
-            if (idList.contains(acmBusinessDocTemplate.getId())) {
-                continue;
-            } else {
-                idList.add(acmBusinessDocTemplate.getId());
-            }
-            if (indexId.equals(acmBusinessDocTemplate.getBusinessId())) {
-                switch (acmBusinessDocTemplate.getFlag()) {
-                case "A":
-                    listA.add(acmBusinessDocTemplate);
-                    break;
-                case "B":
-                    listB.add(acmBusinessDocTemplate);
-                    break;
-                case "C":
-                    listC.add(acmBusinessDocTemplate);
-                    break;
-                case "D":
-                    listD.add(acmBusinessDocTemplate);
-                    break;
-                case "E":
-                    listE.add(acmBusinessDocTemplate);
-                    break;
-                case "F":
-                    listF.add(acmBusinessDocTemplate);
-                    break;
-                case "G":
-                    listG.add(acmBusinessDocTemplate);
-                    break;
-                case "H":
-                    listH.add(acmBusinessDocTemplate);
-                    break;
-                default:
-                    break;
-                }
-            } else {
-                list.add(listA);
-                if (!listB.isEmpty()) {
-                    list.add(listB);
-                }
-                if (!listC.isEmpty()) {
-                    list.add(listC);
-                }
-                if (!listD.isEmpty()) {
-                    list.add(listD);
-                }
-                if (!listE.isEmpty()) {
-                    list.add(listE);
-                }
-                if (!listF.isEmpty()) {
-                    list.add(listF);
-                }
-                if (!listG.isEmpty()) {
-                    list.add(listG);
-                }
-                if (!listH.isEmpty()) {
-                    list.add(listH);
-                }
-                busMap.put(indexId.toString(), list);
-                indexId = acmBusinessDocTemplate.getBusinessId();
-                list = new ArrayList<>();
-                listA = new ArrayList<>();
-                listB = new ArrayList<>();
-                listC = new ArrayList<>();
-                listD = new ArrayList<>();
-                listE = new ArrayList<>();
-                listF = new ArrayList<>();
-                listG = new ArrayList<>();
-                listH = new ArrayList<>();
-                if ("A".equals(acmBusinessDocTemplate.getFlag())) {
-                    listA.add(acmBusinessDocTemplate);
-                }
-                if ("B".equals(acmBusinessDocTemplate.getFlag())) {
-                    listB.add(acmBusinessDocTemplate);
-                }
-                if ("C".equals(acmBusinessDocTemplate.getFlag())) {
-                    listC.add(acmBusinessDocTemplate);
-                }
-                if ("D".equals(acmBusinessDocTemplate.getFlag())) {
-                    listD.add(acmBusinessDocTemplate);
-                }
-                if ("E".equals(acmBusinessDocTemplate.getFlag())) {
-                    listE.add(acmBusinessDocTemplate);
-                }
-                if ("F".equals(acmBusinessDocTemplate.getFlag())) {
-                    listF.add(acmBusinessDocTemplate);
-                }
-                if ("G".equals(acmBusinessDocTemplate.getFlag())) {
-                    listG.add(acmBusinessDocTemplate);
-                }
-                if ("H".equals(acmBusinessDocTemplate.getFlag())) {
-                    listH.add(acmBusinessDocTemplate);
-                }
-            }
-            if (i == busniessTemp.size() - 1) {
-                if (!listA.isEmpty()) {
-                    list.add(listA);
-                }
-                if (!listB.isEmpty()) {
-                    list.add(listB);
-                }
-                if (!listC.isEmpty()) {
-                    list.add(listC);
-                }
-                if (!listD.isEmpty()) {
-                    list.add(listD);
-                }
-                if (!listE.isEmpty()) {
-                    list.add(listE);
-                }
-                if (!listF.isEmpty()) {
-                    list.add(listF);
-                }
-                if (!listG.isEmpty()) {
-                    list.add(listG);
-                }
-                if (!listH.isEmpty()) {
-                    list.add(listH);
-                }
-                busMap.put(indexId.toString(), list);
+            switch (acmBusinessDocTemplate.getFlag()) {
+            case "A":
+                listA.add(acmBusinessDocTemplate);
+                break;
+            case "B":
+                listB.add(acmBusinessDocTemplate);
+                break;
+            case "C":
+                listC.add(acmBusinessDocTemplate);
+                break;
+            case "D":
+                listD.add(acmBusinessDocTemplate);
+                break;
+            case "E":
+                listE.add(acmBusinessDocTemplate);
+                break;
+            case "F":
+                listF.add(acmBusinessDocTemplate);
+                break;
+            case "G":
+                listG.add(acmBusinessDocTemplate);
+                break;
+            case "H":
+                listH.add(acmBusinessDocTemplate);
+                break;
+            default:
+                break;
             }
         }
+        if (!listA.isEmpty()) {
+            result.add(listA);
+        }
+        if (!listB.isEmpty()) {
+            result.add(listB);
+        }
+        if (!listC.isEmpty()) {
+            result.add(listC);
+        }
+        if (!listD.isEmpty()) {
+            result.add(listD);
+        }
+        if (!listE.isEmpty()) {
+            result.add(listE);
+        }
+        if (!listF.isEmpty()) {
+            result.add(listF);
+        }
+        if (!listG.isEmpty()) {
+            result.add(listG);
+        }
+        if (!listH.isEmpty()) {
+            result.add(listH);
+        }
 
-        return busMap;
+        return result;
     }
 
     public AcmDocAccountTemplateDto getDocTemplateDto() {
