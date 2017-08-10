@@ -7,7 +7,7 @@
 
     <artifactId>business-engine-core</artifactId>
     <groupId>com.github.outerman.be</groupId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <name>business engine</name>
     <url>https://github.com/outerman/business-engine-core</url>
@@ -178,6 +178,16 @@
     </profiles>
 
     <build>
+        <resources>
+            <resource>
+                <targetPath>${project.build.directory}/classes/META-INF/spring</targetPath>
+                <directory>src/main/resources/spring</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>be-spring-context.xml</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
