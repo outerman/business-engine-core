@@ -1,19 +1,20 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
-import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
-import com.github.outerman.be.api.constant.AcmConst;
-import com.github.outerman.be.api.constant.BusinessEngineException;
-import com.github.outerman.be.api.dto.BusinessTemplateDto;
-import com.github.outerman.be.api.constant.ErrorCode;
-import com.github.outerman.be.engine.businessDoc.validator.ValidatorManager;
-import com.github.outerman.be.engine.util.StringUtil;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.stream.Collectors;
+import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.BusinessEngineException;
+import com.github.outerman.be.api.constant.ErrorCode;
+import com.github.outerman.be.api.dto.BusinessTemplateDto;
+import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
+import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
+import com.github.outerman.be.engine.businessDoc.validator.ValidatorManager;
+import com.github.outerman.be.engine.util.StringUtil;
 
 /**
  * Created by shenxy on 7/7/17.
@@ -54,7 +55,8 @@ public class BusinessTemplate implements IValidatable {
         String paymentErrorMsg = paymentTemplate.validate();
         String uiErrorMsg = uiTemplate.validate();
         if (!StringUtil.isEmpty(docErrorMsg)|| !StringUtil.isEmpty(paymentErrorMsg)|| !StringUtil.isEmpty(uiErrorMsg)) {
-            throw new BusinessEngineException(ErrorCode.ENGINE_VALIDATE_ERROR_CODE, ErrorCode.ENGINE_VALIDATE_ERROR_MESSAGE + ":\n" + docErrorMsg + "\n" + paymentErrorMsg + "\n" + uiErrorMsg + "\n");
+            return ErrorCode.ENGINE_VALIDATE_ERROR_MESSAGE + ":\n" + docErrorMsg + "\n" + paymentErrorMsg + "\n" + uiErrorMsg + "\n";
+            //throw new BusinessEngineException(ErrorCode.ENGINE_VALIDATE_ERROR_CODE, ErrorCode.ENGINE_VALIDATE_ERROR_MESSAGE + ":\n" + docErrorMsg + "\n" + paymentErrorMsg + "\n" + uiErrorMsg + "\n");
         }
 
         //再组合校验, 例如:

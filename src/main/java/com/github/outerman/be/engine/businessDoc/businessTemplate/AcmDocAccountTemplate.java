@@ -1,6 +1,5 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
-
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -145,16 +144,17 @@ public class AcmDocAccountTemplate implements IValidatable {
                     errorMessage.append(businessCode + industryStr + "金额来源不能为空；");
                 }
                 // TODO 校验金额表达式正确性
-                Integer count = influenceCountMap.get(influence);
+                String countKey = influence + "_" + docTemplate.getFlag();
+                Integer count = influenceCountMap.get(countKey);
                 if (count == null) {
                     count = 0;
                 }
                 if ("vatTaxpayer,taxType".equals(influence)) {
                     count++;
-                    influenceCountMap.put(influence, count);
+                    influenceCountMap.put(countKey, count);
                 } else if ("vatTaxpayer,qualification".equals(influence)) {
                     count++;
-                    influenceCountMap.put(influence, count);
+                    influenceCountMap.put(countKey, count);
                 }
             }
             for (Entry<String, Integer> countEntry : influenceCountMap.entrySet()) {

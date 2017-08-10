@@ -66,7 +66,7 @@ public class DocSettleValidator implements IBusinessDocValidatable {
         for (PaymentTemplateItem payTemplate : docTemplateWithAccountList) {
             String accountType = payTemplate.getAccountType().toString();
             Long paymentsType = payTemplate.getPaymentsType();
-            Long paymentsTypeTemp = businessTemplate.getPaymentTemplate().getPaymentsType(acmSortReceipt);
+            Long paymentsTypeTemp = businessTemplate.getPaymentTemplate().getPaymentsType(settlestyle);
             if (accountType.equals(settlestyle.getBankAccountAttr()) && paymentsType.equals(paymentsTypeTemp)) {
                 resultList.add(payTemplate);
             }
