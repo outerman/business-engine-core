@@ -10,6 +10,7 @@ import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 import com.github.outerman.be.api.vo.FiDocDto;
 import com.github.outerman.be.api.vo.FiDocEntryDto;
 import com.github.outerman.be.api.vo.SetOrg;
+import com.github.outerman.be.engine.businessDoc.businessTemplate.AcmDocAccountTemplate;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AmountGetter;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
 import com.github.outerman.be.engine.util.StringUtil;
@@ -27,10 +28,6 @@ import java.util.stream.Collectors;
 @Component
 public class DocEntryValidator implements IBusinessDocValidatable {
 
-    private SetOrg setOrg;
-    
-    private BusinessTemplate businessTemplate;
-
     @Autowired
     public DocEntryValidator(ValidatorManager validatorManager) {
         validatorManager.addValidator(this);
@@ -38,36 +35,39 @@ public class DocEntryValidator implements IBusinessDocValidatable {
 
     @Override
     public String validate(SetOrg setOrg, BusinessTemplate businessTemplate, AcmSortReceipt acmSortReceipt, FiDocDto doc) {
-        this.setOrg = setOrg;
-        this.businessTemplate = businessTemplate;
         // 根据凭证分录（分类标识、科目、金额）、流水账（影响因素）反查对应的凭证模板数据
-        Map<String, List<DocAccountTemplateItem>> docTemplateMap = businessTemplate.getDocAccountTemplate().getDocTemplateMap(setOrg);
+        AcmDocAccountTemplate docTemplate = businessTemplate.getDocAccountTemplate();
+        String businessCode = "业务类型 " + docTemplate.getDocTemplateDto().getBusinessCode();
+        Map<String, List<DocAccountTemplateItem>> docTemplateMap = docTemplate.getDocTemplateMap(setOrg);
         if (docTemplateMap.isEmpty()) {
-            return "没有找到凭证模板数据";
+            return businessCode + " 没有找到凭证模板数据；";
         }
 
         // 遍历检查, 带有"A"\"B"的来源标记的分录
         return doc.getEntrys()
                 .stream()
                 .filter(entry -> entry.getSourceFlag() != null)
-                .map(entry -> validateEntry(acmSortReceipt, docTemplateMap, entry))
+                .map(entry -> validateEntry(docTemplateMap, entry, setOrg, businessTemplate, acmSortReceipt, doc))
                 .filter(str -> !StringUtil.isEmpty(str))
                 .collect(Collectors.joining(";"));
     }
 
-    private String validateEntry(AcmSortReceipt acmSortReceipt, Map<String, List<DocAccountTemplateItem>> docTemplateMap, FiDocEntryDto entry) {
-        // 3.1) 根据凭证分录分类标记，查找凭证模板数据
+    private String validateEntry(Map<String, List<DocAccountTemplateItem>> docTemplateMap, FiDocEntryDto entry, SetOrg setOrg, BusinessTemplate businessTemplate, AcmSortReceipt acmSortReceipt, FiDocDto doc) {
         String flag = entry.getSourceFlag();
+        String message = "流水账 " + acmSortReceipt.getCode() + " 收支明细生成的凭证 " + doc.getCode() + " 标识" + flag + "分录";
+
+        // 3.1) 根据凭证分录分类标记，查找凭证模板数据
         if (!docTemplateMap.containsKey(flag)) {
-            return "分录没有找到凭证模板数据";
+            return message + entry.getAccountName() + "没有找到凭证模板数据";
         }
         List<DocAccountTemplateItem> docTemplateList = docTemplateMap.get(flag);
-        docTemplateMap.remove(flag); //检查过了就移走
+        docTemplateMap.remove(flag); // 检查过了就移走
 
         // 3.2) 根据凭证分录科目和金额，查找凭证模板数据
-        AcmSortReceiptDetail detail = acmSortReceipt.getAcmSortReceiptDetailList().get(0); //TODO: 验证假设前提是,每个流水账只有一个明细
+        // TODO 验证假设前提是,每个流水账只有一个明细
+        AcmSortReceiptDetail detail = acmSortReceipt.getAcmSortReceiptDetailList().get(0);
         String accountCode = entry.getAccountCode();
-        Double amountFromDoc = entry.getAmountDr() != null ?  entry.getAmountDr() : -entry.getAmountCr();
+        Double amountFromDoc = entry.getAmountDr() != null ? entry.getAmountDr() : -entry.getAmountCr();
         List<DocAccountTemplateItem> docTemplateWithAccountList = new ArrayList<>();
         for (DocAccountTemplateItem docTemplate : docTemplateList) {
             if (!accountCode.equals(docTemplate.getAccountCode())) {
@@ -80,7 +80,7 @@ public class DocEntryValidator implements IBusinessDocValidatable {
             docTemplateWithAccountList.add(docTemplate);
         }
         if (docTemplateWithAccountList.isEmpty()) {
-            return "分录的会计科目、金额和凭证模板不一致";
+            return message + entry.getAccountName() + "会计科目、金额和凭证模板不一致";
         }
 
         // 3.3) 根据业务单据数据和凭证模板影响因素以及取值，查找凭证模板数据
@@ -122,8 +122,7 @@ public class DocEntryValidator implements IBusinessDocValidatable {
             } else if ("departmentAttr,personAttr".equals(influence)) {
                 Long departmentAttr = docTemplate.getDepartmentAttr();
                 Long personAttr = docTemplate.getPersonAttr();
-                if (departmentAttr != null && departmentAttr.equals(detail.getDepartmentProperty())
-                    && personAttr != null && personAttr.equals(detail.getEmployeeAttribute())) {
+                if (departmentAttr != null && departmentAttr.equals(detail.getDepartmentProperty()) && personAttr != null && personAttr.equals(detail.getEmployeeAttribute())) {
                     resultList.add(docTemplate);
                 }
             } else if ("assetAttr".equals(influence)) {
@@ -154,7 +153,7 @@ public class DocEntryValidator implements IBusinessDocValidatable {
             }
         }
         if (resultList.size() != 1) {
-            return "分录没有找到或者找到多个一致的凭证模板数据";
+            return message + "没有找到或者找到多个一致的凭证模板数据";
         }
         return "";
     }

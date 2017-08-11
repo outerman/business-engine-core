@@ -36,14 +36,17 @@ public class DocSettleValidator implements IBusinessDocValidatable {
         return doc.getEntrys()
                 .stream()
                 .filter(entry -> entry.getSourceFlag() == null)
-                .map(entry -> validateEntry(businessTemplate, acmSortReceipt, entry))
+                .map(entry -> validateEntry(entry, businessTemplate, acmSortReceipt, doc))
                 .filter(str -> !StringUtil.isEmpty(str))
                 .collect(Collectors.joining(";"));
     }
 
-    private String validateEntry(BusinessTemplate businessTemplate, AcmSortReceipt acmSortReceipt, FiDocEntryDto entry) {
+    private String validateEntry(FiDocEntryDto entry, BusinessTemplate businessTemplate, AcmSortReceipt acmSortReceipt, FiDocDto doc) {
+        String message = "流水账 " + acmSortReceipt.getCode() + " 结算情况生成的凭证 " + doc.getCode() + "结算分录";
+
         // 根据凭证分录科目和金额，查找结算凭证模板数据
-        AcmSortReceiptSettlestyle settlestyle = acmSortReceipt.getAcmSortReceiptSettlestyleList().get(0); // TODO:假设前提,模拟数据里只有一个结算方式
+        // TODO:假设前提,模拟数据里只有一个结算方式
+        AcmSortReceiptSettlestyle settlestyle = acmSortReceipt.getAcmSortReceiptSettlestyleList().get(0);
         String accountCode = entry.getAccountCode();
         Double amount = entry.getAmountDr() == null ? entry.getAmountCr() : entry.getAmountDr();
         Map<String, PaymentTemplateItem> payTemplateMap = businessTemplate.getPaymentTemplate().getPaymentTemplateDto().getPayMap();
@@ -58,7 +61,7 @@ public class DocSettleValidator implements IBusinessDocValidatable {
             docTemplateWithAccountList.add(payTemplate);
         }
         if (docTemplateWithAccountList.isEmpty()) {
-            return "分录的会计科目、金额和结算凭证模板不一致";
+            return message + "会计科目、金额和结算凭证模板不一致";
         }
 
         // 根据业务单据结算数据和结算凭证模板 accountType、paymentsType，查找结算凭证模板数据
@@ -72,7 +75,7 @@ public class DocSettleValidator implements IBusinessDocValidatable {
             }
         }
         if (resultList.size() != 1) {
-            return "分录没有找到或者找到多个一致的结算凭证模板数据";
+            return message + "没有找到或者找到多个一致的结算凭证模板数据";
         }
         return "";
     }
