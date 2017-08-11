@@ -99,7 +99,7 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
                     }
                     Integer flag = getFlag(columnId, tacticsList);
                     if (flag == null || flag < 2) {
-                        errorMessage.append(businessCode + industryStr + "，字段 " + columnId + " 元数据不必填，凭证模板有对应影响因素且没有默认记录");
+                        errorMessage.append(businessCode + industryStr + "，字段 " + columnId + " 元数据不必填，凭证模板有对应影响因素且没有默认记录；");
                     }
                 }
             }

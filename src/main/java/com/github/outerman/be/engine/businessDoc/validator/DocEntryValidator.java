@@ -10,7 +10,6 @@ import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 import com.github.outerman.be.api.vo.FiDocDto;
 import com.github.outerman.be.api.vo.FiDocEntryDto;
 import com.github.outerman.be.api.vo.SetOrg;
-import com.github.outerman.be.engine.businessDoc.businessTemplate.AcmDocAccountTemplate;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AmountGetter;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
 import com.github.outerman.be.engine.util.StringUtil;
@@ -36,9 +35,8 @@ public class DocEntryValidator implements IBusinessDocValidatable {
     @Override
     public String validate(SetOrg setOrg, BusinessTemplate businessTemplate, AcmSortReceipt acmSortReceipt, FiDocDto doc) {
         // 根据凭证分录（分类标识、科目、金额）、流水账（影响因素）反查对应的凭证模板数据
-        AcmDocAccountTemplate docTemplate = businessTemplate.getDocAccountTemplate();
-        String businessCode = "业务类型 " + docTemplate.getDocTemplateDto().getBusinessCode();
-        Map<String, List<DocAccountTemplateItem>> docTemplateMap = docTemplate.getDocTemplateMap(setOrg);
+        String businessCode = "业务类型 " + businessTemplate.getBusinessCode();
+        Map<String, List<DocAccountTemplateItem>> docTemplateMap = businessTemplate.getDocAccountTemplate().getDocTemplateMap(setOrg);
         if (docTemplateMap.isEmpty()) {
             return businessCode + " 没有找到凭证模板数据；";
         }
@@ -58,7 +56,7 @@ public class DocEntryValidator implements IBusinessDocValidatable {
 
         // 3.1) 根据凭证分录分类标记，查找凭证模板数据
         if (!docTemplateMap.containsKey(flag)) {
-            return message + entry.getAccountName() + "没有找到凭证模板数据";
+            return message + entry.getAccountName() + "没有找到凭证模板数据；";
         }
         List<DocAccountTemplateItem> docTemplateList = docTemplateMap.get(flag);
         docTemplateMap.remove(flag); // 检查过了就移走
@@ -80,7 +78,7 @@ public class DocEntryValidator implements IBusinessDocValidatable {
             docTemplateWithAccountList.add(docTemplate);
         }
         if (docTemplateWithAccountList.isEmpty()) {
-            return message + entry.getAccountName() + "会计科目、金额和凭证模板不一致";
+            return message + entry.getAccountName() + "会计科目、金额和凭证模板不一致；";
         }
 
         // 3.3) 根据业务单据数据和凭证模板影响因素以及取值，查找凭证模板数据
@@ -116,7 +114,11 @@ public class DocEntryValidator implements IBusinessDocValidatable {
                 }
             } else if ("departmentAttr".equals(influence)) {
                 Long departmentAttr = docTemplate.getDepartmentAttr();
-                if (departmentAttr != null && departmentAttr.equals(detail.getDepartmentProperty())) {
+                Long detailDepartmentAttr = detail.getDepartmentProperty();
+                if (detailDepartmentAttr == null) {
+                    detailDepartmentAttr = 0L;
+                }
+                if (departmentAttr != null && departmentAttr.equals(detailDepartmentAttr)) {
                     resultList.add(docTemplate);
                 }
             } else if ("departmentAttr,personAttr".equals(influence)) {
@@ -127,33 +129,53 @@ public class DocEntryValidator implements IBusinessDocValidatable {
                 }
             } else if ("assetAttr".equals(influence)) {
                 Long extendAttr = docTemplate.getExtendAttr();
-                if (extendAttr != null && extendAttr.equals(detail.getAssetAttr())) {
+                Long assetAttr = detail.getAssetAttr();
+                if (assetAttr == null) {
+                    assetAttr = 0L;
+                }
+                if (extendAttr != null && extendAttr.equals(assetAttr)) {
                     resultList.add(docTemplate);
                 }
             } else if ("punishmentAttr".equals(influence)) {
                 Long extendAttr = docTemplate.getExtendAttr();
-                if (extendAttr != null && extendAttr.equals(detail.getPenaltyType())) {
+                Long penaltyType = detail.getPenaltyType();
+                if (penaltyType == null) {
+                    penaltyType = 0L;
+                }
+                if (extendAttr != null && extendAttr.equals(penaltyType)) {
                     resultList.add(docTemplate);
                 }
             } else if ("borrowAttr".equals(influence)) {
                 Long extendAttr = docTemplate.getExtendAttr();
-                if (extendAttr != null && extendAttr.equals(detail.getLoanTerm())) {
+                Long loanTerm = detail.getLoanTerm();
+                if (loanTerm == null) {
+                    loanTerm = 0L;
+                }
+                if (extendAttr != null && extendAttr.equals(loanTerm)) {
                     resultList.add(docTemplate);
                 }
             } else if ("accountInAttr".equals(influence)) {
                 Long extendAttr = docTemplate.getExtendAttr();
-                if (extendAttr != null && extendAttr.equals(detail.getInBankAccountTypeId())) {
+                Long inBankAccountTypeId = detail.getInBankAccountTypeId();
+                if (inBankAccountTypeId == null) {
+                    inBankAccountTypeId = 0L;
+                }
+                if (extendAttr != null && extendAttr.equals(inBankAccountTypeId)) {
                     resultList.add(docTemplate);
                 }
             } else if ("accountOutAttr ".equals(influence)) {
                 Long extendAttr = docTemplate.getExtendAttr();
-                if (extendAttr != null && extendAttr.equals(detail.getBankAccountTypeId())) {
+                Long bankAccountTypeId = detail.getBankAccountTypeId();
+                if (bankAccountTypeId == null) {
+                    bankAccountTypeId = 0L;
+                }
+                if (extendAttr != null && extendAttr.equals(bankAccountTypeId)) {
                     resultList.add(docTemplate);
                 }
             }
         }
         if (resultList.size() != 1) {
-            return message + "没有找到或者找到多个一致的凭证模板数据";
+            return message + "没有找到或者找到多个一致的凭证模板数据；";
         }
         return "";
     }

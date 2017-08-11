@@ -69,7 +69,7 @@ public class BusinessTemplate implements IValidatable {
                         paymentTemplate.getPaymentTemplateDto(),
                         uiTemplate.getUiTemplateDto()))
                 .filter(message -> !StringUtil.isEmpty(message))
-                .collect(Collectors.joining(";"));
+                .collect(Collectors.joining("\n"));
         return errorMessage;
     }
 

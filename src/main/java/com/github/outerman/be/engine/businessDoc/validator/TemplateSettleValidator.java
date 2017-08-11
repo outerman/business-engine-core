@@ -32,6 +32,10 @@ public class TemplateSettleValidator implements ITemplateValidatable {
         // 元数据模板银行账号（结算方式）显示（现在显示即必填）时，凭证模板对方科目来源必须存在结算方式
         // TODO 现在判断凭证模板是否有对应的结算信息是根据对方科目来源是结算方式，isSettlement=1，是否应该根据结算凭证模板来判断
         StringBuilder errorMessage = new StringBuilder();
+        if (docAccountTemplateDto.getBusinessCode().toString().startsWith("40")) {
+            // 存取现金/内部账户互转 都是本表自平
+            return "";
+        }
 
         Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
         Map<String, List<DocAccountTemplateItem>> docTemplateMap = docAccountTemplateDto.getAllPossibleTemplate();

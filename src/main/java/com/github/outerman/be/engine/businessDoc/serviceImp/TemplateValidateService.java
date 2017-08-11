@@ -125,6 +125,9 @@ public class TemplateValidateService implements ITemplateValidateService {
                     if (acmSortReceipt.getAcmSortReceiptDetailList() == null || acmSortReceipt.getAcmSortReceiptDetailList().isEmpty()) {
                         return "业务单据缺少明细";
                     }
+                    if (!businessTemplate.getBusinessCode().equals(acmSortReceipt.getAcmSortReceiptDetailList().get(0).getBusinessCode())) {
+                        return "";
+                    }
 
                     return validatorManager.getBusinessDocValidators()
                             .parallelStream()

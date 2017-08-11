@@ -43,7 +43,7 @@ public class AcmUITemplate implements IValidatable {
         // 行业为 key，业务类型元数据信息
         Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
         if (tacticsMap.isEmpty()) {
-            return "业务类型 " + uiTemplateDto.getBusinessCode() + " 元数据配置信息（tactics）为空";
+            return "业务类型 " + uiTemplateDto.getBusinessCode() + " 元数据配置信息（tactics）为空；";
         }
         Map<Long, List<SetColumnsSpecialVo>> specialMap = uiTemplateDto.getSpecialMap();
 

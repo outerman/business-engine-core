@@ -61,7 +61,7 @@ public class DocSettleValidator implements IBusinessDocValidatable {
             docTemplateWithAccountList.add(payTemplate);
         }
         if (docTemplateWithAccountList.isEmpty()) {
-            return message + "会计科目、金额和结算凭证模板不一致";
+            return message + "会计科目、金额和结算凭证模板不一致；";
         }
 
         // 根据业务单据结算数据和结算凭证模板 accountType、paymentsType，查找结算凭证模板数据
@@ -75,7 +75,7 @@ public class DocSettleValidator implements IBusinessDocValidatable {
             }
         }
         if (resultList.size() != 1) {
-            return message + "没有找到或者找到多个一致的结算凭证模板数据";
+            return message + "没有找到或者找到多个一致的结算凭证模板数据；";
         }
         return "";
     }
