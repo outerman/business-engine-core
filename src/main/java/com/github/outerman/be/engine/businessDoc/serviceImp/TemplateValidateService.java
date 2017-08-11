@@ -85,22 +85,25 @@ public class TemplateValidateService implements ITemplateValidateService {
         //1.5, TODO:清空现有流水账?
 
         // 2, 后模拟生成凭证
-        // AcmTestServiceImpl testService = new AcmTestServiceImpl();
-        // a）构建dto的模拟数据,遍历各个影响因素
-        // TODO: 后续在工程内生成测试用例, 去掉testGenerateProvider
-        String errMsg = testGenerateProvider.constructSortReceiptByCode(setOrg.getId(), businessCode);//testService.constructSortReceiptByCode(setOrg.getId(), businessCode);
-        if (!StringUtil.isEmpty(errMsg)) {
-            return errMsg;
-        }
-//        b）审核单据生成凭证
-        errMsg = testGenerateProvider.approveSortReceiptByCode(setOrg.getId(), businessCode);// testService.approveSortReceiptByCode(setOrg.getId(), businessCode);
-        if (!StringUtil.isEmpty(errMsg)) {
-            return errMsg;
-        }
-//        c）根据模板验证凭证科目和金额是否正确
-        errMsg = validateDocByCode(setOrg,  businessTemplate);
-        if (!StringUtil.isEmpty(errMsg)) {
-            return errMsg;
+        try {
+            // a）构建dto的模拟数据,遍历各个影响因素
+            // TODO: 后续在工程内生成测试用例, 去掉testGenerateProvider
+            String errMsg = testGenerateProvider.constructSortReceiptByCode(setOrg.getId(), businessCode);
+            if (!StringUtil.isEmpty(errMsg)) {
+                return errMsg;
+            }
+            // b）审核单据生成凭证
+            errMsg = testGenerateProvider.approveSortReceiptByCode(setOrg.getId(), businessCode);
+            if (!StringUtil.isEmpty(errMsg)) {
+                return errMsg;
+            }
+            // c）根据模板验证凭证科目和金额是否正确
+            errMsg = validateDocByCode(setOrg,  businessTemplate);
+            if (!StringUtil.isEmpty(errMsg)) {
+                return errMsg;
+            }
+        } catch (Exception ex) {
+            return ex.getMessage();
         }
         return "";
     }
