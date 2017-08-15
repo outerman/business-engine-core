@@ -124,7 +124,11 @@ public class DocEntryValidator implements IBusinessDocValidatable {
             } else if ("departmentAttr,personAttr".equals(influence)) {
                 Long departmentAttr = docTemplate.getDepartmentAttr();
                 Long personAttr = docTemplate.getPersonAttr();
-                if (departmentAttr != null && departmentAttr.equals(detail.getDepartmentProperty()) && personAttr != null && personAttr.equals(detail.getEmployeeAttribute())) {
+                Long detailPersonAttr = detail.getEmployeeAttribute();
+                if (detailPersonAttr == null) {
+                    detailPersonAttr = 0L;
+                }
+                if (departmentAttr != null && departmentAttr.equals(detail.getDepartmentProperty()) && personAttr != null && personAttr.equals(detailPersonAttr)) {
                     resultList.add(docTemplate);
                 }
             } else if ("assetAttr".equals(influence)) {
