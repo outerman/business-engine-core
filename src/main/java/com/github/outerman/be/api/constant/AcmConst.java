@@ -296,9 +296,8 @@ public final class AcmConst {
 
     private AcmConst() {
     }
-    
-    public static final String IMPORT_FILENAME_DECLARATION_RECEIPT_EXCEL = "/template/acm/exportReceiptTemplate.xls";
 
+    public static final String IMPORT_FILENAME_DECLARATION_RECEIPT_EXCEL = "/template/acm/exportReceiptTemplate.xls";
 
     /**
      * 从 yj-common里移动过来
@@ -390,8 +389,16 @@ public final class AcmConst {
      */
     public static final long VOUCHERTYPE_0009 = 100007L;
 
-
     public static final String BUSINESS_TEMPLATE = "BusinessTemplate";
+
+    /** 商品或服务 column id */
+    public static final Long INVENTORY_COLUMN_ID = 7L;
+
+    /** 资产 column id */
+    public static final Long ASSET_COLUMN_ID = 9L;
+
+    /** 资产类别 column id */
+    public static final Long ASSET_TYPE_COLUMN_ID = 8L;
 
     /** 银行账号（结算方式）column id */
     public static final Long BANK_ACCOUNT_COLUMN_ID = 14L;

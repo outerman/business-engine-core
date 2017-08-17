@@ -5,6 +5,8 @@ import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
 import com.github.outerman.be.api.constant.AcmConst;
 import com.github.outerman.be.api.dto.AcmUITemplateDto;
+import com.github.outerman.be.api.dto.BusinessAssetDto;
+import com.github.outerman.be.api.dto.BusinessAssetTypeDto;
 import com.github.outerman.be.api.vo.SetColumnsTacticsDto;
 
 import java.util.ArrayList;
@@ -33,6 +35,8 @@ public class AcmUITemplate implements IValidatable {
 
         uiTemplateDto.getTacticsMap().putAll(templateProvider.getTacticsByCode(orgId, businessCode));
         uiTemplateDto.getSpecialMap().putAll(templateProvider.getSpecialByCode(orgId, businessCode));
+        uiTemplateDto.setBusinessAssetList(templateProvider.getInventoryProperty(businessCode.toString()));
+        uiTemplateDto.setBusinessAssetTypeList(templateProvider.getAssetType(businessCode.toString()));
 
         uiTemplateDto.setOrgId(orgId);
         uiTemplateDto.setBusinessCode(businessCode);
@@ -50,6 +54,7 @@ public class AcmUITemplate implements IValidatable {
         StringBuilder errorMessage = new StringBuilder();
         errorMessage.append(validateTatics(tacticsMap));
         errorMessage.append(validateSpecial(tacticsMap, specialMap));
+        errorMessage.append(validateAsset());
 
         return errorMessage.toString();
     }
@@ -227,6 +232,50 @@ public class AcmUITemplate implements IValidatable {
             }
         }
 
+        return errorMessage.toString();
+    }
+
+    /**
+     * 验证存货属性对照关系、资产类别对照关系
+     * @return
+     */
+    private String validateAsset() {
+        StringBuilder errorMessage = new StringBuilder();
+        boolean inventoryVisible = false;
+        boolean assetTypeVisible = false;
+        for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
+            List<SetColumnsTacticsDto> tacticsList = entry.getValue();
+            for (SetColumnsTacticsDto tactics : tacticsList) {
+                Long invoiceId = tactics.getInvoiceId();
+                Long columnId = tactics.getColumnsId();
+                if (invoiceId == null || columnId == null) {
+                    continue;
+                }
+                Integer flag = tactics.getFlag();
+                if (columnId.equals(AcmConst.INVENTORY_COLUMN_ID) || columnId.equals(AcmConst.ASSET_COLUMN_ID)) {
+                    if (flag == 1 || flag == 2) {
+                        inventoryVisible = true;
+                    }
+                } else if (columnId.equals(AcmConst.ASSET_TYPE_COLUMN_ID)) {
+                    if (flag == 1 || flag == 2) {
+                        assetTypeVisible = true;
+                    }
+                }
+            }
+        }
+        String businessCode = "业务类型 " + uiTemplateDto.getBusinessCode();
+        if (inventoryVisible) {
+            List<BusinessAssetDto> businessAssetList = uiTemplateDto.getBusinessAssetList();
+            if (businessAssetList == null || businessAssetList.isEmpty()) {
+                errorMessage.append(businessCode + " 缺少对应的存货属性对照关系；");
+            }
+        }
+        if (assetTypeVisible) {
+            List<BusinessAssetTypeDto> businessAssetTypeList = uiTemplateDto.getBusinessAssetTypeList();
+            if (businessAssetTypeList == null || businessAssetTypeList.isEmpty()) {
+                errorMessage.append(businessCode + " 缺少对应的资产类别属性对照关系；");
+            }
+        }
         return errorMessage.toString();
     }
 

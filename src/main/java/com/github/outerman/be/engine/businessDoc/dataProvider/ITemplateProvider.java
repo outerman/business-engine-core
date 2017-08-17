@@ -1,6 +1,8 @@
 package com.github.outerman.be.engine.businessDoc.dataProvider;
 
 import com.github.outerman.be.api.vo.*;
+import com.github.outerman.be.api.dto.BusinessAssetDto;
+import com.github.outerman.be.api.dto.BusinessAssetTypeDto;
 import com.github.outerman.be.api.dto.FiDocGenetateResultDto.ReceiptResult;
 
 import java.util.List;
@@ -19,6 +21,10 @@ public interface ITemplateProvider {
     Map<Long, List<SetColumnsTacticsDto>> getTacticsByCode(Long orgId, Long businessCode);
 
     Map<Long, List<SetColumnsSpecialVo>> getSpecialByCode(Long orgId, Long businessCode);
+
+    List<BusinessAssetDto> getInventoryProperty(String businessCode);
+
+    List<BusinessAssetTypeDto> getAssetType(String businessCode);
 
     List<SetTaxRateDto> getTaxRateList(Long orgId);
 
