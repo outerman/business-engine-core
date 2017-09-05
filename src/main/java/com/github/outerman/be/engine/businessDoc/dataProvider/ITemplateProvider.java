@@ -1,5 +1,6 @@
 package com.github.outerman.be.engine.businessDoc.dataProvider;
 
+import com.github.outerman.be.api.dto.FiDocGenetateResultDto;
 import com.github.outerman.be.api.vo.*;
 import com.github.outerman.be.api.dto.BusinessAssetDto;
 import com.github.outerman.be.api.dto.BusinessAssetTypeDto;
@@ -32,8 +33,9 @@ public interface ITemplateProvider {
 
     Map<String, FiAccount> getAccountCode(Long orgId, List<String> codeList, List<AcmSortReceiptDetail> detailList);
 
-    DocAccountTemplateItem requestAdvice(DocAccountTemplateItem acmBusinessDoc, Map<String, FiAccount> codeMap, Long bankAccountId, Long investorId, List<ReceiptResult> fiDocReturnFailList, Long sortId);
+//    DocAccountTemplateItem requestAdvice(DocAccountTemplateItem acmBusinessDoc, Map<String, FiAccount> codeMap, Long bankAccountId, Long investorId, List<ReceiptResult> fiDocReturnFailList, Long sortId);
 
     PaymentTemplateItem requestAdvice(PaymentTemplateItem acmPayDoc, Map<String, FiAccount> codeMap, AcmSortReceiptSettlestyle sett);
 
+    DocAccountTemplateItem requestAdvice(DocAccountTemplateItem acmBusinessDoc, Map<String, FiAccount> codeMap, AcmSortReceiptDetail acmSortReceiptDetail, List<ReceiptResult> fiDocReturnFailList);
 }
