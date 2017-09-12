@@ -4,6 +4,7 @@ package com.github.outerman.be.engine.businessDoc.validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.github.outerman.be.api.constant.AcmConst;
 import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
@@ -65,6 +66,13 @@ public class DocEntryValidator implements IBusinessDocValidatable {
         // TODO 验证假设前提是,每个流水账只有一个明细
         AcmSortReceiptDetail detail = acmSortReceipt.getAcmSortReceiptDetailList().get(0);
         String accountCode = entry.getAccountCode();
+        long accountingStandardId = setOrg.getAccountingStandards().longValue();
+        if (accountCode.startsWith("1002") || accountCode.startsWith("1511") 
+                || (accountCode.startsWith("3001") && accountingStandardId == AcmConst.ACCOUNTINGSTANDARDS_0002)
+                || (accountCode.startsWith("4001") && accountingStandardId == AcmConst.ACCOUNTINGSTANDARDS_0001)) {
+            // 一些实际可能会取凭证模板科目对应下级科目的业务，实际使用科目和模板科目不一致，暂时不校验，例如银行存款（银行账号相关），实收资本（投资人相关），长期股权投资（被投资人相关）
+            return "";
+        }
         Double amountFromDoc = entry.getAmountDr() != null ? entry.getAmountDr() : -entry.getAmountCr();
         List<DocAccountTemplateItem> docTemplateWithAccountList = new ArrayList<>();
         for (DocAccountTemplateItem docTemplate : docTemplateList) {
@@ -108,8 +116,11 @@ public class DocEntryValidator implements IBusinessDocValidatable {
                     }
                 } else if ("vatTaxpayer,qualification".equals(influence)) {
                     Boolean qualification = docTemplate.getQualification();
-                    if (qualification != null && qualification && detail.getIsQualification() != null && detail.getIsQualification() == 1) {
-                        resultList.add(docTemplate);
+                    Byte detailQualification = detail.getIsQualification();
+                    if (qualification != null && detailQualification != null) {
+                        if ((qualification && detail.getIsQualification() == 1) || (!qualification && detail.getIsQualification() == 0)) {
+                            resultList.add(docTemplate);
+                        }
                     }
                 }
             } else if ("departmentAttr".equals(influence)) {

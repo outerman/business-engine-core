@@ -391,6 +391,12 @@ public final class AcmConst {
 
     public static final String BUSINESS_TEMPLATE = "BusinessTemplate";
 
+    /** 部门 column id */
+    public static final Long DEPARTMENT_COLUMN_ID = 4L;
+
+    /** 人员 column id */
+    public static final Long PERSON_COLUMN_ID = 5L;
+
     /** 商品或服务 column id */
     public static final Long INVENTORY_COLUMN_ID = 7L;
 
@@ -409,6 +415,15 @@ public final class AcmConst {
     /** 税率 column id */
     public static final Long TAX_RATE_COLUMN_ID = 16L;
 
+    /** 罚款性质 column id */
+    public static final Long PENALTY_TYPE_COLUMN_ID = 23L;
+
+    /** 借款期限 column id */
+    public static final Long LOAN_TERM_COLUMN_ID = 24L;
+
+    /**  */
+    public static final Long BANK_ACCOUNT_TWO_COLUMN_ID = 25L;
+
     /** 一般纳税人 column id */
     public static final Long VAT_TAX_PAYER_41_COLUMN_ID = 33L;
 
@@ -417,5 +432,15 @@ public final class AcmConst {
 
     /** 会计准则 id 列表 */
     public static final List<Long> ACCOUNTING_STANDARD_ID_LIST = Arrays.asList(18L, 19L);
+
+    /** 
+     * 企业会计准则:  18: 企业会计准则2007
+     */ 
+    public static final long ACCOUNTINGSTANDARDS_0001 = 18L;
+
+    /** 
+     * 企业会计准则:  19: 小企业会计准则2013
+     */ 
+    public static final long ACCOUNTINGSTANDARDS_0002 = 19L;
 
 }
