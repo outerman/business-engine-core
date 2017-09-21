@@ -7,16 +7,15 @@ package com.github.outerman.be.api.constant;
  * 错误编码
  */
 public class ErrorCode {
-//    public static final BusinessException ENGINE_EMPTY_ORG_ERROR = new BusinessException("709001", "没有组织信息44");
-
 
     public static final String ENGINE_VALIDATE_ERROR_CODE = "708001";
     public static final String ENGINE_VALIDATE_ERROR_MESSAGE = "模板验证不正确！";
 
+    /** 流水账信息为空 */
+    public static final BusinessEngineException EXCEPTION_RECEIPT_EMPATY = new BusinessEngineException("70900", "流水账信息为空");
 
-    /** 单号为空 */
-    public static final String ENGINE_DOC_GENETARE_EMPTY_ACM_ERROR_CODE = "70900";
-    public static final String ENGINE_DOC_GENETARE_EMPTY_ACM_ERROR_MSG = "流水单号为空";
+    /** 组织信息为空 */
+    public static final BusinessEngineException EXCEPTION_ORG_EMPATY = new BusinessEngineException("70901", "组织信息为空");
 
     /** 结算方式模板未找到，可能为账号保存异常 */
     public static final String ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_CODE = "70901";

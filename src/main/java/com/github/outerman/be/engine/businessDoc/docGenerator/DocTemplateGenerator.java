@@ -35,8 +35,11 @@ public class DocTemplateGenerator {
     private final String AMOUNT_TAXINCLUSIVEAMOUNT = "taxInclusiveAmount";
 
     public FiDocGenetateResultDto sortConvertVoucher(SetOrg setOrg, Long userId, String userName, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
-        if(receiptList == null || receiptList.isEmpty() || setOrg == null){//判断返回值是否为空
-            throw new BusinessEngineException(ErrorCode.ENGINE_DOC_GENETARE_EMPTY_ACM_ERROR_CODE, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_ACM_ERROR_MSG);
+        if (receiptList == null || receiptList.isEmpty()) {
+            throw ErrorCode.EXCEPTION_RECEIPT_EMPATY;
+        }
+        if (setOrg == null) {
+            throw ErrorCode.EXCEPTION_ORG_EMPATY;
         }
 
         FiDocDto fiDocDto;
