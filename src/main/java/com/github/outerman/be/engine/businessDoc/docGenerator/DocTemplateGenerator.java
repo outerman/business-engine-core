@@ -10,14 +10,14 @@ import com.github.outerman.be.api.dto.FiDocGenetateResultDto.ReceiptResult;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AmountGetter;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.TemplateManager;
+import com.github.outerman.be.engine.util.DoubleUtil;
 import com.github.outerman.be.engine.util.StringUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -42,7 +42,6 @@ public class DocTemplateGenerator {
             throw ErrorCode.EXCEPTION_ORG_EMPATY;
         }
 
-        FiDocDto fiDocDto;
         List<FiDocDto> fiDocList = new ArrayList<>();
         SetCurrency currency = templateProvider.getBaseCurrency(setOrg.getId());
         FiDocGenetateResultDto resultDto = new FiDocGenetateResultDto();
@@ -52,43 +51,40 @@ public class DocTemplateGenerator {
                 continue;
             }
             //创建凭证对象
-            fiDocDto = new FiDocDto();
-            //填写表头
-            fillDocHead(fiDocDto, acmSortReceipt);
+            FiDocDto fiDocDto = getDefaultDoc(acmSortReceipt);
             // 把业务明细, 根据业务编码, 做重新排序
-            List<AcmSortReceiptDetail> acmSortReceiptDetailList = reorderReceiptDetailList(acmSortReceipt.getAcmSortReceiptDetailList());
+            List<AcmSortReceiptDetail> detailList = reorderReceiptDetailList(acmSortReceipt.getAcmSortReceiptDetailList());
 
-            for (int i = 0 ; i < acmSortReceiptDetailList.size() ; i++) {
-            	AcmSortReceiptDetail acmSortReceiptDetail = acmSortReceiptDetailList.get(i);
-                BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg.getId(), acmSortReceiptDetail.getBusinessCode(), templateProvider);
+            for (int i = 0 ; i < detailList.size() ; i++) {
+            	AcmSortReceiptDetail detail = detailList.get(i);
+                BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg.getId(), detail.getBusinessCode(), templateProvider);
 
                 // 1.取出业务类型对应的模板
                 if (businessTemplate == null || businessTemplate.getDocAccountTemplate() == null
                         || businessTemplate.getDocAccountTemplate().getDocTemplateDto() == null
                         || businessTemplate.getDocAccountTemplate().getDocTemplateDto().getAllPossibleTemplate() == null
                         || businessTemplate.getDocAccountTemplate().getDocTemplateDto().getAllPossibleTemplate().isEmpty()) {
-                    continue;
+                    String message = String.format("业务类型 %s 凭证模板数据没有找到", detail.getBusinessCode());
+                    throw new BusinessEngineException(ErrorCode.EXCEPTION_CODE_DOC_TEMPLATE_EMPTY, message);
                 }
 
-                List<DocAccountTemplateItem> fiBillDocTemplateList = businessTemplate.getDocAccountTemplate().getTemplate(setOrg, acmSortReceiptDetail);
+                List<DocAccountTemplateItem> fiBillDocTemplateList = businessTemplate.getDocAccountTemplate().getTemplate(setOrg, detail);
 
                 // TODO 科目编码处理
                 List<String> codeList = new ArrayList<>();
                 for (DocAccountTemplateItem docTemplate : fiBillDocTemplateList) {
                     codeList.add(docTemplate.getAccountCode());
                 }
-                Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), codeList, acmSortReceiptDetailList);
-                for (int h = 0 ; h < fiBillDocTemplateList.size(); h++ ) {
-                    DocAccountTemplateItem fiBillDocTemplate = fiBillDocTemplateList.get(h);
-                    //根据反馈建议, 调整模板
-                    fiBillDocTemplate = updateTemplateByAdvice(acmSortReceiptDetail, fiBillDocTemplate, resultDto, codeMap, templateProvider);
+                Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), codeList, detailList);
+                for (DocAccountTemplateItem fiBillDocTemplate : fiBillDocTemplateList) {
+                    // 根据反馈建议, 调整模板
+                    fiBillDocTemplate = updateTemplateByAdvice(detail, fiBillDocTemplate, resultDto, codeMap, templateProvider);
+                    if (fiBillDocTemplate == null) {
+                        continue;
+                    }
 
-                	if(fiBillDocTemplate == null){
-                        throw new BusinessEngineException(ErrorCode.ENGINE_DOC_GENETARE_EMPTY_BUSINESS_ERROR_CODE, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_BUSINESS_ERROR_MSG);
-                	}
-                	
                     // 取金额方式
-                    Double amount = AmountGetter.getAmount(acmSortReceiptDetail, fiBillDocTemplate);
+                    Double amount = AmountGetter.getAmount(detail, fiBillDocTemplate);
                     if(amount.equals(0D) || amount.equals(0.0)){//金额为零的跳过
                         continue;
                     }
@@ -96,7 +92,7 @@ public class DocTemplateGenerator {
                     StringBuilder fuz = new StringBuilder();
                     // 建立辅助核算
                     Map<String,String> auxInfo = new HashMap<>();
-                    setAuxInfo(setOrg.getVatTaxpayer(), currency, acmSortReceipt, acmSortReceiptDetail, fiBillDocTemplate, fuz, auxInfo);
+                    setAuxInfo(setOrg.getVatTaxpayer(), currency, acmSortReceipt, detail, fiBillDocTemplate, fuz, auxInfo);
 
                     Boolean isSort = true;
                     //查看是否需要特殊排序: 所有"本表"平的业务,都特殊排序
@@ -134,10 +130,10 @@ public class DocTemplateGenerator {
             }
 
             //TODO: 结算方式暂时没有和businessCode挂钩, 所以取任何一个都会返回所有
-            BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg.getId(), acmSortReceiptDetailList.get(0).getBusinessCode(), templateProvider);
+            BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg.getId(), detailList.get(0).getBusinessCode(), templateProvider);
             // TODO 科目编码处理
             List<String> accountCodeList = businessTemplate.getPaymentTemplate().getAccountCodeList();
-            Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), accountCodeList, acmSortReceiptDetailList);
+            Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), accountCodeList, detailList);
             //查询结算方式生成凭证
             for (int i = 0 ; i< acmSortReceiptSettlestyleList.size(); i++) {
             	AcmSortReceiptSettlestyle sett = acmSortReceiptSettlestyleList.get(i);
@@ -148,7 +144,7 @@ public class DocTemplateGenerator {
                 	throw new BusinessEngineException(ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_CODE, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG);
                 }
 
-                String memo = getMemo(acmSortReceipt, acmPayDocTemplate);
+                String memo = getSettleSummary(sett, acmSortReceipt, acmPayDocTemplate);
 
                 //根据反馈建议, 调整模板
                 acmPayDocTemplate = getPayTemplateByAdvice(sett, acmPayDocTemplate, codeMap, templateProvider);
@@ -186,6 +182,16 @@ public class DocTemplateGenerator {
                     fiDocDto.addEntryDai(fuz.insert(0, acmPayDocTemplate.getSubjectDefault()+"_ran"+i).toString(), amount, (auxInfo.isEmpty() ? null : auxInfo), true, -1L);
                 }
             }
+            // 正负混录的流水账收支明细，分录合并之后分录金额可能为 0 ，需要去掉金额为 0 的分录
+            List<FiDocEntryDto> zeroAmountList = new ArrayList<>();
+            for (FiDocEntryDto docEntry : fiDocDto.getEntrys()) {
+                if (DoubleUtil.isNullOrZero(docEntry.getAmountDr()) && DoubleUtil.isNullOrZero(docEntry.getAmountCr())) {
+                    zeroAmountList.add(docEntry);
+                }
+            }
+            if (!zeroAmountList.isEmpty()) {
+                fiDocDto.getEntrys().removeAll(zeroAmountList);
+            }
 
             addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), setOrg.getId(), userId);
         }
@@ -206,63 +212,52 @@ public class DocTemplateGenerator {
         return templateProvider.requestAdvice(acmPayDocTemplate, codeMap, sett);
     }
 
-
     private DocAccountTemplateItem updateTemplateByAdvice(AcmSortReceiptDetail acmSortReceiptDetail, DocAccountTemplateItem fiBillDocTemplate, FiDocGenetateResultDto resultDto,
             Map<String, FiAccount> codeMap, ITemplateProvider templateProvider) {
-
-        Long bankAccountId;
-        if ((String.valueOf(acmSortReceiptDetail.getBusinessCode()).equals(BusinessCode.BUSINESS_402000)
-                && "accountInAttr".equals(fiBillDocTemplate.getInfluence()))
-                || (String.valueOf(acmSortReceiptDetail.getBusinessCode()).equals(BusinessCode.BUSINESS_401050)
-                && "1002".equals(fiBillDocTemplate.getAccountCode()) && acmSortReceiptDetail.getInBankAccountId() != null)) {
-            bankAccountId = acmSortReceiptDetail.getInBankAccountId();
-        } else {
-            bankAccountId = acmSortReceiptDetail.getBankAccountId();
-        }
         List<ReceiptResult> fiDocReturnFailList = new ArrayList<>();
         fiBillDocTemplate = templateProvider.requestAdvice(fiBillDocTemplate, codeMap, acmSortReceiptDetail, fiDocReturnFailList);
-        resultDto.getFailedReceipt().addAll(fiDocReturnFailList);
+        if (!fiDocReturnFailList.isEmpty()) {
+            resultDto.getFailedReceipt().addAll(fiDocReturnFailList);
+            return null;
+        }
         return fiBillDocTemplate;
     }
 
-
-    private void fillDocHead(FiDocDto fiDocDto, AcmSortReceipt acmSortReceipt) {
-        String dateStr;
-        // 来源单据id 设为理票单ID
-        fiDocDto.setSourceVoucherId(acmSortReceipt.getSourceVoucherId());
-        // 来源单据code 设为理票单code
-        fiDocDto.setSourceVoucherCode(acmSortReceipt.getSourceVoucherCode());
-        // 单据类型-理票
-        fiDocDto.setDocSourceTypeId(acmSortReceipt.getSourceVoucherTypeId());
-        // 原始单据数量
-        fiDocDto.setAttachedVoucherNum(acmSortReceipt.getAppendNum());
-        // 凭证日期
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        dateStr = format.format(acmSortReceipt.getInAccountDate());
-        fiDocDto.setVoucherDate(dateStr);
+    /**
+     * 根据流水账信息获取默认的凭证 dto
+     * @param receipt
+     */
+    private FiDocDto getDefaultDoc(AcmSortReceipt receipt) {
+        FiDocDto doc = new FiDocDto();
+        doc.setSourceVoucherId(receipt.getSourceVoucherId());
+        doc.setSourceVoucherCode(receipt.getSourceVoucherCode());
+        doc.setDocSourceTypeId(receipt.getSourceVoucherTypeId());
+        doc.setAttachedVoucherNum(receipt.getAppendNum());
+        String dateStr = StringUtil.format(receipt.getInAccountDate());
+        doc.setVoucherDate(dateStr);
         // 如果曾经生成过,保留凭证号
-        if (!StringUtil.isEmpty(acmSortReceipt.getDocCodeBak())) {
-            fiDocDto.setCode(acmSortReceipt.getDocCodeBak());
+        if (!StringUtil.isEmpty(receipt.getDocCodeBak())) {
+            doc.setCode(receipt.getDocCodeBak());
         }
+        return doc;
     }
 
-    // 把业务明细, 根据业务编码, 做重新排序
-    private List<AcmSortReceiptDetail> reorderReceiptDetailList(List<AcmSortReceiptDetail> acmSortReceiptDetailList) {
+    /**
+     * 把业务明细, 根据业务编码, 做重新排序
+     * @param detailList
+     * @return
+     */
+    private List<AcmSortReceiptDetail> reorderReceiptDetailList(List<AcmSortReceiptDetail> detailList) {
         LinkedHashMap<Long, List<AcmSortReceiptDetail>> retMap = new LinkedHashMap<>();
-        if (acmSortReceiptDetailList == null || acmSortReceiptDetailList.isEmpty()) {
-            return acmSortReceiptDetailList;
-        }
-
-        for (AcmSortReceiptDetail acmSortReceiptDetail : acmSortReceiptDetailList) {
-            Long busiType = acmSortReceiptDetail.getBusinessType();
-            if (retMap.containsKey(busiType)) {
-                retMap.get(busiType).add(acmSortReceiptDetail);
+        for (AcmSortReceiptDetail detail : detailList) {
+            Long businessType = detail.getBusinessType();
+            if (retMap.containsKey(businessType)) {
+                retMap.get(businessType).add(detail);
             }
             else {
                 List<AcmSortReceiptDetail> list = new ArrayList<>();
-
-                list.add(acmSortReceiptDetail);
-                retMap.put(busiType, list);
+                list.add(detail);
+                retMap.put(businessType, list);
             }
         }
 
@@ -273,15 +268,24 @@ public class DocTemplateGenerator {
         return ret;
     }
 
-    // TODO: 获取分录"摘要", 目前逻辑是这样的, 是否后续优化?
-    private String getMemo(AcmSortReceipt acmSortReceipt, PaymentTemplateItem acmPayDocTemplate) {
-        String mome;
-        if(acmSortReceipt.getAcmSortReceiptDetailList().size() == 1){
-            mome = acmSortReceipt.getAcmSortReceiptDetailList().get(0).getMemo();
-        }else{
-            mome = acmPayDocTemplate.getSubjectType();
+    /**
+     * 获取结算情况明细对应的分录摘要
+     * @param settleDetail
+     * @param receipt
+     * @param acmPayDocTemplate
+     * @return
+     */
+    private String getSettleSummary(AcmSortReceiptSettlestyle settleDetail, AcmSortReceipt receipt, PaymentTemplateItem acmPayDocTemplate) {
+        String summary = settleDetail.getMemo();
+        if (!StringUtil.isEmpty(summary)) {
+            return summary;
         }
-        return mome;
+        if (receipt.getAcmSortReceiptSettlestyleList().size() != 1) {
+            summary = acmPayDocTemplate.getSubjectType();
+        } else {
+            summary = receipt.getAcmSortReceiptDetailList().get(0).getMemo();
+        }
+        return summary;
     }
 
     private void addDocToList(List<FiDocDto> fiDocList, FiDocDto fiDocDto, Long docId, Long orgId, Long userId) {
@@ -449,8 +453,8 @@ public class DocTemplateGenerator {
                     fuz.append("_ch").append(acmSortReceiptDetail.getInventory());
                 }
                 if(acmSortReceiptDetail.getAssetId() != null){
-                	auxInfo.put("inventory", acmSortReceiptDetail.getAssetId()+EMPTY);
-                	fuz.append("_ch").append(acmSortReceiptDetail.getAssetId());
+                    auxInfo.put("inventory", acmSortReceiptDetail.getAssetId()+EMPTY);
+                    fuz.append("_ch").append(acmSortReceiptDetail.getAssetId());
                 }
             }
             if(fiBillDocTemplate.getIsAuxAccProject()){//项目
@@ -465,10 +469,10 @@ public class DocTemplateGenerator {
                     fuz.append("_sl").append(acmSortReceiptDetail.getCommodifyNum());
                 }
             }
-//							if(fiBillDocTemplate.getIsAuxAccBankAccount()){//银行账号
-//								auxInfo.put("bank", acmSortReceiptDetail.getBankAccountId()+EMPTY);
-//								fuz.append(acmSortReceiptDetail.getBankAccountId());
-//							}
+//                          if(fiBillDocTemplate.getIsAuxAccBankAccount()){//银行账号
+//                              auxInfo.put("bank", acmSortReceiptDetail.getBankAccountId()+EMPTY);
+//                              fuz.append(acmSortReceiptDetail.getBankAccountId());
+//                          }
 
             //银行账号
             if("402000".equals(fiBillDocTemplate.getBusinessCode().toString()) && "A".equals(fiBillDocTemplate.getFlag())){
@@ -562,27 +566,28 @@ public class DocTemplateGenerator {
         //业务类型+  712 zbs 不管需不需要业务类型都给凭证传递过去
         fuz.append("_ywlx").append(acmSortReceiptDetail.getBusinessType());
         if(acmSortReceiptDetail.getBusinessType() != null){
-        	auxInfo.put("businessType", acmSortReceiptDetail.getBusinessType()+EMPTY);
+            auxInfo.put("businessType", acmSortReceiptDetail.getBusinessType()+EMPTY);
         }
 
         //单价
     	if(BusinessUtil.paymentDirection(acmSortReceiptDetail.getBusinessCode()) == 1 ||
                 (acmSortReceiptDetail.getIsDeduction() != null && acmSortReceiptDetail.getIsDeduction() == 1)) {// 是  看是否抵扣然后传递不同的单价
-        	if(acmSortReceiptDetail.getPrice() != null){
+            if(acmSortReceiptDetail.getPrice() != null){
                 auxInfo.put("price", acmSortReceiptDetail.getPrice()+EMPTY);
             }
         }else{
-        	if(acmSortReceiptDetail.getTaxInclusivePrice() != null){
+            if(acmSortReceiptDetail.getTaxInclusivePrice() != null){
                 auxInfo.put("price", acmSortReceiptDetail.getTaxInclusivePrice()+EMPTY);
             }
         }
         
         
         //摘要
-    	fuz.append("_zy").append(acmSortReceiptDetail.getMemo());
+        fuz.append("_zy").append(acmSortReceiptDetail.getMemo());
         if(acmSortReceiptDetail.getMemo() != null){
             auxInfo.put("memo", acmSortReceiptDetail.getMemo()+EMPTY);
         }
+       
         //科目id
         if(fiBillDocTemplate.getAccountId() != null){
             auxInfo.put("accountId", fiBillDocTemplate.getAccountId()+EMPTY);
@@ -593,12 +598,19 @@ public class DocTemplateGenerator {
         }
         //科目flag
         if(fiBillDocTemplate.getFlag() != null){
-        	auxInfo.put("flag", fiBillDocTemplate.getFlag());
+            auxInfo.put("flag", fiBillDocTemplate.getFlag());
         }
-        if(fiBillDocTemplate.getIsMultiCalc() != null){//多币种
+        if(fiBillDocTemplate.getIsMultiCalc()){//多币种
             if(currency.getId() != null){
                 auxInfo.put("currency", currency.getId()+EMPTY);
                 fuz.append("_dbz").append(currency.getId());
+            }
+        }
+        //即征即退，影响合并
+        if (fiBillDocTemplate.getIsAuxAccLevyAndRetreat() != null && fiBillDocTemplate.getIsAuxAccLevyAndRetreat()) {
+            if(acmSortReceiptDetail.getDrawbackPolicy() != null){
+                auxInfo.put("drawbackPolicy", acmSortReceiptDetail.getDrawbackPolicy()+EMPTY);
+                fuz.append("_drawbackPolicy").append(acmSortReceiptDetail.getDrawbackPolicy());
             }
         }
     }

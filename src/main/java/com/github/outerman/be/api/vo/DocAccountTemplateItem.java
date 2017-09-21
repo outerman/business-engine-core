@@ -87,6 +87,9 @@ public class DocAccountTemplateItem implements Serializable{
 	/** 是否辅助核算：银行账号 1启用 0不启用  */ 
 	private Boolean isAuxAccBankAccount;
 
+	/** 是否辅助核算：即征即退 */
+    private Boolean isAuxAccLevyAndRetreat;
+	
 	public Long getId() {
 		return id;
 	}
@@ -263,6 +266,23 @@ public class DocAccountTemplateItem implements Serializable{
 		this.isAuxAccBankAccount = isAuxAccBankAccount;
 	}
 
+	/**
+     * 获取是否辅助核算：即征即退
+     * @return 是否辅助核算：即征即退
+     */
+    public Boolean getIsAuxAccLevyAndRetreat() {
+        return isAuxAccLevyAndRetreat;
+    }
+
+    /**
+     * 设置是否辅助核算：即征即退
+     * @param isAuxAccLevyAndRetreat 是否辅助核算：即征即退
+     */
+    public void setIsAuxAccLevyAndRetreat(Boolean isAuxAccLevyAndRetreat) {
+        this.isAuxAccLevyAndRetreat = isAuxAccLevyAndRetreat;
+    }
+
+	
 	public Long getAccountId() {
 		return accountId;
 	}

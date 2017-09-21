@@ -10,30 +10,32 @@ import com.github.outerman.be.api.vo.DocAccountTemplateItem;
  * "金额来源"字段的解析
  */
 public class AmountGetter {
-    //常量
-    private static final String STR_0 = "0";
-    public  static final String EMPTY = "";
-    private static final String AMOUNT_AMOUNT = "amount";
-    private static final String AMOUNT_TAXINCLUSIVEAMOUNT = "taxInclusiveAmount";
-    private static final String AMOUNT_MINUS_AMOUNT = "-amount";
-    private static final String AMOUNT_MINUS_TAX = "-tax";
-    private static final String AMOUNT_MINUS_TAXINCLUSIVEAMOUNT = "-taxInclusiveAmount";
-    private static final String AMOUNT_TAX = "tax";
-    private static final String AMOUNT_DEDUCTIBLEINPUTTAX = "deductibleInputTax";
-    private static final String AMOUNT_TAXDEDUCTIBLEINPUTTAX = "tax-deductibleInputTax";
-    private static final String AMOUNT_EXT0 = "ext0";
-    private static final String AMOUNT_EXT1 = "ext1";
-    private static final String AMOUNT_EXT2 = "ext2";
-    private static final String AMOUNT_EXT3 = "ext3";
-    private static final String AMOUNT_EXT4 = "ext4";
-    private static final String AMOUNT_EXT5 = "ext5";
-    private static final String AMOUNT_EXT6 = "ext6";
-    private static final String AMOUNT_EXT7 = "ext7";
-    private static final String AMOUNT_EXT8 = "ext8";
-    private static final String AMOUNT_EXT9 = "ext9";
-    private static final String ISDEDUCTION = "isDeduction";
-    private static final String MAOHAO = ":";
-    private static final String JINGHAO = "#";
+  //常量
+    private final static String STR_0 = "0";
+    public  final static String EMPTY = "";
+    private final static String AMOUNT_AMOUNT = "amount";
+    private final static String AMOUNT_TAXINCLUSIVEAMOUNT = "taxInclusiveAmount";
+    private final static String AMOUNT_MINUS_AMOUNT = "-amount";
+    private final static String AMOUNT_MINUS_TAX = "-tax";
+    private final static String AMOUNT_MINUS_TAXINCLUSIVEAMOUNT = "-taxInclusiveAmount";
+    private final static String AMOUNT_TAX = "tax";
+    private final static String AMOUNT_DEDUCTIBLEINPUTTAX = "deductibleInputTax";
+    private final static String EXT1_MINUS_AMOUNT = "ext1-amount";
+    private final static String AMOUNT_MINUS_EXT1 = "amount-ext1";
+    private final static String AMOUNT_TAXDEDUCTIBLEINPUTTAX = "tax-deductibleInputTax";
+    private final static String AMOUNT_EXT0 = "ext0";
+    private final static String AMOUNT_EXT1 = "ext1";
+    private final static String AMOUNT_EXT2 = "ext2";
+    private final static String AMOUNT_EXT3 = "ext3";
+    private final static String AMOUNT_EXT4 = "ext4";
+    private final static String AMOUNT_EXT5 = "ext5";
+    private final static String AMOUNT_EXT6 = "ext6";
+    private final static String AMOUNT_EXT7 = "ext7";
+    private final static String AMOUNT_EXT8 = "ext8";
+    private final static String AMOUNT_EXT9 = "ext9";
+    private final static String ISDEDUCTION = "isDeduction";
+    private final static String MAOHAO = ":";
+    private final static String JINGHAO = "#";
 
 
     /**
@@ -57,6 +59,10 @@ public class AmountGetter {
             amount =  -1*sort.getTax();
         }else if(AMOUNT_MINUS_TAXINCLUSIVEAMOUNT.equals(source)){// 负价税合计金额
             amount =  -1*sort.getTaxInclusiveAmount();
+        }else if(EXT1_MINUS_AMOUNT.equals(source)){// 负价税合计金额
+            amount =  sort.getExt1()-sort.getAmount();
+        }else if(AMOUNT_MINUS_EXT1.equals(source)){// 负价税合计金额
+            amount =  sort.getAmount()-sort.getExt1();
         }else if(AMOUNT_EXT0.equals(source)){// 扩展字段0
             amount = sort.getExt0();
         }else if(AMOUNT_EXT1.equals(source)){// 扩展字段1
