@@ -26,8 +26,7 @@ public class DocSizeValidator implements IBusinessDocValidatable {
 
         // 2, 根据传入的模板, 验证分录数
         //TODO: 此处的模板选择逻辑, 和生成凭证的相同, 作为验证, 应该考虑另一套逻辑
-        List<DocAccountTemplateItem> docAccountTemplateList = businessTemplate.getDocAccountTemplate().getTemplate(
-                setOrg.getId(), setOrg.getAccountingStandards().intValue(), setOrg.getIndustry(), setOrg.getVatTaxpayer(), acmSortReceipt.getAcmSortReceiptDetailList().get(0));
+        List<DocAccountTemplateItem> docAccountTemplateList = businessTemplate.getDocAccountTemplate().getTemplate(setOrg, acmSortReceipt.getAcmSortReceiptDetailList().get(0));
 
         //是否含有需要结算的项
         boolean isSettle = docAccountTemplateList.stream().anyMatch(DocAccountTemplateItem::getIsSettlement);

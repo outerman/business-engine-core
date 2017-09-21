@@ -70,8 +70,7 @@ public class DocTemplateGenerator {
                     continue;
                 }
 
-                List<DocAccountTemplateItem> fiBillDocTemplateList = businessTemplate.getDocAccountTemplate()
-                        .getTemplate(setOrg.getId(), setOrg.getAccountingStandards().intValue(), setOrg.getIndustry(), setOrg.getVatTaxpayer(), acmSortReceiptDetail);
+                List<DocAccountTemplateItem> fiBillDocTemplateList = businessTemplate.getDocAccountTemplate().getTemplate(setOrg, acmSortReceiptDetail);
 
                 // TODO 科目编码处理
                 List<String> codeList = new ArrayList<>();

@@ -75,19 +75,19 @@ public class AcmDocAccountTemplate implements IValidatable {
     }
 
     // 获取具体模板,orgId不能为0
-    public List<DocAccountTemplateItem> getTemplate(Long orgId, Integer accountingStandardsId, Long industry, Long vatTaxpayer, AcmSortReceiptDetail acmSortReceiptDetail) {
+    public List<DocAccountTemplateItem> getTemplate(SetOrg org, AcmSortReceiptDetail acmSortReceiptDetail) {
         // 获取当前"行业 + 准则"的模板
         List<DocAccountTemplateItem> result = new ArrayList<>();
         Long businessCode = docTemplateDto.getBusinessCode();
         if (!businessCode.equals(acmSortReceiptDetail.getBusinessCode())) {
             return result;
         }
-        List<DocAccountTemplateItem> templatesForOrg = docTemplateDto.getAllPossibleTemplate().get(getKey(industry, accountingStandardsId));
+        List<DocAccountTemplateItem> templatesForOrg = docTemplateDto.getAllPossibleTemplate().get(getKey(org.getIndustry(), org.getAccountingStandards().intValue()));
         List<List<DocAccountTemplateItem>> fiBillDocTemplateListABCDEFG = getBusniess(templatesForOrg);
         if (fiBillDocTemplateListABCDEFG.isEmpty()) {
             return result;
         }
-        return getBusinessTemplate(fiBillDocTemplateListABCDEFG, acmSortReceiptDetail, vatTaxpayer);
+        return getBusinessTemplate(fiBillDocTemplateListABCDEFG, acmSortReceiptDetail, org.getVatTaxpayer());
     }
 
     /**
