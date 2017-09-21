@@ -30,6 +30,8 @@ public class AcmSortReceiptSettlestyle implements Serializable{
 	private String bankAccountName;
 	/** 银行账号属性  */ 
 	private String bankAccountAttr;
+    /** 账户启用状态 1启用 0不启用 */
+    private Boolean bankAccountStatus;
 
 	/** 票据号  */ 
 	private String notesNum;
@@ -197,6 +199,22 @@ public class AcmSortReceiptSettlestyle implements Serializable{
 	public void setBankAccountAttr(String bankAccountAttr) {
 		this.bankAccountAttr = bankAccountAttr;
 	}
+
+    /**
+     * 获取账户启用状态 1启用 0不启用
+     * @return 账户启用状态 1启用 0不启用
+     */
+    public Boolean getBankAccountStatus() {
+        return bankAccountStatus;
+    }
+
+    /**
+     * 设置账户启用状态 1启用 0不启用
+     * @param bankAccountStatus 账户启用状态 1启用 0不启用
+     */
+    public void setBankAccountStatus(Boolean bankAccountStatus) {
+        this.bankAccountStatus = bankAccountStatus;
+    }
 
 	public String getConsumerName() {
 		return consumerName;

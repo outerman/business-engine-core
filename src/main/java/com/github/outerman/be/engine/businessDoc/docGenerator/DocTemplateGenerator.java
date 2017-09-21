@@ -48,7 +48,7 @@ public class DocTemplateGenerator {
         FiDocGenetateResultDto resultDto = new FiDocGenetateResultDto();
 
         for (AcmSortReceipt acmSortReceipt : receiptList) {
-            if (!checkSpecialReceipt(acmSortReceipt, resultDto)) {
+            if (!checkReceipt(acmSortReceipt, resultDto)) {
                 continue;
             }
             //创建凭证对象
@@ -295,22 +295,64 @@ public class DocTemplateGenerator {
         fiDocList.add(fiDocDto);
     }
 
-    private boolean checkSpecialReceipt(
-            AcmSortReceipt acmSortReceipt,
-            FiDocGenetateResultDto resultDto)  {
-
-        if(acmSortReceipt.getPaymentsType() == AcmConst.PAYMENTSTYPE_60){//如果是特殊类型跳出本次循环
+    private boolean checkReceipt(AcmSortReceipt acmSortReceipt, FiDocGenetateResultDto resultDto) {
+        if (acmSortReceipt.getPaymentsType() == AcmConst.PAYMENTSTYPE_60) {// 如果是特殊类型跳出本次循环
             FiDocGenetateResultDto.ReceiptResult receiptResult = new FiDocGenetateResultDto.ReceiptResult();
             receiptResult.setReceipt(acmSortReceipt);
             receiptResult.setMsg(ErrorCode.ENGINE_DOC_GENETARE_UNRESOVE_ERROR_MSG);
             resultDto.getUnResolvedReceipt().add(receiptResult);
             return false;
         }
-        List<AcmSortReceiptDetail> acmSortReceiptDetailList = acmSortReceipt.getAcmSortReceiptDetailList();
-        if(acmSortReceiptDetailList == null || acmSortReceiptDetailList.isEmpty()){
+        List<AcmSortReceiptDetail> detailList = acmSortReceipt.getAcmSortReceiptDetailList();
+        if (detailList == null || detailList.isEmpty()) {
             FiDocGenetateResultDto.ReceiptResult receiptResult = new FiDocGenetateResultDto.ReceiptResult();
             receiptResult.setReceipt(acmSortReceipt);
             receiptResult.setMsg(ErrorCode.ENGINE_DOC_GENETARE_EMPTY_DETAIL_ERROR_MSG);
+            resultDto.getFailedReceipt().add(receiptResult);
+            return false;
+        }
+
+        // TODO 校验应该移到调用生成接口之前
+        Set<Long> bankAccountIdSet = new HashSet<>();
+        StringBuilder message = new StringBuilder();
+        for (AcmSortReceiptDetail detail : detailList) {
+            Long bankAccountId = detail.getBankAccountId();
+            if (bankAccountId != null && !detail.getBankAccountStatus()) {
+                if (!bankAccountIdSet.contains(bankAccountId)) {
+                    bankAccountIdSet.add(bankAccountId);
+                    message.append("账户" + detail.getBankAccountName() + "已经停用，");
+                }
+            }
+            bankAccountId = detail.getInBankAccountId();
+            if (bankAccountId != null && !detail.getInBankAccountStatus()) {
+                if (!bankAccountIdSet.contains(bankAccountId)) {
+                    bankAccountIdSet.add(bankAccountId);
+                    message.append("账户" + detail.getInBankAccountName() + "已经停用，");
+                }
+            }
+            if (detail.getInvestorId() != null && !detail.getInvestorStatus()) {
+                message.append("投资人" + detail.getInvestorName() + "已经停用，");
+            }
+            if (detail.getByInvestorId() != null && !detail.getByInvestorStatus()) {
+                message.append("被投资人" + detail.getByInvestorName() + "已经停用，");
+            }
+        }
+        List<AcmSortReceiptSettlestyle> settleDetailList = acmSortReceipt.getAcmSortReceiptSettlestyleList();
+        if (settleDetailList != null) {
+            for (AcmSortReceiptSettlestyle detail : settleDetailList) {
+                Long bankAccountId = detail.getBankAccountId();
+                if (bankAccountId != null && !detail.getBankAccountStatus()) {
+                    if (!bankAccountIdSet.contains(bankAccountId)) {
+                        bankAccountIdSet.add(bankAccountId);
+                        message.append("账户" + detail.getBankAccountName() + "已经停用，");
+                    }
+                }
+            }
+        }
+        if (message.length() > 0) {
+            FiDocGenetateResultDto.ReceiptResult receiptResult = new FiDocGenetateResultDto.ReceiptResult();
+            receiptResult.setReceipt(acmSortReceipt);
+            receiptResult.setMsg(message.toString());
             resultDto.getFailedReceipt().add(receiptResult);
             return false;
         }

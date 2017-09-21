@@ -2,15 +2,16 @@ package com.github.outerman.be.api.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
 /** 理票单明细表 */
-public class AcmSortReceiptDetail {
-	
-	private static final long serialVersionUID = 1L;
+public class AcmSortReceiptDetail implements Serializable {
 
-	/** ID  */ 
+    private static final long serialVersionUID = -3366840538566698521L;
+
+    /** ID  */ 
 	private Long id;
 
 	/** 理票单id[acm_sort_receipt]  */ 
@@ -178,7 +179,22 @@ public class AcmSortReceiptDetail {
 	private String debtorName;
 	
 	/** 投资人 id 对应表 set_investor */
-	private Long investorId;
+    private Long investorId;
+
+    /** 投资人姓名 */
+    private String investorName;
+
+    /** 投资人启用状态 1启用 0不启用 */
+    private Boolean investorStatus;
+
+    /** 被投资人 id 对应表 set_investor */
+    private Long byInvestorId;
+
+    /** 被投资人姓名 */
+    private String byInvestorName;
+
+    /** 被投资人启用状态 1启用 0不启用 */
+    private Boolean byInvestorStatus;
 	
 	/**Double类型扩展字段*/
 	private Double ext0;
@@ -840,7 +856,6 @@ public class AcmSortReceiptDetail {
 		this.debtorName = debtorName;
 	}
 
-
     /**
      * 获取投资人 id 对应表 set_investor
      * @return 投资人 id 对应表 set_investor
@@ -857,7 +872,71 @@ public class AcmSortReceiptDetail {
         this.investorId = investorId;
     }
 
-	
+    /**
+     * 获取投资人姓名
+     * @return 投资人姓名
+     */
+    public String getInvestorName() {
+        return investorName;
+    }
+
+    /**
+     * 设置投资人姓名
+     * @param investorName 投资人姓名
+     */
+    public void setInvestorName(String investorName) {
+        this.investorName = investorName;
+    }
+
+    /**
+     * 获取投资人启用状态 1启用 0不启用
+     * @return 投资人启用状态 1启用 0不启用
+     */
+    public Boolean getInvestorStatus() {
+        return investorStatus;
+    }
+
+    /**
+     * 设置投资人启用状态 1启用 0不启用
+     * @param investorStatus 投资人启用状态 1启用 0不启用
+     */
+    public void setInvestorStatus(Boolean investorStatus) {
+        this.investorStatus = investorStatus;
+    }
+
+
+    public Long getByInvestorId() {
+        return byInvestorId;
+    }
+
+    public void setByInvestorId(Long byInvestorId) {
+        this.byInvestorId = byInvestorId;
+    }
+
+    public String getByInvestorName() {
+        return byInvestorName;
+    }
+
+    public void setByInvestorName(String byInvestorName) {
+        this.byInvestorName = byInvestorName;
+    }
+
+    /**
+     * 获取被投资人启用状态 1启用 0不启用
+     * @return 被投资人启用状态 1启用 0不启用
+     */
+    public Boolean getByInvestorStatus() {
+        return byInvestorStatus;
+    }
+
+    /**
+     * 设置被投资人启用状态 1启用 0不启用
+     * @param byInvestorStatus 被投资人启用状态 1启用 0不启用
+     */
+    public void setByInvestorStatus(Boolean byInvestorStatus) {
+        this.byInvestorStatus = byInvestorStatus;
+    }
+
 	public String getExtString0() {
 		return extString0;
 	}
