@@ -64,7 +64,8 @@ public class TemplateValidateService implements ITemplateValidateService {
         this.fiDocProvider = fiDocProvider;
         this.testGenerateProvider = testGenerateProvider;
 
-        return validateTemplate(setOrg, businessCode, businessTemplate);
+        //return validateTemplate(setOrg, businessCode, businessTemplate);
+        return validateTemplate(businessTemplate);
     }
 
     @Override
@@ -75,6 +76,9 @@ public class TemplateValidateService implements ITemplateValidateService {
         return validateTemplate(setOrg, businessTemplateDto.getBusinessCode(), businessTemplate);
     }
 
+    private String validateTemplate(BusinessTemplate businessTemplate) {
+        return businessTemplate.validate();
+    }
 
     private String validateTemplate(SetOrg setOrg, Long businessCode, BusinessTemplate businessTemplate) {
         //1, 先检查模板
@@ -84,6 +88,7 @@ public class TemplateValidateService implements ITemplateValidateService {
         }
         //1.5, TODO:清空现有流水账?
 
+        // TODO 现在新增以及审核校验只处理了当前组织
         // 2, 后模拟生成凭证
         try {
             // a）构建dto的模拟数据,遍历各个影响因素

@@ -11,6 +11,7 @@ import com.github.outerman.be.api.constant.AcmConst;
 import com.github.outerman.be.api.constant.BusinessEngineException;
 import com.github.outerman.be.api.constant.ErrorCode;
 import com.github.outerman.be.api.dto.BusinessTemplateDto;
+import com.github.outerman.be.api.dto.TemplateValidateResultDto;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
 import com.github.outerman.be.engine.businessDoc.validator.ValidatorManager;
@@ -50,13 +51,13 @@ public class BusinessTemplate implements IValidatable {
 
     @Override
     public String validate() {
+        TemplateValidateResultDto result = new TemplateValidateResultDto();
         //先分别校验
-        String docErrorMsg = docAccountTemplate.validate();
-        String paymentErrorMsg = paymentTemplate.validate();
-        String uiErrorMsg = uiTemplate.validate();
-        if (!StringUtil.isEmpty(docErrorMsg)|| !StringUtil.isEmpty(paymentErrorMsg)|| !StringUtil.isEmpty(uiErrorMsg)) {
-            return ErrorCode.ENGINE_VALIDATE_ERROR_MESSAGE + ":\n" + docErrorMsg + "\n" + paymentErrorMsg + "\n" + uiErrorMsg + "\n";
-            //throw new BusinessEngineException(ErrorCode.ENGINE_VALIDATE_ERROR_CODE, ErrorCode.ENGINE_VALIDATE_ERROR_MESSAGE + ":\n" + docErrorMsg + "\n" + paymentErrorMsg + "\n" + uiErrorMsg + "\n");
+        result.setDocTemplateMessage(docAccountTemplate.validate());
+        result.setPayDocTemplateMessage(paymentTemplate.validate());
+        result.setUiTemplateMessage(uiTemplate.validate());
+        if (!result.getResult()) {
+            return result.getErrorMessage();
         }
 
         //再组合校验, 例如:
