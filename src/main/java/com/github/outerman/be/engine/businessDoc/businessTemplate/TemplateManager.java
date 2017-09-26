@@ -4,7 +4,6 @@ import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.util.SpringContextHelper;
 import com.github.outerman.be.api.constant.AcmConst;
 import com.github.outerman.be.api.vo.SetOrg;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +17,7 @@ import java.util.Map;
  */
 @Component
 public class TemplateManager {
+
     Map<String, BusinessTemplate> businessTemplateMap = new HashMap<>();
 
     @Autowired
@@ -38,4 +38,5 @@ public class TemplateManager {
     private String getKey(Long orgId, Long businessCode) {
         return orgId.toString() + businessCode.toString();
     }
+
 }

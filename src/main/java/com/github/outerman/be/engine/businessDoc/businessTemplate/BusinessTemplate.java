@@ -23,6 +23,7 @@ import com.github.outerman.be.engine.util.StringUtil;
 @Component(AcmConst.BUSINESS_TEMPLATE)
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class BusinessTemplate implements IValidatable {
+
     @Autowired
     private AcmDocAccountTemplate docAccountTemplate;
     @Autowired
@@ -34,8 +35,11 @@ public class BusinessTemplate implements IValidatable {
 
     private BusinessTemplateDto businessTemplateDto;
 
+    private ITemplateProvider templateProvider;
+
     //初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
     public void init(SetOrg org, Long businessCode, ITemplateProvider templateProvider) {
+        this.templateProvider = templateProvider;
         docAccountTemplate.init(org, businessCode, templateProvider);
         paymentTemplate.init(org, businessCode, templateProvider);
         uiTemplate.init(org, businessCode, templateProvider);
@@ -109,4 +113,13 @@ public class BusinessTemplate implements IValidatable {
     public void setUiTemplate(AcmUITemplate uiTemplate) {
         this.uiTemplate = uiTemplate;
     }
+
+    /**
+     * 获取templateProvider
+     * @return templateProvider
+     */
+    public ITemplateProvider getTemplateProvider() {
+        return templateProvider;
+    }
+
 }

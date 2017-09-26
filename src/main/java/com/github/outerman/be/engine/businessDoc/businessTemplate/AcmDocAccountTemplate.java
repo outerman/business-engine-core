@@ -10,9 +10,9 @@ import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 import com.github.outerman.be.api.vo.SetOrg;
-import com.github.outerman.be.api.vo.SetTaxRateDto;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
+import com.github.outerman.be.engine.util.CommonUtil;
 import com.github.outerman.be.engine.util.StringUtil;
 
 import java.util.*;
@@ -28,12 +28,11 @@ public class AcmDocAccountTemplate implements IValidatable {
 
     private AcmDocAccountTemplateDto docTemplateDto;
 
-    protected static List<Long> simple = new ArrayList<>();
-    protected static List<Long> general = new ArrayList<>();
-    protected static List<Long> special = new ArrayList<>();
+    private ITemplateProvider templateProvider;
 
     // 初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
     public void init(SetOrg org, Long businessCode, ITemplateProvider templateProvider) {
+        this.templateProvider = templateProvider;
         docTemplateDto = new AcmDocAccountTemplateDto();
         // 该业务所有行业和准则的模板
         List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
@@ -54,24 +53,6 @@ public class AcmDocAccountTemplate implements IValidatable {
 
         docTemplateDto.setOrg(org);
         docTemplateDto.setBusinessCode(businessCode);
-        if (general.isEmpty() || simple.isEmpty()) {
-            List<SetTaxRateDto> taxRateList = templateProvider.getTaxRateList(0L);// setTaxRateService.getTaxRateByOrgId(0L);
-            if (taxRateList != null && !taxRateList.isEmpty()) {
-                for (SetTaxRateDto setTaxRateDto : taxRateList) {
-                    Long id = setTaxRateDto.getId();
-                    // 1一般 2简易 3其他
-                    if (setTaxRateDto.getType().equals(1L)) {
-                        general.add(id);
-                    }
-                    if (setTaxRateDto.getType().equals(2L)) {
-                        simple.add(id);
-                    }
-                    if (setTaxRateDto.getType().equals(3L)) {
-                        special.add(id);
-                    }
-                }
-            }
-        }
     }
 
     // 获取具体模板,orgId不能为0
@@ -196,13 +177,6 @@ public class AcmDocAccountTemplate implements IValidatable {
         return null;
     }
 
-    public boolean isSimple(Long taxRateId) {
-        return simple.contains(taxRateId);
-    }
-
-    public boolean isGeneral(Long taxRateId) {
-        return general.contains(taxRateId);
-    }
 
     // TODO: 原有方法,有待优化
 
@@ -306,15 +280,16 @@ public class AcmDocAccountTemplate implements IValidatable {
                                     }
 
                                 } else if ("vatTaxpayer,taxType".equals(fiBillDocTemplate.getInfluence())) {
-                                    if (simple.contains(acmSortReceiptDetail.getTaxRateId())) {
+                                    Long taxRateId = acmSortReceiptDetail.getTaxRateId();
+                                    if (CommonUtil.isSimple(taxRateId, templateProvider)) {
                                         if (fiBillDocTemplate.getTaxType() == false) {
                                             fiBillDocTemplateList.add(fiBillDocTemplate);
                                         }
-                                    } else if (general.contains(acmSortReceiptDetail.getTaxRateId())) {
+                                    } else if (CommonUtil.isGeneral(taxRateId, templateProvider)) {
                                         if (fiBillDocTemplate.getTaxType() == true) {
                                             fiBillDocTemplateList.add(fiBillDocTemplate);
                                         }
-                                    } else if (special.contains(acmSortReceiptDetail.getTaxRateId())) {
+                                    } else if (CommonUtil.isSpecial(taxRateId, templateProvider)) {
                                         continue;
                                     } else {
                                         throw new BusinessEngineException("", "获取计税方式：不能匹配税率" + fiBillDocTemplate.getTaxType());

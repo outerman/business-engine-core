@@ -13,6 +13,7 @@ import com.github.outerman.be.api.vo.FiDocEntryDto;
 import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AmountGetter;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
+import com.github.outerman.be.engine.util.CommonUtil;
 import com.github.outerman.be.engine.util.StringUtil;
 
 import java.util.ArrayList;
@@ -109,9 +110,9 @@ public class DocEntryValidator implements IBusinessDocValidatable {
                         taxType = false;
                     }
                     Long taxRateId = detail.getTaxRateId();
-                    if (taxType && businessTemplate.getDocAccountTemplate().isGeneral(taxRateId)) {
+                    if (taxType && CommonUtil.isGeneral(taxRateId, businessTemplate.getTemplateProvider())) {
                         resultList.add(docTemplate);
-                    } else if (!taxType && businessTemplate.getDocAccountTemplate().isSimple(taxRateId)) {
+                    } else if (!taxType && CommonUtil.isSimple(taxRateId, businessTemplate.getTemplateProvider())) {
                         resultList.add(docTemplate);
                     }
                 } else if ("vatTaxpayer,qualification".equals(influence)) {
