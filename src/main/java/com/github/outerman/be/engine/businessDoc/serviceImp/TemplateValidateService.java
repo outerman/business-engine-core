@@ -62,7 +62,7 @@ public class TemplateValidateService implements ITemplateValidateService {
     //TODO: 全面验证,需要各个属性的企业覆盖
     @Override
     public String validateTemplateByMockDoc(SetOrg setOrg, Long businessCode, ITemplateProvider templateProvider, IFiDocProvider fiDocProvider, ITestGenerateProvider testGenerateProvider) {
-        businessTemplate = templateManager.fetchBusinessTemplate(setOrg, businessCode, templateProvider);
+        businessTemplate = templateManager.fetchBusinessTemplate(setOrg, businessCode.toString(), templateProvider);
         this.fiDocProvider = fiDocProvider;
         this.testGenerateProvider = testGenerateProvider;
 
@@ -82,7 +82,7 @@ public class TemplateValidateService implements ITemplateValidateService {
         return businessTemplate.validate();
     }
 
-    private String validateTemplate(SetOrg setOrg, Long businessCode, BusinessTemplate businessTemplate) {
+    private String validateTemplate(SetOrg setOrg, String businessCode, BusinessTemplate businessTemplate) {
         //1, 先检查模板
         String errorMessage = businessTemplate.validate();
         if (!StringUtil.isEmpty(errorMessage)) {
@@ -95,12 +95,12 @@ public class TemplateValidateService implements ITemplateValidateService {
         try {
             // a）构建dto的模拟数据,遍历各个影响因素
             // TODO: 后续在工程内生成测试用例, 去掉testGenerateProvider
-            String errMsg = testGenerateProvider.constructSortReceiptByCode(setOrg.getId(), businessCode);
+            String errMsg = testGenerateProvider.constructSortReceiptByCode(setOrg.getId(), Long.parseLong(businessCode));
             if (!StringUtil.isEmpty(errMsg)) {
                 return errMsg;
             }
             // b）审核单据生成凭证
-            errMsg = testGenerateProvider.approveSortReceiptByCode(setOrg.getId(), businessCode);
+            errMsg = testGenerateProvider.approveSortReceiptByCode(setOrg.getId(), Long.parseLong(businessCode));
             if (!StringUtil.isEmpty(errMsg)) {
                 return errMsg;
             }
@@ -117,7 +117,7 @@ public class TemplateValidateService implements ITemplateValidateService {
 
     //根据业务编码, 校验关联凭证
     private String validateDocByCode(SetOrg setOrg, BusinessTemplate businessTemplate) {
-        List<FiDocDto> allDocs = fiDocProvider.getFiDocList(setOrg.getId(), businessTemplate.getBusinessCode());
+        List<FiDocDto> allDocs = fiDocProvider.getFiDocList(setOrg.getId(), Long.parseLong(businessTemplate.getBusinessCode()));
         return allDocs
                 .stream()
                 .parallel() //多线程

@@ -57,7 +57,7 @@ public class DocTemplateGenerator {
 
             for (int i = 0 ; i < detailList.size() ; i++) {
             	AcmSortReceiptDetail detail = detailList.get(i);
-                BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg, detail.getBusinessCode(), templateProvider);
+                BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg, detail.getBusinessCode().toString(), templateProvider);
 
                 // 1.取出业务类型对应的模板
                 if (businessTemplate == null || businessTemplate.getDocAccountTemplate() == null
@@ -68,7 +68,7 @@ public class DocTemplateGenerator {
                     throw new BusinessEngineException(ErrorCode.EXCEPTION_CODE_DOC_TEMPLATE_EMPTY, message);
                 }
 
-                List<DocAccountTemplateItem> fiBillDocTemplateList = businessTemplate.getDocAccountTemplate().getTemplate(setOrg, detail);
+                List<DocAccountTemplateItem> fiBillDocTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(setOrg, detail);
 
                 // TODO 科目编码处理
                 List<String> codeList = new ArrayList<>();
@@ -130,7 +130,7 @@ public class DocTemplateGenerator {
             }
 
             //TODO: 结算方式暂时没有和businessCode挂钩, 所以取任何一个都会返回所有
-            BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg, detailList.get(0).getBusinessCode(), templateProvider);
+            BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg, detailList.get(0).getBusinessCode().toString(), templateProvider);
             // TODO 科目编码处理
             List<String> accountCodeList = businessTemplate.getPaymentTemplate().getAccountCodeList();
             Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), accountCodeList, detailList);

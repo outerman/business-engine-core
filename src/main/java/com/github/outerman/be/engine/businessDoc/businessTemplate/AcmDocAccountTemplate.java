@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.github.outerman.be.api.constant.AcmConst;
-import com.github.outerman.be.api.constant.BusinessEngineException;
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
@@ -31,11 +30,11 @@ public class AcmDocAccountTemplate implements IValidatable {
     private ITemplateProvider templateProvider;
 
     // 初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
-    public void init(SetOrg org, Long businessCode, ITemplateProvider templateProvider) {
+    public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
         this.templateProvider = templateProvider;
         docTemplateDto = new AcmDocAccountTemplateDto();
         // 该业务所有行业和准则的模板
-        List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
+        List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), Long.parseLong(businessCode));
         all.forEach(template -> {
             String key = getKey(template.getIndustry(), template.getAccountingStandardsId());
             if (docTemplateDto.getAllPossibleTemplate().get(key) == null) {
@@ -55,20 +54,144 @@ public class AcmDocAccountTemplate implements IValidatable {
         docTemplateDto.setBusinessCode(businessCode);
     }
 
-    // 获取具体模板,orgId不能为0
-    public List<DocAccountTemplateItem> getTemplate(SetOrg org, AcmSortReceiptDetail acmSortReceiptDetail) {
-        // 获取当前"行业 + 准则"的模板
-        List<DocAccountTemplateItem> result = new ArrayList<>();
-        Long businessCode = docTemplateDto.getBusinessCode();
-        if (!businessCode.equals(acmSortReceiptDetail.getBusinessCode())) {
-            return result;
+    /**
+     * 根据流水账收支明细获取匹配的凭证模板记录
+     * @param org 组织信息
+     * @param detail 流水账收支明细
+     * @return 凭证模板记录
+     */
+    public List<DocAccountTemplateItem> getDocTemplate(SetOrg org, AcmSortReceiptDetail detail) {
+        List<DocAccountTemplateItem> resultList = new ArrayList<>();
+        if (detail == null) {
+            return resultList;
         }
-        List<DocAccountTemplateItem> templatesForOrg = docTemplateDto.getAllPossibleTemplate().get(getKey(org.getIndustry(), org.getAccountingStandards().intValue()));
-        List<List<DocAccountTemplateItem>> fiBillDocTemplateListABCDEFG = getBusniess(templatesForOrg);
-        if (fiBillDocTemplateListABCDEFG.isEmpty()) {
-            return result;
+        String businessCode = docTemplateDto.getBusinessCode();
+        if (!businessCode.equals(detail.getBusinessCode().toString())) {
+            return resultList;
         }
-        return getBusinessTemplate(fiBillDocTemplateListABCDEFG, acmSortReceiptDetail, org.getVatTaxpayer());
+
+        Map<String, List<DocAccountTemplateItem>> docTemplateMap = getDocTemplateMap(org);
+        if (docTemplateMap.isEmpty()) {
+            return resultList;
+        }
+
+        // 凭证模板按照分录标识获取匹配记录
+        for (List<DocAccountTemplateItem> docTemplateListWithFlag : docTemplateMap.values()) {
+            resultList.addAll(getDocTemplate(docTemplateListWithFlag, detail));
+        }
+        return resultList;
+    }
+
+    private List<DocAccountTemplateItem> getDocTemplate(List<DocAccountTemplateItem> docTemplateListWithFlag, AcmSortReceiptDetail detail) {
+        List<DocAccountTemplateItem> resultList = new ArrayList<>();
+        if (docTemplateListWithFlag.size() == 1) { // 凭证模板只有一条数据且没有影响因素直接返回
+            DocAccountTemplateItem docTemplate = docTemplateListWithFlag.get(0);
+            if (docTemplate.getInfluence() == null) {
+                resultList.add(docTemplate);
+                return resultList;
+            }
+        }
+
+        DocAccountTemplateItem defaultDocTemplate = null; // 默认匹配规则，影响因素值为 0 的记录
+        for (DocAccountTemplateItem docTemplate : docTemplateListWithFlag) {
+            String influence = docTemplate.getInfluence();
+            if (StringUtil.isEmpty(influence)) { // 凭证模板只有一条数据且没有影响因素时已经处理，其他情况都应该是有影响因素的
+                continue;
+            }
+
+            Long departmentAttr = docTemplate.getDepartmentAttr();
+            Long personAttr = docTemplate.getPersonAttr();
+            Long extendAttr = docTemplate.getExtendAttr();
+            Long detailDepartmentAttr = detail.getDepartmentProperty();
+            Long detailPersonAttr = detail.getEmployeeAttribute();
+            if ("departmentAttr".equals(influence)) { // 部门属性
+                if (detailDepartmentAttr != null && detailDepartmentAttr.equals(departmentAttr)) {
+                    resultList.add(docTemplate);
+                } else if (departmentAttr == 0) { // 部门属性影响因素默认规则
+                    defaultDocTemplate = docTemplate;
+                }
+            } else if ("departmentAttr,personAttr".equals(influence)) { // 部门属性，人员属性
+                if (detailDepartmentAttr != null && detailDepartmentAttr.equals(departmentAttr)) {
+                    if (detailDepartmentAttr.equals(AcmConst.DEPTPROPERTY_002)) { // 生产部门，匹配人员属性
+                        if (detailPersonAttr != null && detailPersonAttr.equals(personAttr)) {
+                            resultList.add(docTemplate);
+                            continue;
+                        }
+                    } else { // 非生产部门，当作只有部门影响因素处理
+                        resultList.add(docTemplate);
+                        continue;
+                    }
+                }
+                if (personAttr == 0) { // 部门属性，人员属性影响因素默认规则
+                    defaultDocTemplate = docTemplate;
+                }
+            } else if ("vatTaxpayer".equals(influence) || "vatTaxpayer,qualification".equals(influence) || "vatTaxpayer,taxType".equals(influence)) {
+                // 纳税人性质，纳税人性质、认证，纳税人性质、计税方式
+                Long vatTaxpayer = docTemplateDto.getOrg().getVatTaxpayer();
+                if (!vatTaxpayer.equals(docTemplate.getVatTaxpayer())) {
+                    continue;
+                }
+                if ("vatTaxpayer".equals(influence)) {
+                    resultList.add(docTemplate);
+                } else if ("vatTaxpayer,qualification".equals(influence)) {
+                    Boolean detailQualification = (detail.getIsQualification() == null || detail.getIsQualification() == 0) ? false : true;
+                    Boolean qualification = docTemplate.getQualification();
+                    if (detailQualification.equals(qualification)) {
+                        resultList.add(docTemplate);
+                    }
+                } else if ("vatTaxpayer,taxType".equals(influence)) {
+                    Boolean isGeneral = docTemplate.getTaxType();
+                    if (isGeneral == null) {
+                        continue;
+                    }
+                    Long taxRateId = detail.getTaxRateId();
+                    if (CommonUtil.isSimple(taxRateId, templateProvider) && !isGeneral) {
+                        resultList.add(docTemplate);
+                    } else if (CommonUtil.isGeneral(taxRateId, templateProvider) && isGeneral) {
+                        resultList.add(docTemplate);
+                    }
+                }
+            } else if ("punishmentAttr".equals(influence)) { // 罚款性质
+                Long penaltyType = detail.getPenaltyType();
+                if (penaltyType != null && penaltyType.equals(extendAttr)) {
+                    resultList.add(docTemplate);
+                } else if (extendAttr == 0) {
+                    defaultDocTemplate = docTemplate;
+                }
+            } else if ("borrowAttr".equals(influence)) { // 借款期限
+                Long loanTerm = detail.getLoanTerm();
+                if (loanTerm != null && loanTerm.equals(extendAttr)) {
+                    resultList.add(docTemplate);
+                } else if (extendAttr == 0) {
+                    defaultDocTemplate = docTemplate;
+                }
+            } else if ("assetAttr".equals(influence)) { // 资产属性
+                Long assetAttr = detail.getAssetAttr();
+                if (assetAttr != null && assetAttr.equals(extendAttr)) {
+                    resultList.add(docTemplate);
+                } else if (extendAttr == 0) {
+                    defaultDocTemplate = docTemplate;
+                }
+            } else if ("accountInAttr".equals(influence)) { // 账户属性流入
+                Long inBankAccountTypeId = detail.getInBankAccountTypeId();
+                if (inBankAccountTypeId != null && inBankAccountTypeId.equals(extendAttr)) {
+                    resultList.add(docTemplate);
+                } else if (extendAttr == 0) {
+                    defaultDocTemplate = docTemplate;
+                }
+            } else if ("accountOutAttr".equals(influence)) { // 账户属性流出
+                Long bankAccountTypeId = detail.getBankAccountTypeId();
+                if (bankAccountTypeId != null && bankAccountTypeId.equals(extendAttr)) {
+                    resultList.add(docTemplate);
+                } else if (extendAttr == 0) {
+                    defaultDocTemplate = docTemplate;
+                }
+            }
+        }
+        if (resultList.isEmpty() && defaultDocTemplate != null) {
+            resultList.add(defaultDocTemplate);
+        }
+        return resultList;
     }
 
     /**
@@ -77,21 +200,28 @@ public class AcmDocAccountTemplate implements IValidatable {
      * @return 凭证模板信息，以 flag（A,B,C...）为 key 的 map
      */
     public Map<String, List<DocAccountTemplateItem>> getDocTemplateMap(SetOrg org) {
-        Map<String, List<DocAccountTemplateItem>> docTemplateMap = new HashMap<>();
+        Map<String, List<DocAccountTemplateItem>> resultMap = new TreeMap<>();
+        if (!org.getId().equals(docTemplateDto.getOrg().getId())) {
+            return resultMap;
+        }
+        List<DocAccountTemplateItem> docTemplateList = new ArrayList<>();
         String key = getKey(org.getIndustry(), org.getAccountingStandards().intValue());
-        List<DocAccountTemplateItem> docTemplateList = docTemplateDto.getAllPossibleTemplate().get(key);
+        Map<String, List<DocAccountTemplateItem>> map = docTemplateDto.getAllPossibleTemplate();
+        if (map.containsKey(key)) {
+            docTemplateList = map.get(key);
+        }
         for (DocAccountTemplateItem docTemplate : docTemplateList) {
             String flag = docTemplate.getFlag();
             List<DocAccountTemplateItem> docTemplateWithFlagList;
-            if (docTemplateMap.containsKey(flag)) {
-                docTemplateWithFlagList = docTemplateMap.get(flag);
+            if (resultMap.containsKey(flag)) {
+                docTemplateWithFlagList = resultMap.get(flag);
             } else {
                 docTemplateWithFlagList = new ArrayList<>();
-                docTemplateMap.put(flag, docTemplateWithFlagList);
+                resultMap.put(flag, docTemplateWithFlagList);
             }
             docTemplateWithFlagList.add(docTemplate);
         }
-        return docTemplateMap;
+        return resultMap;
     }
 
     @Override
@@ -177,267 +307,6 @@ public class AcmDocAccountTemplate implements IValidatable {
         return null;
     }
 
-
-    // TODO: 原有方法,有待优化
-
-    private List<DocAccountTemplateItem> getBusinessTemplate(List<List<DocAccountTemplateItem>> fiBillDocTemplateListABCDEFG, AcmSortReceiptDetail acmSortReceiptDetail, Long vatTaxpayer) {
-        List<DocAccountTemplateItem> fiBillDocTemplateList = new ArrayList<>();
-        if (acmSortReceiptDetail == null) {
-            return fiBillDocTemplateList;
-        }
-
-        // 2.挑选出取值类型A一条B一条：
-        DocAccountTemplateItem fiBillDocTemplateDefault = null;
-        for (int i = 0; i < fiBillDocTemplateListABCDEFG.size(); i++) {
-            List<DocAccountTemplateItem> list = fiBillDocTemplateListABCDEFG.get(i);
-            if (list != null && !list.isEmpty()) {
-                if (list.size() == 1) {// 如果有一条直接取
-                    DocAccountTemplateItem acmBusinessDocTemplate = list.get(0);
-                    if (acmBusinessDocTemplate.getInfluence() == null) {
-                        fiBillDocTemplateList.add(acmBusinessDocTemplate);
-                        continue;
-                    }
-                }
-
-                for (DocAccountTemplateItem fiBillDocTemplate : list) {
-                    if (fiBillDocTemplate == null) {// 判空如果是空返回
-                        continue;
-                    }
-                    // 部门 人员 拓展存在默认，预先处理
-                    if (fiBillDocTemplate.getDepartmentAttr() != null || fiBillDocTemplate.getPersonAttr() != null || fiBillDocTemplate.getExtendAttr() != null) {// 查看影响因素内是否有默认值，如果有默认值增加
-
-                        if (fiBillDocTemplate.getDepartmentAttr() != null) {// 有部门影响因素
-                            if (fiBillDocTemplate.getDepartmentAttr() == 0) {// 模板等于默认，添加部门默认
-                                fiBillDocTemplateDefault = fiBillDocTemplate;
-                            }
-
-                            if (acmSortReceiptDetail.getDepartmentProperty() != null) {
-                                if (acmSortReceiptDetail.getDepartmentProperty().equals(AcmConst.DEPTPROPERTY_002)) {// 生产部
-                                    if (fiBillDocTemplate.getPersonAttr() != null) {
-                                        if (fiBillDocTemplate.getPersonAttr() == 0) {
-                                            fiBillDocTemplateDefault = fiBillDocTemplate;
-                                        }
-                                    }
-                                }
-                            }
-
-                        }
-
-                        if (fiBillDocTemplateDefault == null) {
-                            if (fiBillDocTemplate.getExtendAttr() != null) {
-                                if (fiBillDocTemplate.getExtendAttr() == 0) {
-                                    fiBillDocTemplateDefault = fiBillDocTemplate;
-                                }
-                            }
-                        }
-                    }
-                    if (fiBillDocTemplate.getInfluence() != null) {
-
-                        switch (fiBillDocTemplate.getInfluence()) {
-                        case "departmentAttr": {
-                            if (acmSortReceiptDetail.getDepartmentProperty() != null) {// 部门属性 是否为空 取默认
-                                if (acmSortReceiptDetail.getDepartmentProperty().equals(fiBillDocTemplate.getDepartmentAttr())) {
-                                    fiBillDocTemplateList.add(fiBillDocTemplate);
-                                }
-                            }
-                        }
-                            break;
-                        case "departmentAttr,personAttr": {
-                            if (acmSortReceiptDetail.getDepartmentProperty() != null) {// 部门属性 是否为空 取默认
-                                if (acmSortReceiptDetail.getDepartmentProperty().equals(fiBillDocTemplate.getDepartmentAttr())) {
-                                    if (acmSortReceiptDetail.getDepartmentProperty().equals(AcmConst.DEPTPROPERTY_002)) {// 如果是生产部门才取人员属性
-                                        if (acmSortReceiptDetail.getEmployeeAttribute() != null) {
-                                            if (acmSortReceiptDetail.getEmployeeAttribute().equals(fiBillDocTemplate.getPersonAttr())) {// 不为空 取属性值相等的
-                                                fiBillDocTemplateList.add(fiBillDocTemplate);
-                                            }
-                                        }
-                                    } else {// 如果不是生产部门，按照部门属性取值，不考虑人员属性
-                                        if (acmSortReceiptDetail.getDepartmentProperty().equals(fiBillDocTemplate.getDepartmentAttr())) {
-                                            fiBillDocTemplateList.add(fiBillDocTemplate);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                            break;
-                        case "vatTaxpayer":
-                        case "vatTaxpayer,qualification":
-                        case "vatTaxpayer,taxType": {
-
-                            if (fiBillDocTemplate.getVatTaxpayer().equals(vatTaxpayer)) {// 直接取纳税人相等值
-                                if ("vatTaxpayer".equals(fiBillDocTemplate.getInfluence())) {
-                                    fiBillDocTemplateList.add(fiBillDocTemplate);
-                                } else if ("vatTaxpayer,qualification".equals(fiBillDocTemplate.getInfluence())) {
-                                    if (acmSortReceiptDetail.getIsQualification() == null || acmSortReceiptDetail.getIsQualification() == 0) {
-                                        if (fiBillDocTemplate.getQualification() == false) {
-                                            fiBillDocTemplateList.add(fiBillDocTemplate);
-                                        }
-                                    }
-                                    if (acmSortReceiptDetail.getIsQualification() != null && acmSortReceiptDetail.getIsQualification() == 1) {
-                                        if (fiBillDocTemplate.getQualification() == true) {
-                                            fiBillDocTemplateList.add(fiBillDocTemplate);
-                                        }
-                                    }
-
-                                } else if ("vatTaxpayer,taxType".equals(fiBillDocTemplate.getInfluence())) {
-                                    Long taxRateId = acmSortReceiptDetail.getTaxRateId();
-                                    if (CommonUtil.isSimple(taxRateId, templateProvider)) {
-                                        if (fiBillDocTemplate.getTaxType() == false) {
-                                            fiBillDocTemplateList.add(fiBillDocTemplate);
-                                        }
-                                    } else if (CommonUtil.isGeneral(taxRateId, templateProvider)) {
-                                        if (fiBillDocTemplate.getTaxType() == true) {
-                                            fiBillDocTemplateList.add(fiBillDocTemplate);
-                                        }
-                                    } else if (CommonUtil.isSpecial(taxRateId, templateProvider)) {
-                                        continue;
-                                    } else {
-                                        throw new BusinessEngineException("", "获取计税方式：不能匹配税率" + fiBillDocTemplate.getTaxType());
-                                    }
-                                }
-                            }
-                        }
-                            break;
-                        case "punishmentAttr": {// 罚款性质
-                            if (acmSortReceiptDetail.getPenaltyType() != null) {//
-                                if (acmSortReceiptDetail.getPenaltyType().equals(fiBillDocTemplate.getExtendAttr())) {
-                                    fiBillDocTemplateList.add(fiBillDocTemplate);
-                                }
-                            }
-                        }
-                            break;
-                        case "borrowAttr": {// 借款期限
-                            if (acmSortReceiptDetail.getLoanTerm() != null) {//
-
-                                if (acmSortReceiptDetail.getLoanTerm().equals(fiBillDocTemplate.getExtendAttr())) {
-                                    fiBillDocTemplateList.add(fiBillDocTemplate);
-                                }
-                            }
-                        }
-                            break;
-                        case "assetAttr": {// 资产属性
-                            if (acmSortReceiptDetail.getAssetAttr() != null) {//
-                                if (acmSortReceiptDetail.getAssetAttr().equals(fiBillDocTemplate.getExtendAttr())) {
-                                    fiBillDocTemplateList.add(fiBillDocTemplate);
-                                }
-                            }
-                        }
-                            break;
-                        // case "intangibleAssetAttr":{//无形资产属性
-                        // if(acmSortReceiptDetail.getAssetType()!= null){//
-                        // if(acmSortReceiptDetail.getAssetType().equals(fiBillDocTemplate.getExtendAttr())){
-                        // fiBillDocTemplateList.add(fiBillDocTemplate);
-                        // }
-                        // }
-                        // }
-                        // break;
-                        case "accountInAttr": {// 账户属性
-                            if (acmSortReceiptDetail.getInBankAccountTypeId() != null) {// 借是流入 贷是流出
-                                if (acmSortReceiptDetail.getInBankAccountTypeId().equals(fiBillDocTemplate.getExtendAttr())) {
-                                    fiBillDocTemplateList.add(fiBillDocTemplate);
-                                }
-                            }
-                        }
-                            break;
-                        case "accountOutAttr": {// 账户属性
-                            if (acmSortReceiptDetail.getBankAccountTypeId() != null) {// 借是流入 贷是流出
-                                if (acmSortReceiptDetail.getBankAccountTypeId().equals(fiBillDocTemplate.getExtendAttr())) {
-                                    fiBillDocTemplateList.add(fiBillDocTemplate);
-                                }
-                            }
-                        }
-                            break;
-
-                        default:
-                            break;
-                        }
-                    }
-                }
-                if (fiBillDocTemplateDefault != null) {
-                    if (fiBillDocTemplateList.isEmpty()) {
-                        fiBillDocTemplateList.add(fiBillDocTemplateDefault);
-                    }
-                }
-            }
-        }
-
-        return fiBillDocTemplateList;
-    }
-
-    private List<List<DocAccountTemplateItem>> getBusniess(List<DocAccountTemplateItem> busniessTemp) {
-        List<List<DocAccountTemplateItem>> result = new ArrayList<>();
-        if (busniessTemp == null || busniessTemp.isEmpty()) {
-            return result;
-        }
-
-        List<DocAccountTemplateItem> listA = new ArrayList<>();
-        List<DocAccountTemplateItem> listB = new ArrayList<>();
-        List<DocAccountTemplateItem> listC = new ArrayList<>();
-        List<DocAccountTemplateItem> listD = new ArrayList<>();
-        List<DocAccountTemplateItem> listE = new ArrayList<>();
-        List<DocAccountTemplateItem> listF = new ArrayList<>();
-        List<DocAccountTemplateItem> listG = new ArrayList<>();
-        List<DocAccountTemplateItem> listH = new ArrayList<>();
-
-        for (int i = 0; i < busniessTemp.size(); i++) {
-            DocAccountTemplateItem acmBusinessDocTemplate = busniessTemp.get(i);
-            switch (acmBusinessDocTemplate.getFlag()) {
-            case "A":
-                listA.add(acmBusinessDocTemplate);
-                break;
-            case "B":
-                listB.add(acmBusinessDocTemplate);
-                break;
-            case "C":
-                listC.add(acmBusinessDocTemplate);
-                break;
-            case "D":
-                listD.add(acmBusinessDocTemplate);
-                break;
-            case "E":
-                listE.add(acmBusinessDocTemplate);
-                break;
-            case "F":
-                listF.add(acmBusinessDocTemplate);
-                break;
-            case "G":
-                listG.add(acmBusinessDocTemplate);
-                break;
-            case "H":
-                listH.add(acmBusinessDocTemplate);
-                break;
-            default:
-                break;
-            }
-        }
-        if (!listA.isEmpty()) {
-            result.add(listA);
-        }
-        if (!listB.isEmpty()) {
-            result.add(listB);
-        }
-        if (!listC.isEmpty()) {
-            result.add(listC);
-        }
-        if (!listD.isEmpty()) {
-            result.add(listD);
-        }
-        if (!listE.isEmpty()) {
-            result.add(listE);
-        }
-        if (!listF.isEmpty()) {
-            result.add(listF);
-        }
-        if (!listG.isEmpty()) {
-            result.add(listG);
-        }
-        if (!listH.isEmpty()) {
-            result.add(listH);
-        }
-
-        return result;
-    }
-
     public AcmDocAccountTemplateDto getDocTemplateDto() {
         return docTemplateDto;
     }
@@ -445,4 +314,5 @@ public class AcmDocAccountTemplate implements IValidatable {
     public void setDocTemplateDto(AcmDocAccountTemplateDto docTemplateDto) {
         this.docTemplateDto = docTemplateDto;
     }
+
 }

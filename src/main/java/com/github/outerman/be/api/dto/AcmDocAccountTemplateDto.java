@@ -17,10 +17,11 @@ public class AcmDocAccountTemplateDto {
     /** 组织信息 */
     private SetOrg org;
 
+    /** 业务类型编码 */
+    private String businessCode;
+
     private Map<String, List<DocAccountTemplateItem>> allPossibleTemplate = new HashMap<>(); // 可能会用到的凭证模板
     private List<String> codeList = new ArrayList<>(); // 可能用到的科目
-
-    private Long businessCode;
 
     /**
      * 获取组织信息
@@ -38,11 +39,20 @@ public class AcmDocAccountTemplateDto {
         this.org = org;
     }
 
-    public Long getBusinessCode() {
+
+    /**
+     * 获取业务类型编码
+     * @return 业务类型编码
+     */
+    public String getBusinessCode() {
         return businessCode;
     }
 
-    public void setBusinessCode(Long businessCode) {
+    /**
+     * 设置业务类型编码
+     * @param businessCode 业务类型编码
+     */
+    public void setBusinessCode(String businessCode) {
         this.businessCode = businessCode;
     }
 

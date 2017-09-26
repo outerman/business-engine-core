@@ -23,7 +23,7 @@ public class TemplateManager {
     @Autowired
     private SpringContextHelper contextHelper;
 
-    public BusinessTemplate fetchBusinessTemplate(SetOrg org, Long businessCode, ITemplateProvider provider) {
+    public BusinessTemplate fetchBusinessTemplate(SetOrg org, String businessCode, ITemplateProvider provider) {
         String key = getKey(org.getId(), businessCode);
         BusinessTemplate ret = businessTemplateMap.get(key);
         if (ret != null) {
@@ -35,8 +35,8 @@ public class TemplateManager {
         return ret;
     }
 
-    private String getKey(Long orgId, Long businessCode) {
-        return orgId.toString() + businessCode.toString();
+    private String getKey(Long orgId, String businessCode) {
+        return orgId.toString() + businessCode;
     }
 
 }

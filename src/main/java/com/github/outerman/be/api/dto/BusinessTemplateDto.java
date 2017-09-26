@@ -11,10 +11,12 @@ public class BusinessTemplateDto {
     /** 组织信息 */
     private SetOrg org;
 
+    /** 业务类型编码 */
+    private String businessCode;
+
     private AcmDocAccountTemplateDto docAccountTemplate;
     private AcmPaymentTemplateDto paymentTemplate;
     private AcmUITemplateDto uiTemplate;
-    private Long businessCode;
 
     /**
      * 获取组织信息
@@ -32,11 +34,19 @@ public class BusinessTemplateDto {
         this.org = org;
     }
 
-    public Long getBusinessCode() {
+    /**
+     * 获取业务类型编码
+     * @return 业务类型编码
+     */
+    public String getBusinessCode() {
         return businessCode;
     }
 
-    public void setBusinessCode(Long businessCode) {
+    /**
+     * 设置业务类型编码
+     * @param businessCode 业务类型编码
+     */
+    public void setBusinessCode(String businessCode) {
         this.businessCode = businessCode;
     }
 

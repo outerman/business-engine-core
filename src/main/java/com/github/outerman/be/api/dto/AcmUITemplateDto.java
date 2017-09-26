@@ -21,12 +21,13 @@ public class AcmUITemplateDto {
     /** 组织信息 */
     private SetOrg org;
 
+    /** 业务类型编码 */
+    private String businessCode;
+
     private Map<Long, List<SetColumnsTacticsDto>> tacticsMap = new HashMap<>();  //该businessCode所有可能的模板, key为行业
     private Map<Long, List<SetColumnsSpecialVo>> specialMap = new HashMap<>();
     private List<BusinessAssetDto> businessAssetList = new ArrayList<>();
     private List<BusinessAssetTypeDto> businessAssetTypeList = new ArrayList<>();
-
-    private Long businessCode;
 
     /**
      * 获取组织信息
@@ -44,11 +45,19 @@ public class AcmUITemplateDto {
         this.org = org;
     }
 
-    public Long getBusinessCode() {
+    /**
+     * 获取业务类型编码
+     * @return 业务类型编码
+     */
+    public String getBusinessCode() {
         return businessCode;
     }
 
-    public void setBusinessCode(Long businessCode) {
+    /**
+     * 设置业务类型编码
+     * @param businessCode 业务类型编码
+     */
+    public void setBusinessCode(String businessCode) {
         this.businessCode = businessCode;
     }
 

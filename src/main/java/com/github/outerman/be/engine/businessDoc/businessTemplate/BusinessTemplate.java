@@ -38,7 +38,7 @@ public class BusinessTemplate implements IValidatable {
     private ITemplateProvider templateProvider;
 
     //初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
-    public void init(SetOrg org, Long businessCode, ITemplateProvider templateProvider) {
+    public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
         this.templateProvider = templateProvider;
         docAccountTemplate.init(org, businessCode, templateProvider);
         paymentTemplate.init(org, businessCode, templateProvider);
@@ -77,10 +77,9 @@ public class BusinessTemplate implements IValidatable {
         return errorMessage;
     }
 
-    public Long getBusinessCode() {
+    public String getBusinessCode() {
         return businessTemplateDto.getBusinessCode();
     }
-
 
     public BusinessTemplateDto getBusinessTemplateDto() {
         return businessTemplateDto;
