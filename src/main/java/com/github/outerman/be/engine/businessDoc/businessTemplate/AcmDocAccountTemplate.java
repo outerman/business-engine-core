@@ -33,10 +33,10 @@ public class AcmDocAccountTemplate implements IValidatable {
     protected static List<Long> special = new ArrayList<>();
 
     // 初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
-    public void init(Long orgId, Long businessCode, ITemplateProvider templateProvider) {
+    public void init(SetOrg org, Long businessCode, ITemplateProvider templateProvider) {
         docTemplateDto = new AcmDocAccountTemplateDto();
         // 该业务所有行业和准则的模板
-        List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(orgId, businessCode);
+        List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
         all.forEach(template -> {
             String key = getKey(template.getIndustry(), template.getAccountingStandardsId());
             if (docTemplateDto.getAllPossibleTemplate().get(key) == null) {
@@ -52,7 +52,7 @@ public class AcmDocAccountTemplate implements IValidatable {
             }
         }
 
-        docTemplateDto.setOrgId(orgId);
+        docTemplateDto.setOrg(org);
         docTemplateDto.setBusinessCode(businessCode);
         if (general.isEmpty() || simple.isEmpty()) {
             List<SetTaxRateDto> taxRateList = templateProvider.getTaxRateList(0L);// setTaxRateService.getTaxRateByOrgId(0L);

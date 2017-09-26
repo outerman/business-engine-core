@@ -3,6 +3,8 @@ package com.github.outerman.be.engine.businessDoc.businessTemplate;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.util.SpringContextHelper;
 import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.vo.SetOrg;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,18 +23,15 @@ public class TemplateManager {
     @Autowired
     private SpringContextHelper contextHelper;
 
-    public BusinessTemplate fetchBusinessTemplate(Long orgId, Long businessCode, ITemplateProvider provider) {
-        BusinessTemplate ret = businessTemplateMap.get(getKey(orgId, businessCode));
-
+    public BusinessTemplate fetchBusinessTemplate(SetOrg org, Long businessCode, ITemplateProvider provider) {
+        String key = getKey(org.getId(), businessCode);
+        BusinessTemplate ret = businessTemplateMap.get(key);
         if (ret != null) {
             return ret;
         }
-
         ret = (BusinessTemplate) contextHelper.getBean(AcmConst.BUSINESS_TEMPLATE);
-        ret.init(orgId, businessCode, provider);
-
-        businessTemplateMap.put(getKey(orgId, businessCode), ret);
-
+        ret.init(org, businessCode, provider);
+        businessTemplateMap.put(key, ret);
         return ret;
     }
 

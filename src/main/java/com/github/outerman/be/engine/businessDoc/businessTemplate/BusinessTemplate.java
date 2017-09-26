@@ -8,10 +8,9 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.github.outerman.be.api.constant.AcmConst;
-import com.github.outerman.be.api.constant.BusinessEngineException;
-import com.github.outerman.be.api.constant.ErrorCode;
 import com.github.outerman.be.api.dto.BusinessTemplateDto;
 import com.github.outerman.be.api.dto.TemplateValidateResultDto;
+import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
 import com.github.outerman.be.engine.businessDoc.validator.ValidatorManager;
@@ -36,13 +35,13 @@ public class BusinessTemplate implements IValidatable {
     private BusinessTemplateDto businessTemplateDto;
 
     //初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
-    public void init(Long orgId, Long businessCode, ITemplateProvider templateProvider) {
-        docAccountTemplate.init(orgId, businessCode, templateProvider);
-        paymentTemplate.init(orgId, businessCode, templateProvider);
-        uiTemplate.init(orgId, businessCode, templateProvider);
+    public void init(SetOrg org, Long businessCode, ITemplateProvider templateProvider) {
+        docAccountTemplate.init(org, businessCode, templateProvider);
+        paymentTemplate.init(org, businessCode, templateProvider);
+        uiTemplate.init(org, businessCode, templateProvider);
 
         businessTemplateDto = new BusinessTemplateDto();
-        businessTemplateDto.setOrgId(orgId);
+        businessTemplateDto.setOrg(org);
         businessTemplateDto.setBusinessCode(businessCode);
         businessTemplateDto.setDocAccountTemplate(docAccountTemplate.getDocTemplateDto());
         businessTemplateDto.setPaymentTemplate(paymentTemplate.getPaymentTemplateDto());
@@ -78,9 +77,6 @@ public class BusinessTemplate implements IValidatable {
         return businessTemplateDto.getBusinessCode();
     }
 
-    public Long getOrgId() {
-        return businessTemplateDto.getOrgId();
-    }
 
     public BusinessTemplateDto getBusinessTemplateDto() {
         return businessTemplateDto;

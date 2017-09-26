@@ -1,6 +1,7 @@
 package com.github.outerman.be.api.dto;
 
 import com.github.outerman.be.api.vo.PaymentTemplateItem;
+import com.github.outerman.be.api.vo.SetOrg;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,17 +14,27 @@ import java.util.Map;
  */
 public class AcmPaymentTemplateDto {
 
+    /** 组织信息 */
+    private SetOrg org;
+
     private Map<String, PaymentTemplateItem> payMap = new HashMap<>();  //可能会用到的凭证模板
     private List<String> codeList = new ArrayList<>();      //可能用到的科目
-    private Long orgId;
     private Long businessCode;
 
-    public Long getOrgId() {
-        return orgId;
+    /**
+     * 获取组织信息
+     * @return 组织信息
+     */
+    public SetOrg getOrg() {
+        return org;
     }
 
-    public void setOrgId(Long orgId) {
-        this.orgId = orgId;
+    /**
+     * 设置组织信息
+     * @param org 组织信息
+     */
+    public void setOrg(SetOrg org) {
+        this.org = org;
     }
 
     public Long getBusinessCode() {

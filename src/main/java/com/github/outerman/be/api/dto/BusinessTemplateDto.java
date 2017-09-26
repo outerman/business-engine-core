@@ -1,23 +1,35 @@
 package com.github.outerman.be.api.dto;
 
+import com.github.outerman.be.api.vo.SetOrg;
+
 /**
  * Created by shenxy on 7/7/17.
  * 业务类型--主模板
  */
 public class BusinessTemplateDto {
 
+    /** 组织信息 */
+    private SetOrg org;
+
     private AcmDocAccountTemplateDto docAccountTemplate;
     private AcmPaymentTemplateDto paymentTemplate;
     private AcmUITemplateDto uiTemplate;
-    private Long orgId;
     private Long businessCode;
 
-    public Long getOrgId() {
-        return orgId;
+    /**
+     * 获取组织信息
+     * @return 组织信息
+     */
+    public SetOrg getOrg() {
+        return org;
     }
 
-    public void setOrgId(Long orgId) {
-        this.orgId = orgId;
+    /**
+     * 设置组织信息
+     * @param org 组织信息
+     */
+    public void setOrg(SetOrg org) {
+        this.org = org;
     }
 
     public Long getBusinessCode() {

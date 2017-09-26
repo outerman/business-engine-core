@@ -2,6 +2,8 @@ package com.github.outerman.be.api.dto;
 
 import com.github.outerman.be.api.vo.SetColumnsSpecialVo;
 import com.github.outerman.be.api.vo.SetColumnsTacticsDto;
+import com.github.outerman.be.api.vo.SetOrg;
+
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -16,20 +18,30 @@ import java.util.Map;
 @Component
 public class AcmUITemplateDto {
 
+    /** 组织信息 */
+    private SetOrg org;
+
     private Map<Long, List<SetColumnsTacticsDto>> tacticsMap = new HashMap<>();  //该businessCode所有可能的模板, key为行业
     private Map<Long, List<SetColumnsSpecialVo>> specialMap = new HashMap<>();
     private List<BusinessAssetDto> businessAssetList = new ArrayList<>();
     private List<BusinessAssetTypeDto> businessAssetTypeList = new ArrayList<>();
 
-    private Long orgId;
     private Long businessCode;
 
-    public Long getOrgId() {
-        return orgId;
+    /**
+     * 获取组织信息
+     * @return 组织信息
+     */
+    public SetOrg getOrg() {
+        return org;
     }
 
-    public void setOrgId(Long orgId) {
-        this.orgId = orgId;
+    /**
+     * 设置组织信息
+     * @param org 组织信息
+     */
+    public void setOrg(SetOrg org) {
+        this.org = org;
     }
 
     public Long getBusinessCode() {

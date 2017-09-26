@@ -1,6 +1,5 @@
 package com.github.outerman.be.engine.businessDoc.dataProvider;
 
-import com.github.outerman.be.api.dto.FiDocGenetateResultDto;
 import com.github.outerman.be.api.vo.*;
 import com.github.outerman.be.api.dto.BusinessAssetDto;
 import com.github.outerman.be.api.dto.BusinessAssetTypeDto;
@@ -15,6 +14,7 @@ import java.util.Map;
  * 模板数据的提供者接口
  */
 public interface ITemplateProvider {
+
     List<DocAccountTemplateItem> getBusinessTemplateByCode(Long orgId, Long businessCode);
 
     List<PaymentTemplateItem> getPayTemplate(Long orgId, Long businessCode);

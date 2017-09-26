@@ -8,6 +8,7 @@ import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.api.dto.BusinessTemplateDto;
 import com.github.outerman.be.api.ift.ITemplateValidateService;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
+import com.github.outerman.be.engine.businessDoc.businessTemplate.TemplateManager;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITestGenerateProvider;
 import com.github.outerman.be.engine.businessDoc.validator.ValidatorManager;
 import com.github.outerman.be.engine.util.StringUtil;
@@ -28,6 +29,8 @@ import java.util.stream.Collectors;
 public class TemplateValidateService implements ITemplateValidateService {
 
     @Autowired
+    private TemplateManager templateManager;
+
     private BusinessTemplate businessTemplate;
 
     private IFiDocProvider fiDocProvider;
@@ -59,8 +62,7 @@ public class TemplateValidateService implements ITemplateValidateService {
     //TODO: 全面验证,需要各个属性的企业覆盖
     @Override
     public String validateTemplateByMockDoc(SetOrg setOrg, Long businessCode, ITemplateProvider templateProvider, IFiDocProvider fiDocProvider, ITestGenerateProvider testGenerateProvider) {
-        //验证基于当前数据库内模板, 用businessCode从数据库初始化
-        businessTemplate.init(setOrg.getId(), businessCode, templateProvider);
+        businessTemplate = templateManager.fetchBusinessTemplate(setOrg, businessCode, templateProvider);
         this.fiDocProvider = fiDocProvider;
         this.testGenerateProvider = testGenerateProvider;
 
