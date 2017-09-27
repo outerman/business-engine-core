@@ -15,13 +15,13 @@ import java.util.Map;
  */
 public interface ITemplateProvider {
 
-    List<DocAccountTemplateItem> getBusinessTemplateByCode(Long orgId, Long businessCode);
+    List<DocAccountTemplateItem> getBusinessTemplateByCode(Long orgId, String businessCode);
 
-    List<PaymentTemplateItem> getPayTemplate(Long orgId, Long businessCode);
+    List<PaymentTemplateItem> getPayTemplate(Long orgId, String businessCode);
 
-    Map<Long, List<SetColumnsTacticsDto>> getTacticsByCode(Long orgId, Long businessCode);
+    Map<Long, List<SetColumnsTacticsDto>> getTacticsByCode(Long orgId, String businessCode);
 
-    Map<Long, List<SetColumnsSpecialVo>> getSpecialByCode(Long orgId, Long businessCode);
+    Map<Long, List<SetColumnsSpecialVo>> getSpecialByCode(Long orgId, String businessCode);
 
     List<BusinessAssetDto> getInventoryProperty(String businessCode);
 
@@ -32,8 +32,6 @@ public interface ITemplateProvider {
     SetCurrency getBaseCurrency(Long orgId);
 
     Map<String, FiAccount> getAccountCode(Long orgId, List<String> codeList, List<AcmSortReceiptDetail> detailList);
-
-//    DocAccountTemplateItem requestAdvice(DocAccountTemplateItem acmBusinessDoc, Map<String, FiAccount> codeMap, Long bankAccountId, Long investorId, List<ReceiptResult> fiDocReturnFailList, Long sortId);
 
     PaymentTemplateItem requestAdvice(PaymentTemplateItem acmPayDoc, Map<String, FiAccount> codeMap, AcmSortReceiptSettlestyle sett);
 

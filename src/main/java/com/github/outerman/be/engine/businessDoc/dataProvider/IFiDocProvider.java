@@ -12,7 +12,7 @@ import java.util.List;
  */
 public interface IFiDocProvider {
 
-    List<FiDocDto> getFiDocList(Long orgId, Long businessCode);
+    List<FiDocDto> getFiDocList(Long orgId, String businessCode);
 
     AcmSortReceipt getReceiptById(Long id, Long voucherId);
 

@@ -5,8 +5,8 @@ package com.github.outerman.be.engine.businessDoc.dataProvider;
  */
 public interface ITestGenerateProvider {
 
-    String constructSortReceiptByCode(Long orgId, Long businessCode);
+    String constructSortReceiptByCode(Long orgId, String businessCode);
 
-    String approveSortReceiptByCode(Long orgId, Long businessCode);
+    String approveSortReceiptByCode(Long orgId, String businessCode);
 
 }

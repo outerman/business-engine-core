@@ -10,9 +10,9 @@ import com.github.outerman.be.api.dto.BusinessTemplateDto;
 public interface ITemplateMaintainService {
     BusinessTemplateDto create(BusinessTemplateDto templateDto);
 
-    boolean delete(Long orgId, Long businessCode);
+    boolean delete(Long orgId, String businessCode);
 
     BusinessTemplateDto update(BusinessTemplateDto templateDto);
 
-    BusinessTemplateDto query(Long orgId, Long businessCode);
+    BusinessTemplateDto query(Long orgId, String businessCode);
 }

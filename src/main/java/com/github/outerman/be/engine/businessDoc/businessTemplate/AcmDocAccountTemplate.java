@@ -34,7 +34,7 @@ public class AcmDocAccountTemplate implements IValidatable {
         this.templateProvider = templateProvider;
         docTemplateDto = new AcmDocAccountTemplateDto();
         // 该业务所有行业和准则的模板
-        List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), Long.parseLong(businessCode));
+        List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
         all.forEach(template -> {
             String key = getKey(template.getIndustry(), template.getAccountingStandardsId());
             if (docTemplateDto.getAllPossibleTemplate().get(key) == null) {

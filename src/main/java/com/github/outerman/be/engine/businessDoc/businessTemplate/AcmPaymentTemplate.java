@@ -31,7 +31,7 @@ public class AcmPaymentTemplate implements IValidatable {
     // 初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
         paymentTemplateDto = new AcmPaymentTemplateDto();
-        List<PaymentTemplateItem> payTemp = templateProvider.getPayTemplate(org.getId(), Long.parseLong(businessCode));
+        List<PaymentTemplateItem> payTemp = templateProvider.getPayTemplate(org.getId(), businessCode);
         paymentTemplateDto.getPayMap().putAll(getPay(payTemp));
 
         for (PaymentTemplateItem acmPayDocTemplate : payTemp) {

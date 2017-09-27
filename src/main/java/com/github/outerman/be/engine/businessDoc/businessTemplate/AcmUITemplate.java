@@ -34,8 +34,8 @@ public class AcmUITemplate implements IValidatable {
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
         uiTemplateDto = new AcmUITemplateDto();
 
-        uiTemplateDto.getTacticsMap().putAll(templateProvider.getTacticsByCode(org.getId(), Long.parseLong(businessCode)));
-        uiTemplateDto.getSpecialMap().putAll(templateProvider.getSpecialByCode(org.getId(), Long.parseLong(businessCode)));
+        uiTemplateDto.getTacticsMap().putAll(templateProvider.getTacticsByCode(org.getId(), businessCode));
+        uiTemplateDto.getSpecialMap().putAll(templateProvider.getSpecialByCode(org.getId(), businessCode));
         uiTemplateDto.setBusinessAssetList(templateProvider.getInventoryProperty(businessCode.toString()));
         uiTemplateDto.setBusinessAssetTypeList(templateProvider.getAssetType(businessCode.toString()));
 

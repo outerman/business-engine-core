@@ -20,7 +20,7 @@ public class TemplateMaintainService implements ITemplateMaintainService {
     }
 
     @Override
-    public boolean delete(Long orgId, Long businessCode) {
+    public boolean delete(Long orgId, String businessCode) {
         //TODO: 创建时,需要区分orgId = 0(系统管理员维护系统模板) 或 orgId != 0 (用户维护个性化模板)
         return false;
     }
@@ -32,7 +32,7 @@ public class TemplateMaintainService implements ITemplateMaintainService {
     }
 
     @Override
-    public BusinessTemplateDto query(Long orgId, Long businessCode) {
+    public BusinessTemplateDto query(Long orgId, String businessCode) {
         //TODO: 创建时,需要区分orgId = 0(系统管理员维护系统模板) 或 orgId != 0 (用户维护个性化模板)
         return null;
     }
