@@ -41,20 +41,20 @@ public class TemplateValidateResultDto implements Serializable {
         if (result) {
             return "";
         }
-        List<String> messageList = new ArrayList<>();
+        StringBuilder message = new StringBuilder();
         if (!StringUtil.isEmpty(docTemplateMessage)) {
-            messageList.add(docTemplateMessage);
+            message.append(docTemplateMessage);
         }
         if (!StringUtil.isEmpty(payDocTemplateMessage)) {
-            messageList.add(payDocTemplateMessage);
+            message.append(payDocTemplateMessage);
         }
         if (!StringUtil.isEmpty(uiTemplateMessage)) {
-            messageList.add(uiTemplateMessage);
+            message.append(uiTemplateMessage);
         }
         if (validatorMessage != null && !validatorMessage.isEmpty()) {
-            messageList.addAll(validatorMessage);
+            message.append(validatorMessage);
         }
-        return String.join(";", messageList);
+        return message.toString();
     }
 
     /**

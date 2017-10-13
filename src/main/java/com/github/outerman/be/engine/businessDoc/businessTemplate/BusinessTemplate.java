@@ -55,7 +55,7 @@ public class BusinessTemplate implements IValidatable {
     @Override
     public String validate() {
         TemplateValidateResultDto result = new TemplateValidateResultDto();
-        //先分别校验
+
         result.setDocTemplateMessage(docAccountTemplate.validate());
         result.setPayDocTemplateMessage(paymentTemplate.validate());
         result.setUiTemplateMessage(uiTemplate.validate());
@@ -63,10 +63,6 @@ public class BusinessTemplate implements IValidatable {
             return result.getErrorMessage();
         }
 
-        //再组合校验, 例如:
-//        a）各模板是否同时结算或不结算
-//        b）影响因素字段的必填是否一致（凭证模板没有“默认”则为必填）
-//        c）支持的行业是否一致
         String errorMessage = validatorManager.getTemplateValidators()
                 .parallelStream()
                 .map(validator -> validator.validate(docAccountTemplate.getDocTemplateDto(),

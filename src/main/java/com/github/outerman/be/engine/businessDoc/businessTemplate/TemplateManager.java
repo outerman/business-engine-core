@@ -14,6 +14,7 @@ import java.util.Map;
  * Created by shenxy on 19/7/17.
  *
  * 管理模板, 主要处理缓存,避免重复初始化,浪费性能
+ * <p>模板数据会动态修改，在数据提供 {@code ITemplateProvider} 方进行缓存的处理
  */
 @Component
 public class TemplateManager {
@@ -24,19 +25,9 @@ public class TemplateManager {
     private SpringContextHelper contextHelper;
 
     public BusinessTemplate fetchBusinessTemplate(SetOrg org, String businessCode, ITemplateProvider provider) {
-        String key = getKey(org.getId(), businessCode);
-        BusinessTemplate ret = businessTemplateMap.get(key);
-        if (ret != null) {
-            return ret;
-        }
-        ret = (BusinessTemplate) contextHelper.getBean(AcmConst.BUSINESS_TEMPLATE);
+        BusinessTemplate ret = (BusinessTemplate) contextHelper.getBean(AcmConst.BUSINESS_TEMPLATE);
         ret.init(org, businessCode, provider);
-        businessTemplateMap.put(key, ret);
         return ret;
-    }
-
-    private String getKey(Long orgId, String businessCode) {
-        return orgId.toString() + businessCode;
     }
 
 }

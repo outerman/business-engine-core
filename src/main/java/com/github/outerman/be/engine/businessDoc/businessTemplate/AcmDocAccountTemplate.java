@@ -226,57 +226,58 @@ public class AcmDocAccountTemplate implements IValidatable {
 
     @Override
     public String validate() {
-        // 计税方式、认证影响因素对应凭证模板需要两条
-        // 影响因素取值有数据时，影响因素类型必须要有值
-        StringBuilder errorMessage = new StringBuilder();
-
-        String businessCode = "业务类型 " + docTemplateDto.getBusinessCode();
+        // 影响因素取值有数据时，影响因素必须要有值
+        // 同一分组纳税人、计税方式，纳税人、认证影响因素需要两条记录
+        // TODO 相同分类标识下，相同影响因素只能有一条凭证模板数据
+        String errorMessage = "业务类型 " + docTemplateDto.getBusinessCode() + " 凭证模板数据校验失败：";
         Map<String, List<DocAccountTemplateItem>> docTemplateMap = docTemplateDto.getAllPossibleTemplate();
         if (docTemplateMap.isEmpty()) {
-            errorMessage.append(businessCode + " 缺少凭证模板数据；");
-            return errorMessage.toString();
+            return errorMessage + "缺少凭证模板数据；";
         }
-        for (Entry<String, List<DocAccountTemplateItem>> entry : docTemplateMap.entrySet()) {
-            String key = entry.getKey();
-            Long industry = getIndustry(key);
-            Integer accountingStandard = getAccountingStandard(key);
-            String industryStr = "， 行业 " + industry + "，会计准则 " + accountingStandard;
 
-            List<DocAccountTemplateItem> docTemplateList = entry.getValue();
+        StringBuilder message = new StringBuilder();
+        for (Entry<String, List<DocAccountTemplateItem>> entry : docTemplateMap.entrySet()) {
+            StringBuilder industryMessage = new StringBuilder();
             Map<String, Integer> influenceCountMap = new HashMap<>();
-            for (DocAccountTemplateItem docTemplate : docTemplateList) {
-                String influence = docTemplate.getInfluence();
-                if (StringUtil.isEmpty(influence) && hasInfluenceValue(docTemplate)) {
-                    errorMessage.append(businessCode + industryStr + " 凭证模板影响因素缺少数据；");
-                    continue;
-                }
+            for (DocAccountTemplateItem docTemplate : entry.getValue()) {
+                // TODO 校验金额表达式正确性
                 String fundSource = docTemplate.getFundSource();
                 if (StringUtil.isEmpty(fundSource)) {
-                    errorMessage.append(businessCode + industryStr + "金额来源不能为空；");
+                    industryMessage.append("金额来源不能为空；");
                 }
-                // TODO 校验金额表达式正确性
-                String countKey = influence + "_" + docTemplate.getFlag();
-                Integer count = influenceCountMap.get(countKey);
-                if (count == null) {
-                    count = 0;
+                String influence = docTemplate.getInfluence();
+                if (StringUtil.isEmpty(influence) && hasInfluenceValue(docTemplate)) {
+                    industryMessage.append("影响因素取值有数据，影响因素为空；");
+                    continue;
                 }
-                if ("vatTaxpayer,taxType".equals(influence)) {
-                    count++;
-                    influenceCountMap.put(countKey, count);
-                } else if ("vatTaxpayer,qualification".equals(influence)) {
-                    count++;
+                if ("vatTaxpayer,taxType".equals(influence) || "vatTaxpayer,qualification".equals(influence)) {
+                    String countKey = influence + "_" + docTemplate.getFlag();
+                    Integer count = 1;
+                    if (influenceCountMap.containsKey(countKey)) {
+                        count += influenceCountMap.get(countKey);
+                    }
                     influenceCountMap.put(countKey, count);
                 }
             }
             for (Entry<String, Integer> countEntry : influenceCountMap.entrySet()) {
-                Integer count = countEntry.getValue();
-                if (count != 2) {
-                    errorMessage.append(businessCode + industryStr + " 凭证模板数据对应影响因素（计税方式、认证）必须有两条记录；");
+                if (countEntry.getValue() != 2) {
+                    String key = countEntry.getKey();
+                    String flag = key.substring(key.lastIndexOf("_") + 1);
+                    industryMessage.append("分组" + flag + "影响因素（计税方式、认证）必须有两条记录；");
                 }
             }
+            if (industryMessage.length() != 0) {
+                String key = entry.getKey();
+                Long industry = getIndustry(key);
+                Integer accountingStandard = getAccountingStandard(key);
+                String industryErrorMessage = CommonUtil.getAccountingStandardName(accountingStandard) + CommonUtil.getIndustryName(industry) + "行业，";
+                message.append(industryErrorMessage + industryMessage.toString());
+            }
         }
-        // TODO 相同分类标识下，相同影响因素只能有一条凭证模板数据
-        return errorMessage.toString();
+        if (message.length() == 0) {
+            return "";
+        }
+        return errorMessage + message.toString();
     }
 
     private boolean hasInfluenceValue(DocAccountTemplateItem docTemplate) {

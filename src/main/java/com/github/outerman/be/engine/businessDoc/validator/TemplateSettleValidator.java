@@ -7,6 +7,7 @@ import com.github.outerman.be.api.dto.AcmUITemplateDto;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 import com.github.outerman.be.api.vo.SetColumnsTacticsDto;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AcmDocAccountTemplate;
+import com.github.outerman.be.engine.util.CommonUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -30,49 +31,42 @@ public class TemplateSettleValidator implements ITemplateValidatable {
     @Override
     public String validate(AcmDocAccountTemplateDto docAccountTemplateDto, AcmPaymentTemplateDto paymentTemplateDto, AcmUITemplateDto uiTemplateDto) {
         // 元数据模板银行账号（结算方式）显示（现在显示即必填）时，凭证模板对方科目来源必须存在结算方式
-        // TODO 现在判断凭证模板是否有对应的结算信息是根据对方科目来源是结算方式，isSettlement=1，是否应该根据结算凭证模板来判断
-        StringBuilder errorMessage = new StringBuilder();
         if (docAccountTemplateDto.getBusinessCode().toString().startsWith("40")) {
             // 存取现金/内部账户互转 都是本表自平
             return "";
         }
 
+        String errorMessage = "业务类型 " + docAccountTemplateDto.getBusinessCode() + " 元数据模板银行账户（结算方式）显示时，凭证模板需要存在对应科目来源为结算方式的数据：";
         Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
         Map<String, List<DocAccountTemplateItem>> docTemplateMap = docAccountTemplateDto.getAllPossibleTemplate();
 
         // 验证每个行业
-        String businessCode = "业务类型 " + docAccountTemplateDto.getBusinessCode();
-        Long industry;
-        List<SetColumnsTacticsDto> tacticsList;
-        List<DocAccountTemplateItem> docTemplateList;
+        StringBuilder industryMessage = new StringBuilder();
         for (Entry<Long, List<SetColumnsTacticsDto>> entry : tacticsMap.entrySet()) {
-            industry = entry.getKey();
-            tacticsList = entry.getValue();
-            boolean bankAccountVisible = false;
-            for (SetColumnsTacticsDto tactics : tacticsList) {
+            boolean accountVisible = false;
+            for (SetColumnsTacticsDto tactics : entry.getValue()) {
                 Long columnId = tactics.getColumnsId();
                 Integer flag = tactics.getFlag();
                 if (columnId.equals(AcmConst.BANK_ACCOUNT_COLUMN_ID) && flag != null && flag > 0) {
-                    bankAccountVisible = true;
+                    accountVisible = true;
                     break;
                 }
             }
-            if (!bankAccountVisible) {
+            if (!accountVisible) {
                 continue;
             }
 
             // 凭证模板区分会计准则，每个会计准则都需要验证
-            String industryStr = "，行业 " + industry;
+            Long industry = entry.getKey();
+            String industryStr = CommonUtil.getIndustryName(industry) + "行业";
             for (Long accountingStandard : AcmConst.ACCOUNTING_STANDARD_ID_LIST) {
                 String key = AcmDocAccountTemplate.getKey(industry, accountingStandard.intValue());
-                String accountingStandardStr = "，会计准则 " + accountingStandard;
                 if (!docTemplateMap.containsKey(key)) {
-                    errorMessage.append(businessCode + industryStr + accountingStandardStr + "，缺少凭证模板数据；");
                     continue;
                 }
 
                 boolean docTemplateHasSettle = false;
-                docTemplateList = docTemplateMap.get(key);
+                List<DocAccountTemplateItem> docTemplateList = docTemplateMap.get(key);
                 for (DocAccountTemplateItem docTemplate : docTemplateList) {
                     Boolean isSettlement = docTemplate.getIsSettlement();
                     if (isSettlement != null && isSettlement) {
@@ -81,12 +75,14 @@ public class TemplateSettleValidator implements ITemplateValidatable {
                     }
                 }
                 if (!docTemplateHasSettle) {
-                    errorMessage.append(businessCode + industryStr + accountingStandardStr + "，凭证模板缺少结算数据；");
+                    industryMessage.append(CommonUtil.getAccountingStandardName(accountingStandard.intValue()) + industryStr + "；");
                 }
             }
         }
-
-        return errorMessage.toString();
+        if (industryMessage.length() == 0) {
+            return "";
+        }
+        return errorMessage + industryMessage.toString();
     }
 
 }

@@ -3,6 +3,7 @@ package com.github.outerman.be.engine.businessDoc.businessTemplate;
 import com.github.outerman.be.api.vo.SetColumnsSpecialVo;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
+import com.github.outerman.be.engine.util.CommonUtil;
 import com.github.outerman.be.api.constant.AcmConst;
 import com.github.outerman.be.api.dto.AcmUITemplateDto;
 import com.github.outerman.be.api.dto.BusinessAssetDto;
@@ -45,36 +46,32 @@ public class AcmUITemplate implements IValidatable {
 
     @Override
     public String validate() {
-        // 行业为 key，业务类型元数据信息
         Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
+        String errorMessage = "业务类型 " + uiTemplateDto.getBusinessCode() + " 元数据模板数据校验失败：";
         if (tacticsMap.isEmpty()) {
-            return "业务类型 " + uiTemplateDto.getBusinessCode() + " 元数据配置信息（tactics）为空；";
+            return errorMessage + "缺少元数据配置信息；";
         }
-        Map<Long, List<SetColumnsSpecialVo>> specialMap = uiTemplateDto.getSpecialMap();
 
-        StringBuilder errorMessage = new StringBuilder();
-        errorMessage.append(validateTatics(tacticsMap));
-        errorMessage.append(validateSpecial(tacticsMap, specialMap));
-        errorMessage.append(validateAsset());
-
-        return errorMessage.toString();
+        StringBuilder message = new StringBuilder();
+        message.append(validateAsset());
+        message.append(validateTatics());
+        message.append(validateSpecial());
+        if (message.length() == 0) {
+            return "";
+        }
+        return errorMessage + message.toString();
     }
 
     /**
      * 校验元数据对应的显示规则
-     * @param tacticsMap
      * @return
      */
-    private String validateTatics(Map<Long, List<SetColumnsTacticsDto>> tacticsMap) {
-        // 校验票据类型根据纳税人身份的显示规则，至少在一种纳税人身份下显示
-        StringBuilder errorMessage = new StringBuilder();
-
+    private String validateTatics() {
+        // 票据类型根据纳税人身份的显示规则，至少在一种纳税人身份下显示
+        StringBuilder message = new StringBuilder();
         // 验证每个行业
-        String businessCode = "业务类型 " + uiTemplateDto.getBusinessCode();
-        for (Entry<Long, List<SetColumnsTacticsDto>> entry : tacticsMap.entrySet()) {
-            Long industry = entry.getKey();
+        for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
             List<SetColumnsTacticsDto> tacticsList = entry.getValue();
-            String industryStr = "，行业 " + industry;
 
             // 不同票据类型元数据配置不同，分别验证，纳税人身份分别对应两条 tactics 记录
             Map<Long, List<SetColumnsTacticsDto>> tacticsInvoiceMap = new HashMap<>();
@@ -97,13 +94,11 @@ public class AcmUITemplate implements IValidatable {
                 tacticsInvoiceList.add(tactics);
             }
 
+            List<String> invoiceNameList = new ArrayList<>();
             for (Entry<Long, List<SetColumnsTacticsDto>> invoiceEntry : tacticsInvoiceMap.entrySet()) {
-                Long invoiceId = invoiceEntry.getKey();
-                String invoice = "，票据类型 " + invoiceId;
-                List<SetColumnsTacticsDto> tacticsInvoiceList = invoiceEntry.getValue();
                 SetColumnsTacticsDto vatTaxpayer41 = null;
                 SetColumnsTacticsDto vatTaxpayer42 = null;
-                for (SetColumnsTacticsDto tactics : tacticsInvoiceList) {
+                for (SetColumnsTacticsDto tactics : invoiceEntry.getValue()) {
                     Long columnId = tactics.getColumnsId();
                     if (columnId.equals(AcmConst.VAT_TAX_PAYER_41_COLUMN_ID)) {
                         vatTaxpayer41 = tactics;
@@ -112,59 +107,55 @@ public class AcmUITemplate implements IValidatable {
                     }
                 }
                 boolean vatTaxpayer41Visible = false;
-                if (vatTaxpayer41 == null) {
-                    errorMessage.append(businessCode + industryStr + invoice + " 缺少一般纳税人的元数据配置信息（tactics）；");
-                } else { // 结算方式的特殊输入规则不区分票据类型
+                if (vatTaxpayer41 != null) {
                     Integer flag = vatTaxpayer41.getFlag();
                     if (flag != null && flag > 0) {
                         vatTaxpayer41Visible = true;
                     }
                 }
                 boolean vatTaxpayer42Visible = false;
-                if (vatTaxpayer42 == null) {
-                    errorMessage.append(businessCode + industryStr + invoice + " 缺少小规模纳税人的元数据配置信息（tactics）；");
-                } else { // 税率的特殊输入规则区分票据类型
+                if (vatTaxpayer42 != null) {
                     Integer flag = vatTaxpayer42.getFlag();
                     if (flag != null && flag > 0) {
                         vatTaxpayer42Visible = true;
                     }
                 }
                 if (!vatTaxpayer41Visible && !vatTaxpayer42Visible) {
-                    errorMessage.append(businessCode + industryStr + invoice + " 元数据配置信息中，一般纳税人、小规模纳税人至少选择一个；");
+                    String invoiceName = CommonUtil.getInvoiceName(invoiceEntry.getKey());
+                    invoiceNameList.add(invoiceName);
                 }
             }
+            if (!invoiceNameList.isEmpty()) {
+                String industryStr = CommonUtil.getIndustryName(entry.getKey()) + "行业，";
+                message.append(industryStr + String.join("、", invoiceNameList) + "纳税人身份至少选择一个；");
+            }
         }
-
-        return errorMessage.toString();
+        return message.toString();
     }
 
     /**
      * 校验元数据对应的特殊输入规则
-     * @param tacticsMap
-     * @param specialMap
      * @return
      */
-    private String validateSpecial(Map<Long, List<SetColumnsTacticsDto>> tacticsMap, Map<Long, List<SetColumnsSpecialVo>> specialMap) {
-        // 校验银行账号（结算方式）、税率（征收率）显示（Flag = 1 | 2）时，special 中要有对应的数据
-        StringBuilder errorMessage = new StringBuilder();
-
+    private String validateSpecial() {
+        Map<Long, List<SetColumnsSpecialVo>> specialMap = uiTemplateDto.getSpecialMap();
+        // 校验银行账号（结算方式）、税率（征收率）显示（Flag = 1 | 2）时，特殊输入规则中要有对应的数据
+        StringBuilder message = new StringBuilder();
         // 验证所有行业
-        String businessCode = "业务类型 " + uiTemplateDto.getBusinessCode();
-        for (Entry<Long, List<SetColumnsTacticsDto>> entry : tacticsMap.entrySet()) {
-            Long industry = entry.getKey();
-            List<SetColumnsTacticsDto> tacticsList = entry.getValue();
+        for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
             List<SetColumnsSpecialVo> specialList = specialMap.get(entry.getKey());
-            String industryStr = "，行业 " + industry;
 
             // 不同票据类型元数据配置不同，分别验证
             Map<Long, List<SetColumnsTacticsDto>> tacticsInvoiceMap = new HashMap<>();
-            for (SetColumnsTacticsDto tactics : tacticsList) {
+            for (SetColumnsTacticsDto tactics : entry.getValue()) {
                 Long invoiceId = tactics.getInvoiceId();
                 Long columnId = tactics.getColumnsId();
                 if (invoiceId == null || columnId == null) {
                     continue;
                 }
-                if (!columnId.equals(AcmConst.BANK_ACCOUNT_COLUMN_ID) && !columnId.equals(AcmConst.TAX_RATE_COLUMN_ID)) { // 银行账号、税率
+                if (!columnId.equals(AcmConst.BANK_ACCOUNT_COLUMN_ID) && !columnId.equals(AcmConst.TAX_RATE_COLUMN_ID)
+                        && !columnId.equals(AcmConst.VAT_TAX_PAYER_41_COLUMN_ID) && !columnId.equals(AcmConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
+                    // 银行账号、税率、一般纳税人、小规模纳税人
                     continue;
                 }
                 List<SetColumnsTacticsDto> tacticsInvoiceList;
@@ -177,31 +168,36 @@ public class AcmUITemplate implements IValidatable {
                 tacticsInvoiceList.add(tactics);
             }
 
+            List<String> accountInvoiceNameList = new ArrayList<>();
+            List<String> taxRateInvoiceNameList = new ArrayList<>();
             for (Entry<Long, List<SetColumnsTacticsDto>> invoiceEntry : tacticsInvoiceMap.entrySet()) {
-                Long invoiceId = invoiceEntry.getKey();
-                String invoice = "，票据类型 " + invoiceId;
-                List<SetColumnsTacticsDto> tacticsInvoiceList = invoiceEntry.getValue();
+                String invoiceName = CommonUtil.getInvoiceName(invoiceEntry.getKey());
                 SetColumnsTacticsDto tacticsBankAccount = null;
                 SetColumnsTacticsDto tacticsTaxRate = null;
-                for (SetColumnsTacticsDto tactics : tacticsInvoiceList) {
+                Boolean isGeneralTaxPayer = false;
+                Boolean isSmallScaleTaxPayer = false;
+                for (SetColumnsTacticsDto tactics : invoiceEntry.getValue()) {
                     Long columnId = tactics.getColumnsId();
                     if (columnId.equals(AcmConst.BANK_ACCOUNT_COLUMN_ID)) {
                         tacticsBankAccount = tactics;
                     } else if (columnId.equals(AcmConst.TAX_RATE_COLUMN_ID)) {
                         tacticsTaxRate = tactics;
+                    } else if (columnId.equals(AcmConst.VAT_TAX_PAYER_41_COLUMN_ID)) {
+                        Integer flag = tactics.getFlag();
+                        isGeneralTaxPayer = (flag != null && flag > 0);
+                    } else if (columnId.equals(AcmConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
+                        Integer flag = tactics.getFlag();
+                        isSmallScaleTaxPayer = (flag != null && flag > 0);
                     }
                 }
-                if (tacticsBankAccount == null) {
-                    errorMessage.append(businessCode + industryStr + invoice + " 缺少银行账号（结算方式）的元数据配置信息（tactics）；");
-                } else { // 结算方式的特殊输入规则不区分票据类型，银行账号在 special 表中 column id 为 12，在 tactics 中为 14
+                if (tacticsBankAccount != null) {
+                    // 结算方式的特殊输入规则不区分票据类型，银行账号在 special 表中 column id 为 12，在 tactics 中为 14
                     Integer flag = tacticsBankAccount.getFlag();
                     if (flag != null && flag > 0 && !specialHasColumn(specialList, AcmConst.SETTLE_STYLE_COLUMN_ID, null)) {
-                        errorMessage.append(businessCode + industryStr + invoice + " 缺少银行账号（结算方式）的元数据配置信息（special）；");
+                        accountInvoiceNameList.add(invoiceName);
                     }
                 }
-                if (tacticsTaxRate == null) {
-                    errorMessage.append(businessCode + invoice + " 缺少税率的元数据配置信息（tactics）；");
-                } else { // 税率的特殊输入规则区分票据类型，纳税人身份
+                if (tacticsTaxRate != null) {
                     Integer flag = tacticsTaxRate.getFlag();
                     if (flag != null && flag > 0) {
                         Map<Integer, List<SetColumnsSpecialVo>> vatTaxpayerMap = new HashMap<>();
@@ -220,20 +216,32 @@ public class AcmUITemplate implements IValidatable {
                             }
                             vatTaxpayerList.add(special);
                         }
-                        for (Entry<Integer, List<SetColumnsSpecialVo>> vatTaxpayerEntry : vatTaxpayerMap.entrySet()) {
-                            Integer vatTaxpayer = vatTaxpayerEntry.getKey();
-                            String vatTaxpayerStr = "，纳税人身份 " + vatTaxpayer;
-                            List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerEntry.getValue();
-                            if (!specialHasColumn(vatTaxpayerList, AcmConst.TAX_RATE_COLUMN_ID, invoiceId)) {
-                                errorMessage.append(businessCode + industryStr + invoice + vatTaxpayerStr + " 缺少税率的元数据配置信息（special）；");
+                        if (isGeneralTaxPayer) {
+                            Integer vatTaxpayer = 41;
+                            List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
+                            if (!specialHasColumn(vatTaxpayerList, AcmConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
+                                taxRateInvoiceNameList.add(invoiceName + CommonUtil.getVatTaxPayerName(vatTaxpayer));
+                            }
+                        }
+                        if (isSmallScaleTaxPayer) {
+                            Integer vatTaxpayer = 42;
+                            List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
+                            if (!specialHasColumn(vatTaxpayerList, AcmConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
+                                taxRateInvoiceNameList.add(invoiceName + CommonUtil.getVatTaxPayerName(vatTaxpayer));
                             }
                         }
                     }
                 }
             }
+            String industryStr = CommonUtil.getIndustryName(entry.getKey()) + "行业，";
+            if (!accountInvoiceNameList.isEmpty()) {
+                message.append(industryStr + String.join("、", accountInvoiceNameList) + "银行账号（结算方式）显示，可选账户类型未设置；");
+            }
+            if (!taxRateInvoiceNameList.isEmpty()) {
+                message.append(industryStr + String.join("、", taxRateInvoiceNameList) + "税率显示，可选税率未设置；");
+            }
         }
-
-        return errorMessage.toString();
+        return message.toString();
     }
 
     /**
@@ -241,12 +249,12 @@ public class AcmUITemplate implements IValidatable {
      * @return
      */
     private String validateAsset() {
-        StringBuilder errorMessage = new StringBuilder();
+        // 业务类型存货、资产类别显示时，对应存货属性、资产类别（存货属性细分）必须要有对应数据
+        StringBuilder message = new StringBuilder();
         boolean inventoryVisible = false;
         boolean assetTypeVisible = false;
         for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
-            List<SetColumnsTacticsDto> tacticsList = entry.getValue();
-            for (SetColumnsTacticsDto tactics : tacticsList) {
+            for (SetColumnsTacticsDto tactics : entry.getValue()) {
                 Long invoiceId = tactics.getInvoiceId();
                 Long columnId = tactics.getColumnsId();
                 if (invoiceId == null || columnId == null) {
@@ -262,26 +270,31 @@ public class AcmUITemplate implements IValidatable {
                         assetTypeVisible = true;
                     }
                 }
+                if (inventoryVisible && assetTypeVisible) {
+                    break;
+                }
+            }
+            if (inventoryVisible && assetTypeVisible) {
+                break;
             }
         }
-        String businessCode = "业务类型 " + uiTemplateDto.getBusinessCode();
         if (inventoryVisible) {
             List<BusinessAssetDto> businessAssetList = uiTemplateDto.getBusinessAssetList();
             if (businessAssetList == null || businessAssetList.isEmpty()) {
-                errorMessage.append(businessCode + " 缺少对应的存货属性对照关系；");
+                message.append("商品或服务名称显示，业务类型可选存货属性未设置；");
             }
         }
         if (assetTypeVisible) {
             List<BusinessAssetTypeDto> businessAssetTypeList = uiTemplateDto.getBusinessAssetTypeList();
             if (businessAssetTypeList == null || businessAssetTypeList.isEmpty()) {
-                errorMessage.append(businessCode + " 缺少对应的资产类别属性对照关系；");
+                message.append("资产类别显示，业务类型缺少对应的资产类别属性；");
             }
         }
-        return errorMessage.toString();
+        return message.toString();
     }
 
     private boolean specialHasColumn(List<SetColumnsSpecialVo> specialList, Long columnId, Long invoiceId) {
-        if (columnId == null) {
+        if (columnId == null || specialList == null) {
             return false;
         }
         for (SetColumnsSpecialVo special : specialList) {
