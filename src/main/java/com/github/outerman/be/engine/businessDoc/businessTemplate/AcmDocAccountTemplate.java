@@ -186,6 +186,22 @@ public class AcmDocAccountTemplate implements IValidatable {
                 } else if (extendAttr == 0) {
                     defaultDocTemplate = docTemplate;
                 }
+            } else if ("formula".equals(influence)) { // 表达式
+                if(detail.getExt1() > detail.getAmount()){ // 扩展1>金额
+                    if(extendAttr == 1L){
+                        resultList.add(docTemplate);
+                    }
+                }
+                if(detail.getExt1() <= detail.getAmount()){ // 扩展1≤金额
+                    if(extendAttr == 2L){
+                        resultList.add(docTemplate);
+                    }
+                }
+            } else if ("inventoryAttr".equals(influence)) { // 存货属性
+                Long inventoryPropertyTemplateId = detail.getInventoryPropertyTemplateId();
+                if (inventoryPropertyTemplateId != null && inventoryPropertyTemplateId.equals(extendAttr)) {
+                    resultList.add(docTemplate);
+                }
             }
         }
         if (resultList.isEmpty() && defaultDocTemplate != null) {

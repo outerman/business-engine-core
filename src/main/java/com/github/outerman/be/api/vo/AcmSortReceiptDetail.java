@@ -65,6 +65,9 @@ public class AcmSortReceiptDetail implements Serializable {
     private String inventoryName;
     private Long inventoryPropertyId;// 存货属性 id, 数据库里实际并没有存储这个字段
 
+    /** 存货属性对应凭证模板使用的 id，存货属性数据区分纳税人性质，凭证模板不区分，不能直接使用存货属性 id */
+    private Long inventoryPropertyTemplateId;
+
     /** 项目  */
     private Long project;
     /** 项目名称  */
@@ -365,6 +368,24 @@ public class AcmSortReceiptDetail implements Serializable {
      */
     public void setInventoryPropertyId(Long inventoryPropertyId) {
         this.inventoryPropertyId = inventoryPropertyId;
+    }
+
+    /**
+     * 获取存货属性对应凭证模板使用的 id
+     * <p>存货属性数据区分纳税人性质，凭证模板不区分，不能直接使用存货属性 id
+     * @return 存货属性对应凭证模板使用的 id
+     */
+    public Long getInventoryPropertyTemplateId() {
+        return inventoryPropertyTemplateId;
+    }
+
+    /**
+     * 设置存货属性对应凭证模板使用的 id
+     * <p>存货属性数据区分纳税人性质，凭证模板不区分，不能直接使用存货属性 id
+     * @param inventoryPropertyTemplateId 存货属性对应凭证模板使用的 id
+     */
+    public void setInventoryPropertyTemplateId(Long inventoryPropertyTemplateId) {
+        this.inventoryPropertyTemplateId = inventoryPropertyTemplateId;
     }
 
     public Long getProject() {
