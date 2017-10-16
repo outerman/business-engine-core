@@ -1,8 +1,6 @@
 package com.github.outerman.be.api.vo;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FiDocEntryDto implements Serializable {
 
@@ -148,6 +146,9 @@ public class FiDocEntryDto implements Serializable {
 	
 	/** 账号Name[set_bank_account]  */
 	private String bankAccountName;
+
+   /** 即征即退项目ID  */
+    private Long levyAndRetreatId;
 
 	/** 票据Code  */
 	private String billCode;
@@ -503,6 +504,15 @@ public class FiDocEntryDto implements Serializable {
 	public void setBankAccountCode(String bankAccountCode) {
 		this.bankAccountCode = bankAccountCode;
 	}
+	
+    public Long getLevyAndRetreatId() {
+        return levyAndRetreatId;
+    }
+
+    public void setLevyAndRetreatId(Long levyAndRetreatId) {
+        this.levyAndRetreatId = levyAndRetreatId;
+    }
+	
 	/** 计量单位id[set_unit]  */
 	public String getUnitName() {
 		return unitName;

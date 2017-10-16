@@ -12,7 +12,6 @@ import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTempla
 import com.github.outerman.be.engine.businessDoc.businessTemplate.TemplateManager;
 import com.github.outerman.be.engine.util.DoubleUtil;
 import com.github.outerman.be.engine.util.StringUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +45,8 @@ public class DocTemplateGenerator {
         SetCurrency currency = templateProvider.getBaseCurrency(setOrg.getId());
         FiDocGenetateResultDto resultDto = new FiDocGenetateResultDto();
 
+        // 进项税额转出相关分录模板
+        Map<String, DocAccountTemplateItem> templateMap = new HashMap<>();
         for (AcmSortReceipt acmSortReceipt : receiptList) {
             if (!checkReceipt(acmSortReceipt, resultDto)) {
                 continue;
@@ -56,7 +57,7 @@ public class DocTemplateGenerator {
             List<AcmSortReceiptDetail> detailList = reorderReceiptDetailList(acmSortReceipt.getAcmSortReceiptDetailList());
 
             for (int i = 0 ; i < detailList.size() ; i++) {
-            	AcmSortReceiptDetail detail = detailList.get(i);
+                AcmSortReceiptDetail detail = detailList.get(i);
                 BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg, detail.getBusinessCode().toString(), templateProvider);
 
                 // 1.取出业务类型对应的模板
@@ -68,23 +69,26 @@ public class DocTemplateGenerator {
                     throw new BusinessEngineException(ErrorCode.EXCEPTION_CODE_DOC_TEMPLATE_EMPTY, message);
                 }
 
-                List<DocAccountTemplateItem> fiBillDocTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(setOrg, detail);
+                List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(setOrg, detail);
 
                 // TODO 科目编码处理
-                List<String> codeList = new ArrayList<>();
-                for (DocAccountTemplateItem docTemplate : fiBillDocTemplateList) {
-                    codeList.add(docTemplate.getAccountCode());
+                List<String> accountCodeList = new ArrayList<>();
+                for (DocAccountTemplateItem docTemplate : docTemplateList) {
+                    accountCodeList.add(docTemplate.getAccountCode());
                 }
-                Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), codeList, detailList);
-                for (DocAccountTemplateItem fiBillDocTemplate : fiBillDocTemplateList) {
-                    // 根据反馈建议, 调整模板
-                    fiBillDocTemplate = updateTemplateByAdvice(detail, fiBillDocTemplate, resultDto, codeMap, templateProvider);
-                    if (fiBillDocTemplate == null) {
+                Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), accountCodeList, detailList);
+                for (DocAccountTemplateItem docTemplate : docTemplateList) {
+                    docTemplate = updateTemplateByAdvice(detail, docTemplate, resultDto, codeMap, templateProvider);
+                    if (docTemplate == null) {
                         continue;
+                    }
+                    String summary = docTemplate.getSummary();
+                    if ("进项税额转出".equals(summary)) {
+                        templateMap.put(docTemplate.getAccountCode(), docTemplate);
                     }
 
                     // 取金额方式
-                    Double amount = AmountGetter.getAmount(detail, fiBillDocTemplate);
+                    Double amount = AmountGetter.getAmount(detail, docTemplate);
                     if(amount.equals(0D) || amount.equals(0.0)){//金额为零的跳过
                         continue;
                     }
@@ -92,24 +96,24 @@ public class DocTemplateGenerator {
                     StringBuilder fuz = new StringBuilder();
                     // 建立辅助核算
                     Map<String,String> auxInfo = new HashMap<>();
-                    setAuxInfo(setOrg.getVatTaxpayer(), currency, acmSortReceipt, detail, fiBillDocTemplate, fuz, auxInfo);
+                    setAuxInfo(setOrg.getVatTaxpayer(), currency, acmSortReceipt, detail, docTemplate, fuz, auxInfo);
 
                     Boolean isSort = true;
                     //查看是否需要特殊排序: 所有"本表"平的业务,都特殊排序
                     // "工资-发放-实发工资"特殊处理, 虽然是"结算方式",但是和其他"本表"的业务,一起单独排序
-                    if(fiBillDocTemplate.getIsSettlement() != null && !fiBillDocTemplate.getIsSettlement() || BusinessTypeUtil.SPECIAL_ORDER.contains(fiBillDocTemplate.getBusinessCode())){
+                    if(docTemplate.getIsSettlement() != null && !docTemplate.getIsSettlement() || BusinessTypeUtil.SPECIAL_ORDER.contains(docTemplate.getBusinessCode())){
                         isSort = false;
                     }
 
-                    String accountCode = fuz.insert(0, fiBillDocTemplate.getAccountCode()).toString();
-                    Long businessCode = fiBillDocTemplate.getBusinessCode();
+                    String accountCode = fuz.insert(0, docTemplate.getAccountCode()).toString();
+                    Long businessCode = docTemplate.getBusinessCode();
                     // "账户内"互转的三项业务, 固定不做合并
-                    if (BusinessTypeUtil.NOT_MERGE_BUSINESS.contains(fiBillDocTemplate.getBusinessCode())) {
+                    if (BusinessTypeUtil.NOT_MERGE_BUSINESS.contains(docTemplate.getBusinessCode())) {
                         accountCode += "_ran"+i;
                         businessCode = null;
                     }
 
-                    if (!fiBillDocTemplate.getDirection()) {//借
+                    if (!docTemplate.getDirection()) {//借
                         fiDocDto.addEntryJie(accountCode, amount, (auxInfo.isEmpty() ? null : auxInfo), isSort, businessCode);
                     } else {//贷
                         fiDocDto.addEntryDai(accountCode, amount, (auxInfo.isEmpty() ? null : auxInfo), isSort, businessCode);
@@ -139,7 +143,7 @@ public class DocTemplateGenerator {
             	AcmSortReceiptSettlestyle sett = acmSortReceiptSettlestyleList.get(i);
 
                 //拿出结算方式查出模板
-                PaymentTemplateItem acmPayDocTemplate = businessTemplate.getPaymentTemplate().getTemplate(acmSortReceipt, sett);// acmPayTemplate.getTemplate(acmSortReceipt, isJieDai, sett,payMap);
+                PaymentTemplateItem acmPayDocTemplate = businessTemplate.getPaymentTemplate().getTemplate(sett);
                 if(acmPayDocTemplate == null){
                 	throw new BusinessEngineException(ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_CODE, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG);
                 }
@@ -150,8 +154,7 @@ public class DocTemplateGenerator {
                 acmPayDocTemplate = getPayTemplateByAdvice(sett, acmPayDocTemplate, codeMap, templateProvider);
 
                 //模板为空,或者模板不对
-                if (acmPayDocTemplate == null || (!acmPayDocTemplate.getSettlement().equals(sett.getSettleStyle()) &&
-                        !acmPayDocTemplate.getPaymentsType().toString().substring(0, 5).equals(acmSortReceipt.getPaymentsType().toString()))) {
+                if (acmPayDocTemplate == null) {
                     continue;
                 }
 
@@ -183,16 +186,77 @@ public class DocTemplateGenerator {
                 }
             }
             // 正负混录的流水账收支明细，分录合并之后分录金额可能为 0 ，需要去掉金额为 0 的分录
+            // 进项税额转出分录提出来放在最后，按科目进行合并
             List<FiDocEntryDto> zeroAmountList = new ArrayList<>();
+            List<FiDocEntryDto> list = new ArrayList<>();
+            Map<String, FiDocEntryDto> map = new LinkedHashMap<>();
             for (FiDocEntryDto docEntry : fiDocDto.getEntrys()) {
                 if (DoubleUtil.isNullOrZero(docEntry.getAmountDr()) && DoubleUtil.isNullOrZero(docEntry.getAmountCr())) {
                     zeroAmountList.add(docEntry);
+                } else {
+                    String summary = docEntry.getSummary();
+                    if ("进项税额转出".equals(summary)) {
+                        FiDocEntryDto entry;
+                        String accountCode = docEntry.getAccountCode();
+                        DocAccountTemplateItem template;
+                        if (templateMap.containsKey(accountCode)) {
+                            template = templateMap.get(accountCode);
+                        } else {
+                            // 正常不应该有这种情况
+                            template = new DocAccountTemplateItem();
+                        }
+                        StringBuilder entryKey = new StringBuilder(accountCode);
+                        if (template.getIsAuxAccCalc() != null && template.getIsAuxAccCalc()) {
+                            if (template.getIsAuxAccBankAccount() != null && template.getIsAuxAccBankAccount()) {
+                                entryKey.append("_" + docEntry.getAccountId());
+                            }
+                            if (template.getIsAuxAccCustomer() != null && template.getIsAuxAccCustomer()) {
+                                entryKey.append("_" +  docEntry.getCustomerId());
+                            }
+                            if (template.getIsAuxAccDepartment() != null && template.getIsAuxAccDepartment()) {
+                                entryKey.append("_" + docEntry.getDepartmentId());
+                            }
+//                            if (template.getIsAuxAccInputTax() != null && template.getIsAuxAccInputTax()) {
+//                                entryKey.append("_" + docEntry.getInputTaxId());
+//                            }
+                            if (template.getIsAuxAccInventory() != null && template.getIsAuxAccInventory()) {
+                                entryKey.append("_" + docEntry.getInventoryId());
+                            }
+                            if (template.getIsAuxAccLevyAndRetreat() != null && template.getIsAuxAccLevyAndRetreat()) {
+                                entryKey.append("_" + docEntry.getLevyAndRetreatId());
+                            }
+                            if (template.getIsAuxAccPerson() != null && template.getIsAuxAccPerson()) {
+                                entryKey.append("_" + docEntry.getPersonId());
+                            }
+                            if (template.getIsAuxAccProject() != null && template.getIsAuxAccProject()) {
+                                entryKey.append("_" + docEntry.getProjectId());
+                            }
+                            if (template.getIsAuxAccSupplier() != null && template.getIsAuxAccSupplier()) {
+                                entryKey.append("_" + docEntry.getSupplierId());
+                            }
+                        }
+                        String entryKeyStr = entryKey.toString();
+                        if (map.containsKey(entryKeyStr)) {
+                            entry = map.get(entryKeyStr);
+                            entry.setAmountCr(DoubleUtil.add(entry.getAmountCr(), docEntry.getAmountCr()));
+                            entry.setAmountDr(DoubleUtil.add(entry.getAmountDr(), docEntry.getAmountDr()));
+                            entry.setOrigAmountCr(DoubleUtil.add(entry.getOrigAmountCr(), docEntry.getOrigAmountCr()));
+                            entry.setOrigAmountDr(DoubleUtil.add(entry.getOrigAmountDr(), docEntry.getOrigAmountDr()));
+                        } else {
+                            entry = docEntry;
+                            map.put(entryKeyStr, entry);
+                        }
+                        list.add(docEntry);
+                    }
                 }
             }
             if (!zeroAmountList.isEmpty()) {
                 fiDocDto.getEntrys().removeAll(zeroAmountList);
             }
-
+            if (!list.isEmpty()) {
+                fiDocDto.getEntrys().removeAll(list);
+                fiDocDto.getEntrys().addAll(map.values());
+            }
             addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), setOrg.getId(), userId);
         }
         // 支持更新生成
@@ -212,15 +276,24 @@ public class DocTemplateGenerator {
         return templateProvider.requestAdvice(acmPayDocTemplate, codeMap, sett);
     }
 
-    private DocAccountTemplateItem updateTemplateByAdvice(AcmSortReceiptDetail acmSortReceiptDetail, DocAccountTemplateItem fiBillDocTemplate, FiDocGenetateResultDto resultDto,
+    /**
+     * 根据反馈调整模板
+     * @param detail
+     * @param docTemplate
+     * @param resultDto
+     * @param codeMap
+     * @param templateProvider
+     * @return
+     */
+    private DocAccountTemplateItem updateTemplateByAdvice(AcmSortReceiptDetail detail, DocAccountTemplateItem docTemplate, FiDocGenetateResultDto resultDto,
             Map<String, FiAccount> codeMap, ITemplateProvider templateProvider) {
         List<ReceiptResult> fiDocReturnFailList = new ArrayList<>();
-        fiBillDocTemplate = templateProvider.requestAdvice(fiBillDocTemplate, codeMap, acmSortReceiptDetail, fiDocReturnFailList);
+        docTemplate = templateProvider.requestAdvice(docTemplate, codeMap, detail, fiDocReturnFailList);
         if (!fiDocReturnFailList.isEmpty()) {
             resultDto.getFailedReceipt().addAll(fiDocReturnFailList);
             return null;
         }
-        return fiBillDocTemplate;
+        return docTemplate;
     }
 
     /**
@@ -583,9 +656,15 @@ public class DocTemplateGenerator {
         
         
         //摘要
-        fuz.append("_zy").append(acmSortReceiptDetail.getMemo());
-        if(acmSortReceiptDetail.getMemo() != null){
-            auxInfo.put("memo", acmSortReceiptDetail.getMemo()+EMPTY);
+        String summary;
+        if (!StringUtil.isEmpty(fiBillDocTemplate.getSummary())) {
+            summary = fiBillDocTemplate.getSummary();
+        } else {
+            summary = acmSortReceiptDetail.getMemo();
+        }
+        fuz.append("_zy").append(summary);
+        if(summary != null){
+            auxInfo.put("memo", summary+EMPTY);
         }
        
         //科目id

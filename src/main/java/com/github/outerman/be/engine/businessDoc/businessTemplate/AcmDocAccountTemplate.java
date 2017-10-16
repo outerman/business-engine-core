@@ -86,7 +86,7 @@ public class AcmDocAccountTemplate implements IValidatable {
         List<DocAccountTemplateItem> resultList = new ArrayList<>();
         if (docTemplateListWithFlag.size() == 1) { // 凭证模板只有一条数据且没有影响因素直接返回
             DocAccountTemplateItem docTemplate = docTemplateListWithFlag.get(0);
-            if (docTemplate.getInfluence() == null) {
+            if (StringUtil.isEmpty(docTemplate.getInfluence())) {
                 resultList.add(docTemplate);
                 return resultList;
             }
@@ -107,7 +107,7 @@ public class AcmDocAccountTemplate implements IValidatable {
             if ("departmentAttr".equals(influence)) { // 部门属性
                 if (detailDepartmentAttr != null && detailDepartmentAttr.equals(departmentAttr)) {
                     resultList.add(docTemplate);
-                } else if (departmentAttr == 0) { // 部门属性影响因素默认规则
+                } else if (departmentAttr != null && departmentAttr == 0) { // 部门属性影响因素默认规则
                     defaultDocTemplate = docTemplate;
                 }
             } else if ("departmentAttr,personAttr".equals(influence)) { // 部门属性，人员属性
@@ -122,7 +122,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                         continue;
                     }
                 }
-                if (personAttr == 0) { // 部门属性，人员属性影响因素默认规则
+                if (personAttr != null && personAttr == 0) { // 部门属性，人员属性影响因素默认规则
                     defaultDocTemplate = docTemplate;
                 }
             } else if ("vatTaxpayer".equals(influence) || "vatTaxpayer,qualification".equals(influence) || "vatTaxpayer,taxType".equals(influence)) {
@@ -155,45 +155,50 @@ public class AcmDocAccountTemplate implements IValidatable {
                 Long penaltyType = detail.getPenaltyType();
                 if (penaltyType != null && penaltyType.equals(extendAttr)) {
                     resultList.add(docTemplate);
-                } else if (extendAttr == 0) {
+                } else if (extendAttr != null && extendAttr == 0) {
                     defaultDocTemplate = docTemplate;
                 }
             } else if ("borrowAttr".equals(influence)) { // 借款期限
                 Long loanTerm = detail.getLoanTerm();
                 if (loanTerm != null && loanTerm.equals(extendAttr)) {
                     resultList.add(docTemplate);
-                } else if (extendAttr == 0) {
+                } else if (extendAttr != null && extendAttr == 0) {
                     defaultDocTemplate = docTemplate;
                 }
             } else if ("assetAttr".equals(influence)) { // 资产属性
                 Long assetAttr = detail.getAssetAttr();
                 if (assetAttr != null && assetAttr.equals(extendAttr)) {
                     resultList.add(docTemplate);
-                } else if (extendAttr == 0) {
+                } else if (extendAttr != null && extendAttr == 0) {
                     defaultDocTemplate = docTemplate;
                 }
             } else if ("accountInAttr".equals(influence)) { // 账户属性流入
                 Long inBankAccountTypeId = detail.getInBankAccountTypeId();
                 if (inBankAccountTypeId != null && inBankAccountTypeId.equals(extendAttr)) {
                     resultList.add(docTemplate);
-                } else if (extendAttr == 0) {
+                } else if (extendAttr != null && extendAttr == 0) {
                     defaultDocTemplate = docTemplate;
                 }
             } else if ("accountOutAttr".equals(influence)) { // 账户属性流出
                 Long bankAccountTypeId = detail.getBankAccountTypeId();
                 if (bankAccountTypeId != null && bankAccountTypeId.equals(extendAttr)) {
                     resultList.add(docTemplate);
-                } else if (extendAttr == 0) {
+                } else if (extendAttr != null && extendAttr == 0) {
                     defaultDocTemplate = docTemplate;
                 }
             } else if ("formula".equals(influence)) { // 表达式
-                if(detail.getExt1() > detail.getAmount()){ // 扩展1>金额
-                    if(extendAttr == 1L){
+                Double ext1 = detail.getExt1();
+                Double amount = detail.getAmount();
+                if (ext1 == null || amount == null) {
+                    continue;
+                }
+                if(ext1 > amount){ // 扩展1>金额
+                    if(extendAttr != null && extendAttr == 1L){
                         resultList.add(docTemplate);
                     }
                 }
-                if(detail.getExt1() <= detail.getAmount()){ // 扩展1≤金额
-                    if(extendAttr == 2L){
+                if(ext1 <= amount){ // 扩展1≤金额
+                    if(extendAttr != null && extendAttr == 2L){
                         resultList.add(docTemplate);
                     }
                 }

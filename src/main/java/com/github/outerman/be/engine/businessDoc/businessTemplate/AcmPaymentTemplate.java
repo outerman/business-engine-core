@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import com.github.outerman.be.api.constant.AcmConst;
 import com.github.outerman.be.api.dto.AcmPaymentTemplateDto;
-import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptSettlestyle;
 import com.github.outerman.be.api.vo.PaymentTemplateItem;
 import com.github.outerman.be.api.vo.SetOrg;
@@ -52,14 +51,13 @@ public class AcmPaymentTemplate implements IValidatable {
         return accountCodeList;
     }
 
-    public PaymentTemplateItem getTemplate(AcmSortReceipt acmSortReceipt, AcmSortReceiptSettlestyle sett) {
+    public PaymentTemplateItem getTemplate(AcmSortReceiptSettlestyle settle) {
         if (paymentTemplateDto.getPayMap() == null) {
             return null;
         }
 
-        Long paymentType = getPaymentsType(sett);
-        // sett.getBankAccountAttr() 与 acmPayDocTemplate.getAccountType() 是同一个值账户属性
-        return paymentTemplateDto.getPayMap().get(paymentType + "" + sett.getBankAccountAttr());
+        Long paymentType = getPaymentsType(settle);
+        return paymentTemplateDto.getPayMap().get(paymentType + "" + settle.getBankAccountAttr());
     }
 
     private Map<String, PaymentTemplateItem> getPay(List<PaymentTemplateItem> payTemp) {
@@ -81,10 +79,10 @@ public class AcmPaymentTemplate implements IValidatable {
     public Long getPaymentsType(AcmSortReceiptSettlestyle settle) {
         Long paymentType;
         Integer payType = settle.getPayType(); // 0 收入；1 支出
-        if (payType != null && payType == 1) {
-            paymentType = AcmConst.PAYMENTSTYPE_20;
-        } else {
+        if (payType != null && payType == 0) {
             paymentType = AcmConst.PAYMENTSTYPE_10;
+        } else {
+            paymentType = AcmConst.PAYMENTSTYPE_20;
         }
         return paymentType;
     }

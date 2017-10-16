@@ -294,6 +294,9 @@ public class FiDocDto implements Serializable {
 			if (map.get("flag") != null) {// 凭证ABCD标识
 				fiDocEntry.setSourceFlag(map.get("flag"));
 			}
+			if (map.get("drawbackPolicy") != null) {// 即征即退
+                fiDocEntry.setLevyAndRetreatId(Long.parseLong(map.get("drawbackPolicy")));
+            }
 		}
 		if (isSettlement) {
 			if (isJieDai) {
@@ -367,7 +370,7 @@ public class FiDocDto implements Serializable {
 				// 给code补位0000 00 00 00 00 总共12位
 				long accLong = Long.parseLong(buwei(acc));
 				long codeAcc = Long.parseLong(buwei(split2[0]));
-				if (accLong > codeAcc) {
+				if (accLong >= codeAcc) {
 					if (j == codeList12.size() - 1) {
 						codeList12.add(account);
 						entryList12.add(entry);

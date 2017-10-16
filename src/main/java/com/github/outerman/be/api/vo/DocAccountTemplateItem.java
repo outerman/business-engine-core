@@ -55,6 +55,9 @@ public class DocAccountTemplateItem implements Serializable{
 	
 	private Boolean isSettlement;//是否结算       
 	
+   /** 摘要 */
+    private String summary;
+
 	/** 科目Id  */ 
 	private Long accountId;
 	/** 是否启用辅助核算 1启用 0不启用  */ 
@@ -322,6 +325,22 @@ public class DocAccountTemplateItem implements Serializable{
 	public void setIsSettlement(Boolean isSettlement) {
 		this.isSettlement = isSettlement;
 	}
+
+    /**
+     * 获取摘要
+     * @return 摘要
+     */
+    public String getSummary() {
+        return summary;
+    }
+
+    /**
+     * 设置摘要
+     * @param summary 摘要
+     */
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
 
 	public Long getExtendAttr() {
 		return extendAttr;
