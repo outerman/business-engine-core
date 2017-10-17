@@ -26,10 +26,13 @@ public class BusinessTemplate implements IValidatable {
 
     @Autowired
     private AcmDocAccountTemplate docAccountTemplate;
+
     @Autowired
     private AcmPaymentTemplate paymentTemplate;
+
     @Autowired
     private AcmUITemplate uiTemplate;
+
     @Autowired
     private ValidatorManager validatorManager;
 
@@ -37,7 +40,13 @@ public class BusinessTemplate implements IValidatable {
 
     private ITemplateProvider templateProvider;
 
-    //初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
+    /**
+     * 初始化方法，按照企业、业务类型编码，获取凭证模板、结算模板、元数据模板数据
+     * <p>企业 id 为 0 时获取系统预置数据
+     * @param org 企业信息
+     * @param businessCode 业务类型编码
+     * @param templateProvider
+     */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
         this.templateProvider = templateProvider;
         docAccountTemplate.init(org, businessCode, templateProvider);

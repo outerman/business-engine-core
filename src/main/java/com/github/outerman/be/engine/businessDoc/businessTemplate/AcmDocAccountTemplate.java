@@ -29,18 +29,25 @@ public class AcmDocAccountTemplate implements IValidatable {
 
     private ITemplateProvider templateProvider;
 
-    // 初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
+    /**
+     * 初始化方法，按照企业、业务类型编码，获取凭证模板数据
+     * <p>企业 id 为 0 时获取系统预置数据
+     * @param org 企业信息
+     * @param businessCode 业务类型编码
+     * @param templateProvider
+     */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
         this.templateProvider = templateProvider;
         docTemplateDto = new AcmDocAccountTemplateDto();
-        // 该业务所有行业和准则的模板
+        docTemplateDto.setOrg(org);
+        docTemplateDto.setBusinessCode(businessCode);
+
         List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
         all.forEach(template -> {
             String key = getKey(template.getIndustry(), template.getAccountingStandardsId());
             if (docTemplateDto.getAllPossibleTemplate().get(key) == null) {
                 docTemplateDto.getAllPossibleTemplate().put(key, new ArrayList<>());
             }
-
             docTemplateDto.getAllPossibleTemplate().get(key).add(template);
         });
 
@@ -49,9 +56,6 @@ public class AcmDocAccountTemplate implements IValidatable {
                 docTemplateDto.getCodeList().add(acmBusinessDocTemplate.getAccountCode());
             }
         }
-
-        docTemplateDto.setOrg(org);
-        docTemplateDto.setBusinessCode(businessCode);
     }
 
     /**
@@ -122,7 +126,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                         continue;
                     }
                 }
-                if (personAttr != null && personAttr == 0) { // 部门属性，人员属性影响因素默认规则
+                if (detailDepartmentAttr != null && detailDepartmentAttr.equals(AcmConst.DEPTPROPERTY_002) && personAttr != null && personAttr == 0) { // 部门属性，人员属性影响因素默认规则
                     defaultDocTemplate = docTemplate;
                 }
             } else if ("vatTaxpayer".equals(influence) || "vatTaxpayer,qualification".equals(influence) || "vatTaxpayer,taxType".equals(influence)) {

@@ -2,35 +2,69 @@ package com.github.outerman.be.api.constant;
 
 public class BusinessEngineException extends RuntimeException {
 
-	private static final long serialVersionUID = -6729031943659455879L;
-	private final String code;
-	private Exception innerException = null;
-	private Object data;
-	private Type type;
+    private static final long serialVersionUID = -6729031943659455879L;
 
-	public enum Type {
-		error,		//对应于前端的红叉提示
-		warning		//对应于前端的黄叹号提示
-	}
+    private final String code;
+    private Exception innerException = null;
+    private Object data;
 
-	public BusinessEngineException(String code, String message) {
-		super(message);
-		this.code = code;
-		this.data = null;
-	}
-
-	public BusinessEngineException(String code, String message, Type type) {
-		super(message);
-		this.code = code;
-		this.data = null;
-		this.type = type;
-	}
-
-	public BusinessEngineException(String code, String message, Object data, Exception ex) {
-
+    public BusinessEngineException(String code, String message) {
         super(message);
-		this.code = code; 
-		this.data = data;
-		this.innerException = ex;
-	}
+        this.code = code;
+        this.data = null;
+    }
+
+    public BusinessEngineException(String code, String message, Object data, Exception ex) {
+        super(message);
+        this.code = code;
+        this.data = data;
+        this.innerException = ex;
+    }
+
+    /**
+     * 获取innerException
+     * 
+     * @return innerException
+     */
+    public Exception getInnerException() {
+        return innerException;
+    }
+
+    /**
+     * 设置innerException
+     * 
+     * @param innerException
+     *            innerException
+     */
+    public void setInnerException(Exception innerException) {
+        this.innerException = innerException;
+    }
+
+    /**
+     * 获取data
+     * 
+     * @return data
+     */
+    public Object getData() {
+        return data;
+    }
+
+    /**
+     * 设置data
+     * 
+     * @param data
+     *            data
+     */
+    public void setData(Object data) {
+        this.data = data;
+    }
+
+    /**
+     * 获取code
+     * 
+     * @return code
+     */
+    public String getCode() {
+        return code;
+    }
 }

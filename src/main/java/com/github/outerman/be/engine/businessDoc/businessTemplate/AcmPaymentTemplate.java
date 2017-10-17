@@ -27,9 +27,18 @@ public class AcmPaymentTemplate implements IValidatable {
 
     private AcmPaymentTemplateDto paymentTemplateDto;
 
-    // 初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
+    /**
+     * 初始化方法，按照企业、业务类型编码，获取凭证结算模板数据
+     * <p>企业 id 为 0 时获取系统预置数据
+     * @param org 企业信息
+     * @param businessCode 业务类型编码
+     * @param templateProvider
+     */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
         paymentTemplateDto = new AcmPaymentTemplateDto();
+        paymentTemplateDto.setOrg(org);
+        paymentTemplateDto.setBusinessCode(businessCode);
+
         List<PaymentTemplateItem> payTemp = templateProvider.getPayTemplate(org.getId(), businessCode);
         paymentTemplateDto.getPayMap().putAll(getPay(payTemp));
 
@@ -38,9 +47,6 @@ public class AcmPaymentTemplate implements IValidatable {
                 paymentTemplateDto.getCodeList().add(acmPayDocTemplate.getSubjectDefault());
             }
         }
-
-        paymentTemplateDto.setOrg(org);
-        paymentTemplateDto.setBusinessCode(businessCode);
     }
 
     public List<String> getAccountCodeList() {

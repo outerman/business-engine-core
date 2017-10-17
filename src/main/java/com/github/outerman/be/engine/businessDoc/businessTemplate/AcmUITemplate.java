@@ -31,17 +31,22 @@ public class AcmUITemplate implements IValidatable {
 
     private AcmUITemplateDto uiTemplateDto;
 
-    // 初始化方法, orgId可能为0; 如不为0, 则初始化公共模板(orgId=0)以及个性化模板
+    /**
+     * 初始化方法，按照企业、业务类型编码，获取元数据模板数据
+     * <p>企业 id 为 0 时获取系统预置数据
+     * @param org 企业信息
+     * @param businessCode 业务类型编码
+     * @param templateProvider
+     */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
         uiTemplateDto = new AcmUITemplateDto();
+        uiTemplateDto.setOrg(org);
+        uiTemplateDto.setBusinessCode(businessCode);
 
         uiTemplateDto.getTacticsMap().putAll(templateProvider.getTacticsByCode(org.getId(), businessCode));
         uiTemplateDto.getSpecialMap().putAll(templateProvider.getSpecialByCode(org.getId(), businessCode));
         uiTemplateDto.setBusinessAssetList(templateProvider.getInventoryProperty(businessCode.toString()));
         uiTemplateDto.setBusinessAssetTypeList(templateProvider.getAssetType(businessCode.toString()));
-
-        uiTemplateDto.setOrg(org);
-        uiTemplateDto.setBusinessCode(businessCode);
     }
 
     @Override

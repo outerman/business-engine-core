@@ -71,7 +71,7 @@ public class DocTemplateGenerator {
 
                 List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(setOrg, detail);
 
-                // TODO 科目编码处理
+                // TODO 科目编码处理，考虑缓存，考虑外部一次调用获取全部数据
                 List<String> accountCodeList = new ArrayList<>();
                 for (DocAccountTemplateItem docTemplate : docTemplateList) {
                     accountCodeList.add(docTemplate.getAccountCode());
