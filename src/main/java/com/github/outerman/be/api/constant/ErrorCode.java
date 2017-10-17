@@ -21,6 +21,7 @@ public class ErrorCode {
     public static final String ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_CODE = "70901";
     public static final String ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG = "结算方式模板未找到，可能为账号保存异常";
 
-    public static final String ENGINE_DOC_GENETARE_EMPTY_DETAIL_ERROR_MSG = "流水账未找到明细！";
+    public static final String ENGINE_DOC_GENERATE_RECEIPT_EMPTY = "流水账数据为空";
+    public static final String ENGINE_DOC_GENETARE_EMPTY_DETAIL_ERROR_MSG = "流水账明细数据为空";
     public static final String ENGINE_DOC_GENETARE_UNRESOVE_ERROR_MSG = "\"请会计处理\"的流水账不生成凭证！";
 }
