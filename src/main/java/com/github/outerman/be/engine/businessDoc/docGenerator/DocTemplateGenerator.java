@@ -33,16 +33,16 @@ public class DocTemplateGenerator {
     public  final String EMPTY = "";
     private final String AMOUNT_TAXINCLUSIVEAMOUNT = "taxInclusiveAmount";
 
-    public FiDocGenetateResultDto sortConvertVoucher(SetOrg setOrg, Long userId, String userName, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
+    public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, Long userId, String userName, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
         if (receiptList == null || receiptList.isEmpty()) {
             throw ErrorCode.EXCEPTION_RECEIPT_EMPATY;
         }
-        if (setOrg == null) {
+        if (org == null) {
             throw ErrorCode.EXCEPTION_ORG_EMPATY;
         }
 
         List<FiDocDto> fiDocList = new ArrayList<>();
-        SetCurrency currency = templateProvider.getBaseCurrency(setOrg.getId());
+        SetCurrency currency = templateProvider.getBaseCurrency(org.getId());
         FiDocGenetateResultDto resultDto = new FiDocGenetateResultDto();
 
         // 进项税额转出相关分录模板
@@ -58,7 +58,7 @@ public class DocTemplateGenerator {
 
             for (int i = 0 ; i < detailList.size() ; i++) {
                 AcmSortReceiptDetail detail = detailList.get(i);
-                BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg, detail.getBusinessCode().toString(), templateProvider);
+                BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(org, detail.getBusinessCode().toString(), templateProvider);
 
                 // 1.取出业务类型对应的模板
                 if (businessTemplate == null || businessTemplate.getDocAccountTemplate() == null
@@ -69,14 +69,14 @@ public class DocTemplateGenerator {
                     throw new BusinessEngineException(ErrorCode.EXCEPTION_CODE_DOC_TEMPLATE_EMPTY, message);
                 }
 
-                List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(setOrg, detail);
+                List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(org, detail);
 
                 // TODO 科目编码处理，考虑缓存，考虑外部一次调用获取全部数据
                 List<String> accountCodeList = new ArrayList<>();
                 for (DocAccountTemplateItem docTemplate : docTemplateList) {
                     accountCodeList.add(docTemplate.getAccountCode());
                 }
-                Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), accountCodeList, detailList);
+                Map<String, FiAccount> codeMap = templateProvider.getAccountCode(org.getId(), accountCodeList, detailList);
                 for (DocAccountTemplateItem docTemplate : docTemplateList) {
                     docTemplate = updateTemplateByAdvice(detail, docTemplate, resultDto, codeMap, templateProvider);
                     if (docTemplate == null) {
@@ -96,7 +96,7 @@ public class DocTemplateGenerator {
                     StringBuilder fuz = new StringBuilder();
                     // 建立辅助核算
                     Map<String,String> auxInfo = new HashMap<>();
-                    setAuxInfo(setOrg.getVatTaxpayer(), currency, acmSortReceipt, detail, docTemplate, fuz, auxInfo);
+                    setAuxInfo(org.getVatTaxpayer(), currency, acmSortReceipt, detail, docTemplate, fuz, auxInfo);
 
                     Boolean isSort = true;
                     //查看是否需要特殊排序: 所有"本表"平的业务,都特殊排序
@@ -122,22 +122,22 @@ public class DocTemplateGenerator {
             }
 
             if(fiDocDto.getEntrys() == null || fiDocDto.getEntrys().isEmpty()){//如果业务类型凭证为空 跳出
-                addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), setOrg.getId(), userId);
+                addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), org.getId(), userId);
                 continue;
             }
             List<AcmSortReceiptSettlestyle> acmSortReceiptSettlestyleList = acmSortReceipt.getAcmSortReceiptSettlestyleList();
 
             if(acmSortReceiptSettlestyleList == null || acmSortReceiptSettlestyleList.isEmpty()) {
                 logger.info("理票单生成模板,参数:"+acmSortReceipt.getId()+"结算方式为空");
-                addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), setOrg.getId(), userId);
+                addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), org.getId(), userId);
                 continue;
             }
 
             //TODO: 结算方式暂时没有和businessCode挂钩, 所以取任何一个都会返回所有
-            BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(setOrg, detailList.get(0).getBusinessCode().toString(), templateProvider);
+            BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(org, detailList.get(0).getBusinessCode().toString(), templateProvider);
             // TODO 科目编码处理
             List<String> accountCodeList = businessTemplate.getPaymentTemplate().getAccountCodeList();
-            Map<String, FiAccount> codeMap = templateProvider.getAccountCode(setOrg.getId(), accountCodeList, detailList);
+            Map<String, FiAccount> codeMap = templateProvider.getAccountCode(org.getId(), accountCodeList, detailList);
             //查询结算方式生成凭证
             for (int i = 0 ; i< acmSortReceiptSettlestyleList.size(); i++) {
             	AcmSortReceiptSettlestyle sett = acmSortReceiptSettlestyleList.get(i);
@@ -257,7 +257,7 @@ public class DocTemplateGenerator {
                 fiDocDto.getEntrys().removeAll(list);
                 fiDocDto.getEntrys().addAll(map.values());
             }
-            addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), setOrg.getId(), userId);
+            addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), org.getId(), userId);
         }
         // 支持更新生成
         fiDocList.forEach(docDto -> {
