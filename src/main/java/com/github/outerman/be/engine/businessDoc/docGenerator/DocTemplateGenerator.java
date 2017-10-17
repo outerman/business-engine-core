@@ -33,11 +33,11 @@ public class DocTemplateGenerator {
     public  final String EMPTY = "";
     private final String AMOUNT_TAXINCLUSIVEAMOUNT = "taxInclusiveAmount";
 
-    public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, Long userId, String userName, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
+    public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
         if (receiptList == null || receiptList.isEmpty()) {
             throw ErrorCode.EXCEPTION_RECEIPT_EMPATY;
         }
-        if (org == null) {
+        if (org == null || org.getId() == null || org.getId() == 0) {
             throw ErrorCode.EXCEPTION_ORG_EMPATY;
         }
 
@@ -122,14 +122,14 @@ public class DocTemplateGenerator {
             }
 
             if(fiDocDto.getEntrys() == null || fiDocDto.getEntrys().isEmpty()){//如果业务类型凭证为空 跳出
-                addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), org.getId(), userId);
+                addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId());
                 continue;
             }
             List<AcmSortReceiptSettlestyle> acmSortReceiptSettlestyleList = acmSortReceipt.getAcmSortReceiptSettlestyleList();
 
             if(acmSortReceiptSettlestyleList == null || acmSortReceiptSettlestyleList.isEmpty()) {
                 logger.info("理票单生成模板,参数:"+acmSortReceipt.getId()+"结算方式为空");
-                addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), org.getId(), userId);
+                addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId());
                 continue;
             }
 
@@ -257,7 +257,7 @@ public class DocTemplateGenerator {
                 fiDocDto.getEntrys().removeAll(list);
                 fiDocDto.getEntrys().addAll(map.values());
             }
-            addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId(), org.getId(), userId);
+            addDocToList(fiDocList, fiDocDto, acmSortReceipt.getDocId());
         }
         // 支持更新生成
         fiDocList.forEach(docDto -> {
@@ -361,12 +361,10 @@ public class DocTemplateGenerator {
         return summary;
     }
 
-    private void addDocToList(List<FiDocDto> fiDocList, FiDocDto fiDocDto, Long docId, Long orgId, Long userId) {
+    private void addDocToList(List<FiDocDto> fiDocList, FiDocDto fiDocDto, Long docId) {
         //支持更新
         if (docId != null) {
-            fiDocDto.setOrgId(orgId);
             fiDocDto.setDocId(docId);
-            fiDocDto.setMakerId(userId);
         }
 
         fiDocList.add(fiDocDto);

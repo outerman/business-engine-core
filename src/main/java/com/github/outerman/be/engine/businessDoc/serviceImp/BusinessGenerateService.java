@@ -23,7 +23,7 @@ public class BusinessGenerateService implements IBusinessGenerateService {
 
     @Override
     public FiDocGenetateResultDto sortConvertVoucher(SetOrg setOrg, Long userId, String userName, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
-        return generator.sortConvertVoucher(setOrg, userId, userName, receiptList, templateProvider);
+        return generator.sortConvertVoucher(setOrg, receiptList, templateProvider);
     }
 
 }
