@@ -31,15 +31,20 @@ public class FiDocHandler {
     private FiDocDto fiDocDto;
 
     /** 借方主科目分录 */
-    private List<FiDocEntryDto> entryList1 = new ArrayList<>();
+    private List<FiDocEntryDto> debitMainList = new ArrayList<>();
     /** 借方税科目分录 */
-    private List<FiDocEntryDto> entryList2 = new ArrayList<>();
+    private List<FiDocEntryDto> debitTaxList = new ArrayList<>();
     /** 贷方主科目分录 */
-    private List<FiDocEntryDto> entryList3 = new ArrayList<>();
+    private List<FiDocEntryDto> creditMainList = new ArrayList<>();
     /** 贷方税科目分录 */
-    private List<FiDocEntryDto> entryList4 = new ArrayList<>();
+    private List<FiDocEntryDto> creditTaxList = new ArrayList<>();
     /** 凭证模板中本表自平分录 */
-    private List<FiDocEntryDto> entryList5 = new ArrayList<>();
+    private List<FiDocEntryDto> ownSortList = new ArrayList<>();
+    /** 进项税额转出分录 */
+    private List<FiDocEntryDto> inputTaxTransferList = new ArrayList<>();
+
+    /** 进项税额转出凭证分录摘要 */
+    private static String INPUT_TAX_TRANSFER_SUMMARY = "进项税额转出";
 
     private Map<String, FiDocEntryDto> entryMap = new HashMap<>();;
 
@@ -52,11 +57,22 @@ public class FiDocHandler {
 
     public FiDocDto getFiDocDto() {
         List<FiDocEntryDto> entrys = new ArrayList<>();
-        entrys.addAll(entryList5);
-        entrys.addAll(entryList1);
-        entrys.addAll(entryList2);
-        entrys.addAll(entryList3);
-        entrys.addAll(entryList4);
+        entrys.addAll(ownSortList);
+        entrys.addAll(debitMainList);
+        entrys.addAll(debitTaxList);
+        entrys.addAll(creditMainList);
+        entrys.addAll(creditTaxList);
+        entrys.addAll(inputTaxTransferList);
+        // 正负混录的流水账收支明细，分录合并之后分录金额可能为 0 ，需要去掉金额为 0 的分录
+        List<FiDocEntryDto> zeroAmountList = new ArrayList<>();
+        for (FiDocEntryDto docEntry : entrys) {
+            if (DoubleUtil.isNullOrZero(docEntry.getAmountDr()) && DoubleUtil.isNullOrZero(docEntry.getAmountCr())) {
+                zeroAmountList.add(docEntry);
+            }
+        }
+        if (!zeroAmountList.isEmpty()) {
+            entrys.removeAll(zeroAmountList);
+        }
         fiDocDto.setEntrys(entrys);
         return fiDocDto;
     }
@@ -78,11 +94,20 @@ public class FiDocHandler {
         if (!StringUtil.isEmpty(receipt.getDocCodeBak())) {
             doc.setCode(receipt.getDocCodeBak());
         }
+        doc.setDocId(receipt.getDocId());
         return doc;
     }
 
     public void addEntry(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail) {
-        InnerFiDocEntryDto innerEntry = getDocEntryDto(docTemplate, detail);
+        boolean needMerge = true;
+        if (BusinessTypeUtil.NOT_MERGE_BUSINESS.contains(docTemplate.getBusinessCode())) {
+            needMerge = false;
+        }
+        InnerFiDocEntryDto innerEntry = getDocEntryDto(docTemplate, detail, needMerge);
+        if (innerEntry == null) {
+            return;
+        }
+
         String key = innerEntry.getKey();
         FiDocEntryDto entry = innerEntry.getFiDocEntryDto();
         if (entryMap.containsKey(key)) {
@@ -103,23 +128,36 @@ public class FiDocHandler {
             existEntry.setPrice(DoubleUtil.div(amount, existEntry.getQuantity()));
         } else {
             // 新增分录，按照排序规则放到指定位置
-            entryMap.put(key, entry);
-            // 本表自评时
-            if (!docTemplate.getIsSettlement() || BusinessTypeUtil.SPECIAL_ORDER.contains(docTemplate.getBusinessCode())) {
-                addSpecialEntry(entry);
+            if (INPUT_TAX_TRANSFER_SUMMARY.equals(docTemplate.getSummary())) {
+                addSpecialEntry(entry, inputTaxTransferList);
+            } else if (!docTemplate.getIsSettlement() || BusinessTypeUtil.SPECIAL_ORDER.contains(docTemplate.getBusinessCode())) {
+                // 本表自评时
+                addSpecialEntry(entry, ownSortList);
             } else {
                 addEntry(entry);
             }
+            entryMap.put(key, entry);
         }
     }
 
-    private InnerFiDocEntryDto getDocEntryDto(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail) {
+    private InnerFiDocEntryDto getDocEntryDto(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail, Boolean needMerge) {
         Double amount = AmountGetter.getAmount(detail, docTemplate);
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }
 
         StringBuilder key = new StringBuilder();
+        if (!needMerge) { // 不需要合并时，key 增加明细 id
+            key.append(detail.toString());
+        }
+        boolean isInputTaxTransfer = INPUT_TAX_TRANSFER_SUMMARY.equals(docTemplate.getSummary());
+        if (isInputTaxTransfer) { // 进项税额凭证分录单独处理合并
+            key.append("_inputTaxTransfer");
+        }
+        boolean isOwnSort = !docTemplate.getIsSettlement() || BusinessTypeUtil.SPECIAL_ORDER.contains(docTemplate.getBusinessCode());
+        if (isOwnSort) {
+            key.append("_ownSort");
+        }
         FiDocEntryDto entry = new FiDocEntryDto();
 
         String summary;
@@ -133,10 +171,12 @@ public class FiDocHandler {
 
         entry.setAccountId(docTemplate.getAccountId());
         entry.setAccountCode(docTemplate.getAccountCode());
-        key.append(docTemplate.getAccountCode());
+        key.append("_accountCode").append(docTemplate.getAccountCode());
         entry.setSourceFlag(docTemplate.getFlag());
 
-        key.append("_businessType").append(detail.getBusinessType());
+        if (!isInputTaxTransfer) {
+            key.append("_businessType").append(detail.getBusinessType());
+        }
         entry.setSourceBusinessTypeId(detail.getBusinessType());
 
         if (docTemplate.getIsAuxAccCalc() != null && docTemplate.getIsAuxAccCalc()) {
@@ -201,8 +241,7 @@ public class FiDocHandler {
             entry.setPrice(detail.getTaxInclusivePrice());
         }
 
-        if (!BusinessTypeUtil.GONGZI_VOUCHERTYPE_LIST.contains(receipt.getSourceVoucherId())) {
-            // 科目+辅助核算+业务类型+部门属性+人员属性+借款期限+账户属性流入+账户属性流出+纳税人+资产类别+罚款性质
+        if (!isInputTaxTransfer && !BusinessTypeUtil.GONGZI_VOUCHERTYPE_LIST.contains(receipt.getSourceVoucherId())) {
             String influence = docTemplate.getInfluence();
             if (!StringUtil.isEmpty(influence)) {
                 if (influence.equals("departmentAttr")) { // 部门属性
@@ -242,26 +281,26 @@ public class FiDocHandler {
         return result;
     }
 
-    private void addSpecialEntry(FiDocEntryDto entry) {
-        if (entryList5.size() == 0) {
-            entryList5.add(entry);
+    private void addSpecialEntry(FiDocEntryDto entry, List<FiDocEntryDto> list) {
+        if (list.size() == 0) {
+            list.add(entry);
             return;
         }
 
         // 同时满足以下条件, 允许上移:
         // 1)新插入金额在借方, 上一条金额在贷方
         // 2)上下两条是同一个业务或分录摘要一致
-        boolean isDebit = DoubleUtil.isNullOrZero(entry.getAmountDr());
+        boolean isDebit = !DoubleUtil.isNullOrZero(entry.getAmountDr());
         if (!isDebit) {
-            entryList5.add(entry);
+            list.add(entry);
             return;
         }
 
         Long businessTypeId = entry.getSourceBusinessTypeId();
         int index;
-        for (index = entryList5.size(); index > 0; index--) {
-            FiDocEntryDto lastEntry = entryList5.get(index - 1);
-            boolean lastIsDebit = DoubleUtil.isNullOrZero(lastEntry.getAmountDr());
+        for (index = list.size(); index > 0; index--) {
+            FiDocEntryDto lastEntry = list.get(index - 1);
+            boolean lastIsDebit = !DoubleUtil.isNullOrZero(lastEntry.getAmountDr());
             Long lastBusinessTypeId = lastEntry.getSourceBusinessTypeId();
             if (lastIsDebit) {
                 break;
@@ -270,24 +309,24 @@ public class FiDocHandler {
                 break;
             }
         }
-        entryList5.add(index, entry);
+        list.add(index, entry);
     }
 
     private void addEntry(FiDocEntryDto entry) {
-        boolean isDebit = DoubleUtil.isNullOrZero(entry.getAmountDr());
+        boolean isDebit = !DoubleUtil.isNullOrZero(entry.getAmountDr());
         String accountCode = entry.getAccountCode();
         List<FiDocEntryDto> entryList;
         if (isDebit) {
             if (!accountCode.startsWith("2221")) {
-                entryList = entryList1;
+                entryList = debitMainList;
             } else {
-                entryList = entryList2;
+                entryList = debitTaxList;
             }
         } else {
             if (!accountCode.startsWith("2221")) {
-                entryList = entryList3;
+                entryList = creditMainList;
             } else {
-                entryList = entryList4;
+                entryList = creditTaxList;
             }
         }
 
@@ -387,6 +426,30 @@ public class FiDocHandler {
             }
         }
         return summary;
+    }
+
+    public SetOrg getOrg() {
+        return org;
+    }
+
+    public void setOrg(SetOrg org) {
+        this.org = org;
+    }
+
+    public SetCurrency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(SetCurrency currency) {
+        this.currency = currency;
+    }
+
+    public AcmSortReceipt getReceipt() {
+        return receipt;
+    }
+
+    public void setReceipt(AcmSortReceipt receipt) {
+        this.receipt = receipt;
     }
 
     class InnerFiDocEntryDto {
