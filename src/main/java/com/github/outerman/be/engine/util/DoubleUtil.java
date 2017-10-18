@@ -52,6 +52,36 @@ public final class DoubleUtil {
     }
 
     /**
+     * Double 类型除法，当除数为空时直接返回被除数，被除数为 null 返回 null，除数存在 null 或者 0.0 返回 null，使用
+     * {@link BigDecimal} 进行计算，精度保留两位小数
+     * 
+     * @param dividend
+     *            被除数
+     * @param divisors
+     *            除数
+     * @return
+     */
+    public static Double div(Double dividend, Double... divisors) {
+        int length = divisors.length;
+        if (dividend == null) {
+            return null;
+        }
+        if (length == 0) {
+            return formatDoubleScale2(dividend);
+        }
+
+        BigDecimal result = BigDecimal.valueOf(dividend.doubleValue());
+        for (int index = 0; index < length; index++) {
+            if (isNullOrZero(divisors[index])) {
+                return null;
+            }
+            BigDecimal temp = BigDecimal.valueOf(divisors[index]);
+            result = result.divide(temp, 2, RoundingMode.HALF_UP);
+        }
+        return formatDoubleScale2(result.doubleValue());
+    }
+
+    /**
      * Double 类型格式化为 N 位小数
      * 
      * @param value

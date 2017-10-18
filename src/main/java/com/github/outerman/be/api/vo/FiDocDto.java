@@ -154,11 +154,11 @@ public class FiDocDto implements Serializable {
 //		enclosures = new ArrayList<>();
 	}
 
-	public void addEntryJie(String accountCode, Double amount, Map<String, String> map, Boolean isSettlement, Long businessCode) {
+	public void addEntryJie(String accountCode, Double amount, Map<String, Object> map, Boolean isSettlement, Long businessCode) {
 		addEntry(accountCode, amount, false, map, isSettlement, businessCode);
 	}
 
-	public void addEntryDai(String accountCode, Double amount, Map<String, String> map, Boolean isSettlement, Long businessCode) {
+	public void addEntryDai(String accountCode, Double amount, Map<String, Object> map, Boolean isSettlement, Long businessCode) {
 		addEntry(accountCode, amount, true, map, isSettlement, businessCode);
 	}
 
@@ -170,14 +170,14 @@ public class FiDocDto implements Serializable {
      *
 	 */
 
-	private void addEntry(String account_merge, Double amount, boolean isJieDai, Map<String, String> map,
+	private void addEntry(String account_merge, Double amount, boolean isJieDai, Map<String, Object> map,
                           Boolean isSettlement, Long businessCode) {
 		FiDocEntryDto fiDocEntry = new FiDocEntryDto();
 
 		Double commodifyNum = null;
 		if (map != null && !map.isEmpty()) {
 			if (map.get("commodifyNum") != null) {
-				commodifyNum = Double.parseDouble(map.get("commodifyNum"));
+				commodifyNum = (Double) map.get("commodifyNum");
 			}
 		}
 		if (isJieDai) {// 贷
@@ -242,60 +242,60 @@ public class FiDocDto implements Serializable {
 				fiDocEntry.setSummary(map.get("memo").toString());
 			}
 			if (map.get("accountId") != null) {// 科目id
-				fiDocEntry.setAccountId(Long.parseLong(map.get("accountId")));
+				fiDocEntry.setAccountId((Long) map.get("accountId"));
 			}
 			if (map.get("accountCode") != null) {// 科目code
 				fiDocEntry.setAccountCode(map.get("accountCode").toString());
 			}
 
 			if (map.get("department") != null) {// 部门
-				fiDocEntry.setDepartmentId(Long.parseLong(map.get("department")));
+				fiDocEntry.setDepartmentId((Long) map.get("department"));
 			}
 			if (map.get("employee") != null) {// 员工
-				fiDocEntry.setPersonId(Long.parseLong(map.get("employee")));
+				fiDocEntry.setPersonId((Long) map.get("employee"));
 			}
 			if (map.get("consumer") != null) {// 客户
-				fiDocEntry.setCustomerId(Long.parseLong(map.get("consumer")));
+				fiDocEntry.setCustomerId((Long) map.get("consumer"));
 			}
 			if (map.get("vendor") != null) {// 供应商
-				fiDocEntry.setSupplierId(Long.parseLong(map.get("vendor")));
+				fiDocEntry.setSupplierId((Long) map.get("vendor"));
 			}
 			if (map.get("inventory") != null) {// 存货
-				fiDocEntry.setInventoryId(Long.parseLong(map.get("inventory")));
+				fiDocEntry.setInventoryId((Long) map.get("inventory"));
 			}
 			if (map.get("project") != null) {// 项目
-				fiDocEntry.setProjectId(Long.parseLong(map.get("project")));
+				fiDocEntry.setProjectId((Long) map.get("project"));
 			}
 			if (map.get("commodifyNum") != null) {// 数量
-				fiDocEntry.setQuantity(Double.parseDouble(map.get("commodifyNum")));
+				fiDocEntry.setQuantity((Double) map.get("commodifyNum"));
 			}
 			if (map.get("price") != null) {// 单价
-				fiDocEntry.setPrice(Double.parseDouble(map.get("price")));
+				fiDocEntry.setPrice((Double) map.get("price"));
 			}
 			if (map.get("bank") != null) {// 银行卡号
-				fiDocEntry.setBankAccountId(Long.parseLong(map.get("bank")));
+				fiDocEntry.setBankAccountId((Long) map.get("bank"));
 			}
 			if (map.get("notesNum") != null) {// 票据号
-				fiDocEntry.setBillCode(map.get("notesNum"));
+				fiDocEntry.setBillCode((String) map.get("notesNum"));
 			}
 			if (map.get("invoiceType") != null) {// 票据类型
-				fiDocEntry.setBillTypeId(Long.parseLong(map.get("invoiceType")));
+				fiDocEntry.setBillTypeId((Long) map.get("invoiceType"));
 			}
 			if (map.get("businessType") != null) {// 业务类型
-				fiDocEntry.setSourceBusinessTypeId(Long.parseLong(map.get("businessType")));
+				fiDocEntry.setSourceBusinessTypeId((Long) map.get("businessType"));
 			}
 			if (map.get("taxRate") != null) {// 税率
-				fiDocEntry.setTaxRate(Double.parseDouble(map.get("taxRate")));
+				fiDocEntry.setTaxRate((Double) map.get("taxRate"));
 			}
 			if (map.get("currency") != null) {// 本位币
-				fiDocEntry.setCurrencyId(Long.parseLong(map.get("currency")));// 币种
+				fiDocEntry.setCurrencyId((Long) map.get("currency"));// 币种
 				fiDocEntry.setExchangeRate(1.0);// 汇率
 			}
 			if (map.get("flag") != null) {// 凭证ABCD标识
-				fiDocEntry.setSourceFlag(map.get("flag"));
+				fiDocEntry.setSourceFlag((String) map.get("flag"));
 			}
 			if (map.get("drawbackPolicy") != null) {// 即征即退
-                fiDocEntry.setLevyAndRetreatId(Long.parseLong(map.get("drawbackPolicy")));
+                fiDocEntry.setLevyAndRetreatId((Long) map.get("drawbackPolicy"));
             }
 		}
 		if (isSettlement) {

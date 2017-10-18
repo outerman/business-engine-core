@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.ErrorCode;
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
@@ -88,18 +89,11 @@ public class AcmDocAccountTemplate implements IValidatable {
 
     private List<DocAccountTemplateItem> getDocTemplate(List<DocAccountTemplateItem> docTemplateListWithFlag, AcmSortReceiptDetail detail) {
         List<DocAccountTemplateItem> resultList = new ArrayList<>();
-        if (docTemplateListWithFlag.size() == 1) { // 凭证模板只有一条数据且没有影响因素直接返回
-            DocAccountTemplateItem docTemplate = docTemplateListWithFlag.get(0);
-            if (StringUtil.isEmpty(docTemplate.getInfluence())) {
-                resultList.add(docTemplate);
-                return resultList;
-            }
-        }
-
-        DocAccountTemplateItem defaultDocTemplate = null; // 默认匹配规则，影响因素值为 0 的记录
+        DocAccountTemplateItem defaultDocTemplate = null; // 影响因素默认匹配规则，影响因素值为 0 的记录
         for (DocAccountTemplateItem docTemplate : docTemplateListWithFlag) {
             String influence = docTemplate.getInfluence();
-            if (StringUtil.isEmpty(influence)) { // 凭证模板只有一条数据且没有影响因素时已经处理，其他情况都应该是有影响因素的
+            if (StringUtil.isEmpty(influence)) { // 没有影响因素
+                resultList.add(docTemplate);
                 continue;
             }
 
@@ -132,6 +126,9 @@ public class AcmDocAccountTemplate implements IValidatable {
             } else if ("vatTaxpayer".equals(influence) || "vatTaxpayer,qualification".equals(influence) || "vatTaxpayer,taxType".equals(influence)) {
                 // 纳税人性质，纳税人性质、认证，纳税人性质、计税方式
                 Long vatTaxpayer = docTemplateDto.getOrg().getVatTaxpayer();
+                if (vatTaxpayer == null) {
+                    throw ErrorCode.EXCEPTION_ORG_VATTAXPAYER_EMPTY;
+                }
                 if (!vatTaxpayer.equals(docTemplate.getVatTaxpayer())) {
                     continue;
                 }
@@ -225,6 +222,9 @@ public class AcmDocAccountTemplate implements IValidatable {
      * @return 凭证模板信息，以 flag（A,B,C...）为 key 的 map
      */
     public Map<String, List<DocAccountTemplateItem>> getDocTemplateMap(SetOrg org) {
+        if (org == null || org.getId() == null || org.getId() == 0) {
+            throw ErrorCode.EXCEPTION_ORG_EMPATY;
+        }
         Map<String, List<DocAccountTemplateItem>> resultMap = new TreeMap<>();
         if (!org.getId().equals(docTemplateDto.getOrg().getId())) {
             return resultMap;

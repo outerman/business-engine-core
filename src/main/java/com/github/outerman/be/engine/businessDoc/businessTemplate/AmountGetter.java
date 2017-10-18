@@ -10,11 +10,11 @@ import com.github.outerman.be.api.vo.DocAccountTemplateItem;
  * "金额来源"字段的解析
  */
 public class AmountGetter {
-  //常量
+    //常量
     private final static String STR_0 = "0";
     public  final static String EMPTY = "";
     private final static String AMOUNT_AMOUNT = "amount";
-    private final static String AMOUNT_TAXINCLUSIVEAMOUNT = "taxInclusiveAmount";
+    public final static String AMOUNT_TAXINCLUSIVEAMOUNT = "taxInclusiveAmount";
     private final static String AMOUNT_MINUS_AMOUNT = "-amount";
     private final static String AMOUNT_MINUS_TAX = "-tax";
     private final static String AMOUNT_MINUS_TAXINCLUSIVEAMOUNT = "-taxInclusiveAmount";
