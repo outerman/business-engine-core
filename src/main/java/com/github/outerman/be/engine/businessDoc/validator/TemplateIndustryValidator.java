@@ -2,6 +2,7 @@ package com.github.outerman.be.engine.businessDoc.validator;
 
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AcmDocAccountTemplate;
+import com.github.outerman.be.engine.util.CommonUtil;
 import com.github.outerman.be.api.constant.AcmConst;
 import com.github.outerman.be.api.dto.AcmPaymentTemplateDto;
 import com.github.outerman.be.api.dto.AcmUITemplateDto;
@@ -36,19 +37,27 @@ public class TemplateIndustryValidator implements ITemplateValidatable {
         // 行业为 key，业务类型元数据信息
         Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
 
-        // 对应行业业务类型元数据存在，必须要有对应的两个会计准则（2007、2013）凭证模板信息
-        String businessCode = "业务类型 " + docAccountTemplateDto.getBusinessCode();
+        // 元数据模板数据存在，凭证模板必须有对应行业的两个会计准则（2007、2013）的数据
+        String businessCode = "业务类型" + docAccountTemplateDto.getBusinessCode();
         for (Entry<Long, List<SetColumnsTacticsDto>> tacticsEntry : tacticsMap.entrySet()) {
             Long industry = tacticsEntry.getKey();
 
             // 凭证模板区分会计准则，每个会计准则都需要验证
-            String industryStr = "，行业 " + industry;
+            String industryStr = CommonUtil.getIndustryName(industry) + "行业";
             for (Long accountingStandard : AcmConst.ACCOUNTING_STANDARD_ID_LIST) {
-                String accountingStandardStr = "，会计准则 " + accountingStandard;
                 String key = AcmDocAccountTemplate.getKey(industry, accountingStandard.intValue());
                 if (!docTemplateMap.containsKey(key)) {
-                    errorMessage.append(businessCode + industryStr + accountingStandardStr + " 缺少凭证模板数据；");
+                    String accountingStandardStr = CommonUtil.getAccountingStandardName(accountingStandard.intValue());
+                    errorMessage.append(businessCode + industryStr + "元数据模板有数据，" + accountingStandardStr + "缺少凭证模板数据；");
                 }
+            }
+        }
+        // 凭证模板数据存在，元数据模板必须有对应行业的数据
+        for (String key : docTemplateMap.keySet()) {
+            Long industry = AcmDocAccountTemplate.getIndustry(key);
+            if (!tacticsMap.containsKey(industry)) {
+                String industryStr = CommonUtil.getIndustryName(industry) + "行业";
+                errorMessage.append(businessCode + industryStr + "凭证模板有数据，缺少元数据模板数据；");
             }
         }
         return errorMessage.toString();

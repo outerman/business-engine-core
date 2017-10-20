@@ -37,12 +37,11 @@ public class TemplateSettleValidator implements ITemplateValidatable {
         }
 
         String errorMessage = "业务类型 " + docAccountTemplateDto.getBusinessCode() + " 元数据模板银行账户（结算方式）显示时，凭证模板需要存在对应科目来源为结算方式的数据：";
-        Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
         Map<String, List<DocAccountTemplateItem>> docTemplateMap = docAccountTemplateDto.getAllPossibleTemplate();
 
         // 验证每个行业
         StringBuilder industryMessage = new StringBuilder();
-        for (Entry<Long, List<SetColumnsTacticsDto>> entry : tacticsMap.entrySet()) {
+        for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
             boolean accountVisible = false;
             for (SetColumnsTacticsDto tactics : entry.getValue()) {
                 Long columnId = tactics.getColumnsId();
