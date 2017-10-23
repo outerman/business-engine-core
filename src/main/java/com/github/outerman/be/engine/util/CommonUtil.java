@@ -137,22 +137,30 @@ public final class CommonUtil {
 
     public static Long getColumnId(String influence) {
         Long columnId = null;
-        if ("assetAttr".equals(influence)) {
-            columnId = AcmConst.ASSET_TYPE_COLUMN_ID;
-        } else if ("departmentAttr".equals(influence)) {
+        if (AcmConst.INFLUENCE_DEPARTMENT_ATTR.equals(influence)) {
             columnId = AcmConst.DEPARTMENT_COLUMN_ID;
-        } else if ("departmentAttr,personAttr".equals(influence)) {
+        } else if (AcmConst.INFLUENCE_DEPT_PERSON_ATTR.equals(influence)) {
             columnId = AcmConst.PERSON_COLUMN_ID;
-        } else if ("punishmentAttr".equals(influence)) {
+        } else if (AcmConst.INFLUENCE_VAT_TAXPAYER.equals(influence)) {
+            
+        } else if (AcmConst.INFLUENCE_VAT_TAXPAYER_QUALIFICATION.equals(influence)) {
+            columnId = AcmConst.QUALIFICATION_COLUMN_ID;
+        } else if (AcmConst.INFLUENCE_VAT_TAXPAYER_TAXTYPE.equals(influence)) {
+            columnId = AcmConst.TAX_RATE_COLUMN_ID;
+        } else if (AcmConst.INFLUENCE_PUNISHMENT_ATTR.equals(influence)) {
             columnId = AcmConst.PENALTY_TYPE_COLUMN_ID;
-        } else if ("accountInAttr".equals(influence)) {
-            columnId = AcmConst.BANK_ACCOUNT_TWO_COLUMN_ID;
-        } else if ("accountOutAttr".equals(influence)) {
-            columnId = AcmConst.BANK_ACCOUNT_COLUMN_ID;
-        } else if ("borrowAttr".equals(influence)) {
+        } else if (AcmConst.INFLUENCE_BORROW_ATTR.equals(influence)) {
             columnId = AcmConst.LOAN_TERM_COLUMN_ID;
-        } else if ("inventoryAttr".equals(influence)) {
+        } else if (AcmConst.INFLUENCE_INVENTORY_ATTR.equals(influence)) {
             columnId = AcmConst.INVENTORY_COLUMN_ID;
+        } else if (AcmConst.INFLUENCE_ASSET_ATTR.equals(influence)) {
+            columnId = AcmConst.ASSET_TYPE_COLUMN_ID;
+        } else if (AcmConst.INFLUENCE_ACCOUNTIN_ATTR.equals(influence)) {
+            columnId = AcmConst.BANK_ACCOUNT_TWO_COLUMN_ID;
+        } else if (AcmConst.INFLUENCE_ACCOUNTOUT_ATTR.equals(influence)) {
+            columnId = AcmConst.BANK_ACCOUNT_COLUMN_ID;
+        } else if (AcmConst.INFLUENCE_FORMULA.equals(influence)) {
+            
         }
         return columnId;
     }

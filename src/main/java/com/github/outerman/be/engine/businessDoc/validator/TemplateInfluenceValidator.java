@@ -35,17 +35,23 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
 
     @Override
     public String validate(AcmDocAccountTemplateDto docAccountTemplateDto, AcmPaymentTemplateDto paymentTemplateDto, AcmUITemplateDto uiTemplateDto) {
+        // 凭证模板影响因素需要元数据模板对应的字段显示
         // 凭证模板影响因素没有默认记录，则元数据模板对应的字段必填
         // 存货属性影响因素，存货必填且没有默认时，和业务类型存货属性对照表校验
         StringBuilder message = new StringBuilder();
         // 验证每个行业
         Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
         for (Entry<String, List<DocAccountTemplateItem>> entry : docAccountTemplateDto.getAllPossibleTemplate().entrySet()) {
-            Map<String, List<Long>> influenceMap = new HashMap<>();
+            Map<String, Long> influenceColumnIdMap = new HashMap<>();
+            Map<String, List<Long>> influenceValueMap = new HashMap<>();
             for (DocAccountTemplateItem docTemplate : entry.getValue()) {
                 String influence = docTemplate.getInfluence();
                 if (StringUtil.isEmpty(influence)) {
                     continue;
+                }
+                Long columnId = CommonUtil.getColumnId(influence);
+                if (columnId != null) {
+                    influenceColumnIdMap.put(influence, columnId);
                 }
                 if ("vatTaxpayer".equals(influence) || "vatTaxpayer,taxType".equals(influence) || "vatTaxpayer,qualification".equals(influence)
                         || "formula".equals(influence)) {
@@ -53,11 +59,11 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
                     continue;
                 }
                 List<Long> attrList;
-                if (influenceMap.containsKey(influence)) {
-                    attrList = influenceMap.get(influence);
+                if (influenceValueMap.containsKey(influence)) {
+                    attrList = influenceValueMap.get(influence);
                 } else {
                     attrList = new ArrayList<>();
-                    influenceMap.put(influence, attrList);
+                    influenceValueMap.put(influence, attrList);
                 }
                 if ("departmentAttr".equals(influence)) {
                     Long departmentAttr = docTemplate.getDepartmentAttr();
@@ -70,21 +76,29 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
                     attrList.add(extendAttr);
                 }
             }
-            if (influenceMap.isEmpty()) {
-                continue;
+
+            StringBuilder errorMessage = new StringBuilder();
+            String key = entry.getKey();
+            Long industry = AcmDocAccountTemplate.getIndustry(key);
+            List<SetColumnsTacticsDto> tacticsList = tacticsMap.get(industry);
+            for (Entry<String, Long> columnIdEntry : influenceColumnIdMap.entrySet()) {
+                Long columnId = columnIdEntry.getValue();
+                Integer flag = getFlag(columnId, tacticsList);
+                if (flag == null || flag == 0) {
+                    String influenceName = CommonUtil.getInfluenceName(columnIdEntry.getKey());
+                    errorMessage.append("影响因素" + influenceName + "需要元数据模板对应的字段" + CommonUtil.getColumnName(columnId) + "显示；");
+                }
             }
 
+            if (influenceValueMap.isEmpty()) {
+                continue;
+            }
             List<BusinessAssetDto> businessAssetList = uiTemplateDto.getBusinessAssetList();
             Map<String, BusinessAssetDto> businessAssetMap = new HashMap<>();
             for (BusinessAssetDto businessAsset : businessAssetList) {
                 businessAssetMap.put(businessAsset.getInventoryPropertyName(), businessAsset);
             }
-
-            StringBuilder industryMessage = new StringBuilder();
-            String key = entry.getKey();
-            Long industry = AcmDocAccountTemplate.getIndustry(key);
-            List<SetColumnsTacticsDto> tacticsList = tacticsMap.get(industry);
-            for (Entry<String, List<Long>> influenceEntry : influenceMap.entrySet()) {
+            for (Entry<String, List<Long>> influenceEntry : influenceValueMap.entrySet()) {
                 List<Long> attrList = influenceEntry.getValue();
                 if (attrList.contains(0L)) {
                     continue;
@@ -92,27 +106,27 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
                 String influence = influenceEntry.getKey();
                 Long columnId = CommonUtil.getColumnId(influence);
                 if (columnId == null) {
-                    industryMessage.append(influence + " 未知影响因素；");
+                    errorMessage.append(influence + " 未知影响因素；");
                     continue;
                 }
                 Integer flag = getFlag(columnId, tacticsList);
                 if (flag == null || flag < 2) {
-                    industryMessage.append(CommonUtil.getInfluenceName(influence) + "没有默认记录，并且元数据模板对应的字段 " + CommonUtil.getColumnName(columnId) + "不必填；");
+                    errorMessage.append(CommonUtil.getInfluenceName(influence) + "没有默认记录，并且元数据模板对应的字段" + CommonUtil.getColumnName(columnId) + "不必填；");
                 } else {
                     if (columnId.equals(AcmConst.INVENTORY_COLUMN_ID)) {
                         for (Long attrId : attrList) {
                             String propertyName = CommonUtil.getInventoryPropertyName(attrId);
                             if (!businessAssetMap.containsKey(propertyName)) {
-                                industryMessage.append("存货属性" + propertyName + "在业务类型存货属性对照表中不存在；");
+                                errorMessage.append("存货属性" + propertyName + "在业务类型存货属性对照表中不存在；");
                             }
                         }
                     }
                 }
             }
-            if (industryMessage.length() != 0) {
+            if (errorMessage.length() != 0) {
                 Integer accountingStandard = AcmDocAccountTemplate.getAccountingStandard(key);
                 String industryStr = CommonUtil.getAccountingStandardName(accountingStandard) + CommonUtil.getIndustryName(industry) + "行业，";
-                message.append(industryStr + industryMessage.toString());
+                message.append(industryStr + errorMessage.toString());
             }
         }
         if (message.length() == 0) {

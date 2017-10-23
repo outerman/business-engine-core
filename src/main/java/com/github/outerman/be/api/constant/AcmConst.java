@@ -424,6 +424,9 @@ public final class AcmConst {
     /**  */
     public static final Long BANK_ACCOUNT_TWO_COLUMN_ID = 25L;
 
+    /** 认证 column id */
+    public static final Long QUALIFICATION_COLUMN_ID = 29L;
+
     /** 一般纳税人 column id */
     public static final Long VAT_TAX_PAYER_41_COLUMN_ID = 33L;
 
@@ -442,5 +445,41 @@ public final class AcmConst {
      * 企业会计准则:  19: 小企业会计准则2013
      */ 
     public static final long ACCOUNTINGSTANDARDS_0002 = 19L;
+
+    /** 影响因素部门属性 */
+    public static final String INFLUENCE_DEPARTMENT_ATTR = "departmentAttr";
+
+    /** 影响因素部门属性、人员属性 */
+    public static final String INFLUENCE_DEPT_PERSON_ATTR = "departmentAttr,personAttr";
+
+    /** 影响因素纳税人 */
+    public static final String INFLUENCE_VAT_TAXPAYER = "vatTaxpayer";
+
+    /** 影响因素纳税人、认证 */
+    public static final String INFLUENCE_VAT_TAXPAYER_QUALIFICATION = "vatTaxpayer,qualification";
+
+    /** 影响因素纳税人、计税方式 */
+    public static final String INFLUENCE_VAT_TAXPAYER_TAXTYPE = "vatTaxpayer,taxType";
+
+    /** 影响因素罚款性质 */
+    public static final String INFLUENCE_PUNISHMENT_ATTR = "punishmentAttr";
+
+    /** 影响因素借款期限 */
+    public static final String INFLUENCE_BORROW_ATTR = "borrowAttr";
+
+    /** 影响因素存货属性 */
+    public static final String INFLUENCE_INVENTORY_ATTR = "inventoryAttr";
+
+    /** 影响因素资产属性 */
+    public static final String INFLUENCE_ASSET_ATTR = "assetAttr";
+
+    /** 影响因素账户属性流入 */
+    public static final String INFLUENCE_ACCOUNTIN_ATTR = "accountInAttr";
+
+    /** 影响因素账户属性流出 */
+    public static final String INFLUENCE_ACCOUNTOUT_ATTR = "accountOutAttr";
+
+    /** 影响因素表达式 */
+    public static final String INFLUENCE_FORMULA = "formula";
 
 }

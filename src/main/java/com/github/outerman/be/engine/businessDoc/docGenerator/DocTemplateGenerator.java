@@ -71,7 +71,6 @@ public class DocTemplateGenerator {
         return resultDto;
     }
 
-
     private ReceiptResult convertReceipt(FiDocHandler docHandler) {
         AcmSortReceipt receipt = docHandler.getReceipt();
         ReceiptResult fail = checkReceipt(receipt);
