@@ -149,6 +149,9 @@ public class AcmUITemplate implements IValidatable {
         // 验证所有行业
         for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
             List<SetColumnsSpecialVo> specialList = specialMap.get(entry.getKey());
+            if (specialList == null) {
+                specialList = new ArrayList<>();
+            }
 
             // 不同票据类型元数据配置不同，分别验证
             Map<Long, List<SetColumnsTacticsDto>> tacticsInvoiceMap = new HashMap<>();
@@ -228,7 +231,8 @@ public class AcmUITemplate implements IValidatable {
                                 taxRateInvoiceNameList.add(invoiceName + CommonUtil.getVatTaxPayerName(vatTaxpayer));
                             }
                         }
-                        if (isSmallScaleTaxPayer) {
+                        // 小规模纳税人收入类型业务才需要校验税率
+                        if (isSmallScaleTaxPayer && tacticsTaxRate.getPaymentsId().equals(AcmConst.PAYMENTSTYPE_10)) {
                             Integer vatTaxpayer = 42;
                             List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
                             if (!specialHasColumn(vatTaxpayerList, AcmConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {

@@ -251,9 +251,8 @@ public class AcmDocAccountTemplate implements IValidatable {
 
     @Override
     public String validate() {
-        // 影响因素取值有数据时，影响因素必须要有值
+        // 影响因素取值有数据时，影响因素必须要有值；影响因素有值时，对应的取值必须有数据；
         // 同一分组纳税人、计税方式，纳税人、认证影响因素需要两条记录
-        // TODO 相同分类标识下，相同影响因素只能有一条凭证模板数据
         String errorMessage = "业务类型 " + docTemplateDto.getBusinessCode() + " 凭证模板数据校验失败：";
         Map<String, List<DocAccountTemplateItem>> docTemplateMap = docTemplateDto.getAllPossibleTemplate();
         if (docTemplateMap.isEmpty()) {
@@ -268,11 +267,16 @@ public class AcmDocAccountTemplate implements IValidatable {
                 // TODO 校验金额表达式正确性
                 String fundSource = docTemplate.getFundSource();
                 if (StringUtil.isEmpty(fundSource)) {
-                    industryMessage.append("金额来源不能为空；");
+                    industryMessage.append("分录" + docTemplate.getFlag() + "金额来源不能为空；");
                 }
                 String influence = docTemplate.getInfluence();
                 if (StringUtil.isEmpty(influence) && hasInfluenceValue(docTemplate)) {
                     industryMessage.append("影响因素取值有数据，影响因素为空；");
+                    continue;
+                }
+                if (!hasValidInfluenceValue(docTemplate)) {
+                    String influeceName = CommonUtil.getInfluenceName(influence);
+                    industryMessage.append("影响因素" + influeceName + "对应取值字段不能为空；");
                     continue;
                 }
                 if ("vatTaxpayer,taxType".equals(influence) || "vatTaxpayer,qualification".equals(influence)) {
@@ -286,9 +290,10 @@ public class AcmDocAccountTemplate implements IValidatable {
             }
             for (Entry<String, Integer> countEntry : influenceCountMap.entrySet()) {
                 if (countEntry.getValue() != 2) {
-                    String key = countEntry.getKey();
-                    String flag = key.substring(key.lastIndexOf("_") + 1);
-                    industryMessage.append("分组" + flag + "影响因素（计税方式、认证）必须有两条记录；");
+                    String[] key = countEntry.getKey().split("_");
+                    String influence = key[0];
+                    String flag = key[1];
+                    industryMessage.append("分组" + flag + "影响因素" + CommonUtil.getInfluenceName(influence) + "必须有两条记录；");
                 }
             }
             if (industryMessage.length() != 0) {
@@ -303,6 +308,28 @@ public class AcmDocAccountTemplate implements IValidatable {
             return "";
         }
         return errorMessage + message.toString();
+    }
+
+    private boolean hasValidInfluenceValue(DocAccountTemplateItem docTemplate) {
+        String influence = docTemplate.getInfluence();
+        if (StringUtil.isEmpty(influence)) {
+            return true;
+        }
+        boolean result = false;
+        if (AcmConst.INFLUENCE_DEPARTMENT_ATTR.equals(influence)) {
+            result = docTemplate.getDepartmentAttr() != null;
+        } else if (AcmConst.INFLUENCE_DEPT_PERSON_ATTR.equals(influence)) {
+            result = docTemplate.getDepartmentAttr() != null && docTemplate.getPersonAttr() != null;
+        } else if (AcmConst.INFLUENCE_VAT_TAXPAYER.equals(influence)) {
+            result = docTemplate.getVatTaxpayer() != null;
+        } else if (AcmConst.INFLUENCE_VAT_TAXPAYER_QUALIFICATION.equals(influence)) {
+            result = docTemplate.getVatTaxpayer() != null && docTemplate.getQualification() != null;
+        } else if (AcmConst.INFLUENCE_VAT_TAXPAYER_TAXTYPE.equals(influence)) {
+            result = docTemplate.getVatTaxpayer() != null && docTemplate.getTaxType() != null;
+        } else {
+            result = docTemplate.getExtendAttr() != null;
+        }
+        return result;
     }
 
     private boolean hasInfluenceValue(DocAccountTemplateItem docTemplate) {
