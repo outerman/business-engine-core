@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.github.outerman.be.api.constant.AcmConst;
 import com.github.outerman.be.api.constant.BusinessTypeUtil;
 import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
@@ -46,6 +47,12 @@ public class FiDocHandler {
     /** 进项税额转出凭证分录摘要 */
     private static String INPUT_TAX_TRANSFER_SUMMARY = "进项税额转出";
 
+    /** 小企业会计准则2013，工资单生成凭证分录合并时忽略业务类型的科目列表 */
+    private static String[] MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2013 = { "560202", "560102", "410110", "400103", "400203", "43010102", "5401" };
+
+    /** 企业会计准则2007，工资单生成凭证分录合并时忽略业务类型的科目列表 */
+    private static String[] MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2007 = { "660211", "660111", "510110", "500103", "520103", "53010102", "6401" };
+
     private Map<String, FiDocEntryDto> entryMap = new HashMap<>();;
 
     public FiDocHandler(SetOrg org, SetCurrency currency, AcmSortReceipt receipt) {
@@ -79,8 +86,7 @@ public class FiDocHandler {
 
     /**
      * 根据流水账信息获取默认的凭证 dto
-     * 
-     * @param receipt
+     * @param receipt 流水账信息
      */
     private FiDocDto getDefaultDoc(AcmSortReceipt receipt) {
         FiDocDto doc = new FiDocDto();
@@ -148,7 +154,7 @@ public class FiDocHandler {
 
         StringBuilder key = new StringBuilder();
         if (!needMerge) { // 不需要合并时，key 增加明细 id
-            key.append(detail.toString());
+            key.append(detail.getId().toString());
         }
         boolean isInputTaxTransfer = INPUT_TAX_TRANSFER_SUMMARY.equals(docTemplate.getSummary());
         if (isInputTaxTransfer) { // 进项税额凭证分录单独处理合并
@@ -158,8 +164,8 @@ public class FiDocHandler {
         if (isOwnSort) {
             key.append("_ownSort");
         }
-        FiDocEntryDto entry = new FiDocEntryDto();
 
+        FiDocEntryDto entry = new FiDocEntryDto();
         String summary;
         if (!StringUtil.isEmpty(docTemplate.getSummary())) {
             summary = docTemplate.getSummary();
@@ -174,29 +180,47 @@ public class FiDocHandler {
         key.append("_accountCode").append(docTemplate.getAccountCode());
         entry.setSourceFlag(docTemplate.getFlag());
 
-        if (!isInputTaxTransfer) {
+        boolean isWage = BusinessTypeUtil.GONGZI_VOUCHERTYPE_LIST.contains(receipt.getSourceVoucherId());
+        if (!isInputTaxTransfer && !(isWage && mergeIgnoreBusiness(docTemplate.getAccountCode()))) {
             key.append("_businessType").append(detail.getBusinessType());
         }
         entry.setSourceBusinessTypeId(detail.getBusinessType());
+        // TODO notesNum invoiceType taxRate
+        // 单价 看是否抵扣然后传递不同的单价
+        Boolean isDeduction = detail.getIsDeduction() != null && detail.getIsDeduction() == 1;
+        if (BusinessUtil.paymentDirection(detail.getBusinessCode()) == 1 || isDeduction) {
+            entry.setPrice(detail.getPrice());
+        } else {
+            entry.setPrice(detail.getTaxInclusivePrice());
+        }
+        // 0 借 1 贷，流水账不区分币种，本币原币金额一样
+        Boolean direction = docTemplate.getDirection();
+        if (direction) {
+            entry.setAmountCr(amount);
+            entry.setOrigAmountCr(amount);
+        } else {
+            entry.setAmountDr(amount);
+            entry.setOrigAmountDr(amount);
+        }
 
         if (docTemplate.getIsAuxAccCalc() != null && docTemplate.getIsAuxAccCalc()) {
-            if (docTemplate.getIsAuxAccDepartment() != null && docTemplate.getIsAuxAccDepartment()) {// 部门
+            if (docTemplate.getIsAuxAccDepartment() != null && docTemplate.getIsAuxAccDepartment()) { // 部门
                 entry.setDepartmentId(detail.getDepartment());
                 key.append("_departmentId").append(detail.getDepartment());
             }
-            if (docTemplate.getIsAuxAccPerson() != null && docTemplate.getIsAuxAccPerson()) {// 人员
+            if (docTemplate.getIsAuxAccPerson() != null && docTemplate.getIsAuxAccPerson()) { // 人员
                 entry.setPersonId(detail.getEmployee());
                 key.append("_personId").append(detail.getEmployee());
             }
-            if (docTemplate.getIsAuxAccCustomer()) {// 客户
+            if (docTemplate.getIsAuxAccCustomer()) { // 客户
                 entry.setCustomerId(detail.getConsumer());
                 key.append("_customerId").append(detail.getConsumer());
             }
-            if (docTemplate.getIsAuxAccSupplier()) {// 供应商
+            if (docTemplate.getIsAuxAccSupplier()) { // 供应商
                 entry.setSupplierId(detail.getVendor());
                 key.append("_supplierId").append(detail.getVendor());
             }
-            if (docTemplate.getIsAuxAccInventory()) {// 存货
+            if (docTemplate.getIsAuxAccInventory()) { // 存货
                 if (detail.getAssetId() != null) {
                     entry.setInventoryId(detail.getAssetId());
                     key.append("_inventoryId").append(detail.getAssetId());
@@ -205,7 +229,7 @@ public class FiDocHandler {
                     key.append("_inventoryId").append(detail.getInventory());
                 }
             }
-            if (docTemplate.getIsAuxAccProject()) {// 项目
+            if (docTemplate.getIsAuxAccProject()) { // 项目
                 entry.setProjectId(detail.getProject());
                 key.append("_projectId").append(detail.getProject());
             }
@@ -232,16 +256,8 @@ public class FiDocHandler {
                 }
             }
         }
-        // TODO notesNum invoiceType taxRate
-        // 单价 看是否抵扣然后传递不同的单价
-        Boolean isDeduction = detail.getIsDeduction() != null && detail.getIsDeduction() == 1;
-        if (BusinessUtil.paymentDirection(detail.getBusinessCode()) == 1 || isDeduction) {
-            entry.setPrice(detail.getPrice());
-        } else {
-            entry.setPrice(detail.getTaxInclusivePrice());
-        }
 
-        if (!isInputTaxTransfer && !BusinessTypeUtil.GONGZI_VOUCHERTYPE_LIST.contains(receipt.getSourceVoucherId())) {
+        if (!isInputTaxTransfer && !isWage) {
             String influence = docTemplate.getInfluence();
             if (!StringUtil.isEmpty(influence)) {
                 if (influence.equals("departmentAttr")) { // 部门属性
@@ -265,19 +281,31 @@ public class FiDocHandler {
                 // TODO formula inventoryAttr
             }
         }
-        // 0 借 1 贷，流水账不区分币种，本币原币金额一样
-        Boolean direction = docTemplate.getDirection();
-        if (direction) {
-            entry.setAmountCr(amount);
-            entry.setOrigAmountCr(amount);
-        } else {
-            entry.setAmountDr(amount);
-            entry.setOrigAmountDr(amount);
-        }
 
         InnerFiDocEntryDto result = new InnerFiDocEntryDto();
         result.setFiDocEntryDto(entry);
         result.setKey(key.toString());
+        return result;
+    }
+
+    private boolean mergeIgnoreBusiness(String accountCode) {
+        boolean result = false;
+        String[] accountArray = null;
+        Long accountingStandards = org.getAccountingStandards();
+        if (accountingStandards.equals(AcmConst.ACCOUNTINGSTANDARDS_0001)) {
+            accountArray = MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2007;
+        } else if (accountingStandards.equals(AcmConst.ACCOUNTINGSTANDARDS_0002)) {
+            accountArray = MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2013;
+        }
+        if (accountArray == null) {
+            return result;
+        }
+        for (String account : accountArray) {
+            if (accountCode.startsWith(account)) {
+                result = true;
+                break;
+            }
+        }
         return result;
     }
 
@@ -301,10 +329,10 @@ public class FiDocHandler {
         for (index = list.size(); index > 0; index--) {
             FiDocEntryDto lastEntry = list.get(index - 1);
             boolean lastIsDebit = !DoubleUtil.isNullOrZero(lastEntry.getAmountDr());
-            Long lastBusinessTypeId = lastEntry.getSourceBusinessTypeId();
             if (lastIsDebit) {
                 break;
             }
+            Long lastBusinessTypeId = lastEntry.getSourceBusinessTypeId();
             if (!businessTypeId.equals(lastBusinessTypeId) && !lastEntry.getSummary().equals(entry.getSummary())) {
                 break;
             }
@@ -368,16 +396,16 @@ public class FiDocHandler {
             if (payDocTemplate.getIsAuxAccPerson()) { // 人员
                 entry.setPersonId(settle.getEmployee());
             }
-            if (payDocTemplate.getIsAuxAccCustomer()) {// 客户
+            if (payDocTemplate.getIsAuxAccCustomer()) { // 客户
                 entry.setCustomerId(settle.getConsumer());
             }
-            if (payDocTemplate.getIsAuxAccSupplier()) {// 供应商
+            if (payDocTemplate.getIsAuxAccSupplier()) { // 供应商
                 entry.setSupplierId(settle.getVendor());
             }
-            if (payDocTemplate.getIsAuxAccBankAccount()) {// 银行账号
+            if (payDocTemplate.getIsAuxAccBankAccount()) { // 银行账号
                 entry.setBankAccountId(settle.getBankAccountId());
             }
-            if (payDocTemplate.getIsMultiCalc()) {// 多币种
+            if (payDocTemplate.getIsMultiCalc()) { // 多币种
                 entry.setCurrencyId(currency.getId());
             }
         }

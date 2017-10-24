@@ -20,6 +20,17 @@ public class FiDocGenetateResultDto implements Serializable {
     private List<ReceiptResult> failedReceipt = new ArrayList<>();     //数据错误,无法生成的单据(例如"没有业务明细的单据")
     private List<ReceiptResult> unResolvedReceipt = new ArrayList<>(); //无法做生成处理的单据(例如"请会计处理"的单据)
 
+    public void addFailed(ReceiptResult fail) {
+        failedReceipt.add(fail);
+    }
+
+    public void addFailed(AcmSortReceipt receipt, String msg) {
+        ReceiptResult fail = new ReceiptResult();
+        fail.setReceipt(receipt);
+        fail.setMsg(msg);
+        addFailed(fail);
+    }
+
     public List<FiDocDto> getToInsertFiDocList() {
         return toInsertFiDocList;
     }

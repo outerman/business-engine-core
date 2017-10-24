@@ -52,8 +52,8 @@ public class DocTemplateGenerator {
 
         for (AcmSortReceipt receipt : receiptList) {
             FiDocHandler docHandler = new FiDocHandler(org, currency, receipt);
-            ReceiptResult result = convertReceipt(docHandler);
-            if (result != null) {
+            boolean result = convertReceipt(docHandler, resultDto);
+            if (!result) {
                 continue;
             }
 
@@ -71,28 +71,21 @@ public class DocTemplateGenerator {
         return resultDto;
     }
 
-    private ReceiptResult convertReceipt(FiDocHandler docHandler) {
+    private boolean convertReceipt(FiDocHandler docHandler, FiDocGenetateResultDto resultDto) {
         AcmSortReceipt receipt = docHandler.getReceipt();
-        ReceiptResult fail = checkReceipt(receipt);
-        if (fail != null) {
-            return fail;
+        if (!validateReceipt(receipt, resultDto)) {
+            return false;
         }
 
         SetOrg org = docHandler.getOrg();
         List<AcmSortReceiptDetail> detailList = reorderReceiptDetailList(receipt.getAcmSortReceiptDetailList());
         for (AcmSortReceiptDetail detail : detailList) {
-            if (detail == null) {
-                continue;
-            }
-
             String businessCode = detail.getBusinessCode().toString();
             BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(org, businessCode, templateProvider);
             List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(org, detail);
             if (docTemplateList.isEmpty()) {
-                fail = new ReceiptResult();
-                fail.setReceipt(receipt);
-                fail.setMsg(String.format("业务类型 %s 凭证模板数据没有找到", businessCode.toString()));
-                return fail;
+                resultDto.addFailed(receipt, String.format("业务类型 %s 凭证模板数据没有找到", businessCode.toString()));
+                return false;
             }
 
             // TODO 科目编码处理，考虑缓存，考虑外部一次调用获取全部数据
@@ -102,10 +95,13 @@ public class DocTemplateGenerator {
             }
             Map<String, FiAccount> codeMap = templateProvider.getAccountCode(org.getId(), accountCodeList, detailList);
             for (DocAccountTemplateItem docTemplate : docTemplateList) {
-                List<ReceiptResult> fiDocReturnFailList = new ArrayList<>();
-                docTemplate = templateProvider.requestAdvice(docTemplate, codeMap, detail, fiDocReturnFailList);
-                if (!fiDocReturnFailList.isEmpty()) {
-                    return fiDocReturnFailList.get(0);
+                List<ReceiptResult> failList = new ArrayList<>();
+                docTemplate = templateProvider.requestAdvice(docTemplate, codeMap, detail, failList);
+                if (!failList.isEmpty()) {
+                    ReceiptResult fail = failList.get(0);
+                    fail.setReceipt(receipt);
+                    resultDto.addFailed(fail);
+                    return false;
                 }
 
                 docHandler.addEntry(docTemplate, detail);
@@ -115,15 +111,13 @@ public class DocTemplateGenerator {
         FiDocDto fiDocDto = docHandler.getFiDocDto();
         if (fiDocDto.getEntrys().isEmpty()) {
             // 所有流水账明细处理之后，凭证分录为空：获取到的金额字段都是 0
-            fail = new ReceiptResult();
-            fail.setReceipt(receipt);
-            fail.setMsg("凭证分录为空");
-            return fail;
+            resultDto.addFailed(receipt, "凭证分录为空");
+            return false;
         }
 
         List<AcmSortReceiptSettlestyle> settleList = receipt.getAcmSortReceiptSettlestyleList();
         if (settleList == null || settleList.isEmpty()) {
-            return null;
+            return true;
         }
 
         // TODO: 结算方式暂时没有和businessCode挂钩, 所以取任何一个都会返回所有
@@ -139,20 +133,19 @@ public class DocTemplateGenerator {
 
             PaymentTemplateItem payDocTemplate = businessTemplate.getPaymentTemplate().getTemplate(settle);
             if (payDocTemplate == null) {
-                fail = new ReceiptResult();
-                fail.setReceipt(receipt);
-                fail.setMsg(ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG);
-                return fail;
+                resultDto.addFailed(receipt, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG);
+                return false;
             }
             // requestAdvice 中没有获取到结算模板数据时抛出了异常
             payDocTemplate = templateProvider.requestAdvice(payDocTemplate, codeMap, settle);
 
             docHandler.addEntry(payDocTemplate, settle);
         }
-        return null;
+        return true;
     }
 
-    private ReceiptResult checkReceipt(AcmSortReceipt receipt) {
+    private boolean validateReceipt(AcmSortReceipt receipt, FiDocGenetateResultDto resultDto) {
+        List<ReceiptResult> failList = resultDto.getFailedReceipt();
         String errorMessage = null;
         if (receipt == null) {
             errorMessage = ErrorCode.ENGINE_DOC_GENERATE_RECEIPT_EMPTY;
@@ -165,26 +158,30 @@ public class DocTemplateGenerator {
             if (paymenysType != null && paymenysType == AcmConst.PAYMENTSTYPE_60) {
                 // 请会计处理分类业务类型的流水账不生成凭证，直接审核
                 errorMessage = ErrorCode.ENGINE_DOC_GENETARE_UNRESOVE_ERROR_MSG;
+                failList = resultDto.getUnResolvedReceipt();
             }
         }
-        if (StringUtil.isEmpty(errorMessage)) {
-            return null;
+        if (!StringUtil.isEmpty(errorMessage)) {
+            ReceiptResult fail = new ReceiptResult();
+            fail.setReceipt(receipt);
+            fail.setMsg(errorMessage);
+            failList.add(fail);
+            return false;
         }
-        ReceiptResult fail = new ReceiptResult();
-        fail.setReceipt(receipt);
-        fail.setMsg(errorMessage);
-        return fail;
+        return true;
     }
 
     /**
-     * 将后续出现的相同业务放在第一次出现位置之后
-     * 
+     * 收支明细将后续出现的相同业务放在第一次出现位置之后
      * @param detailList
-     * @return
+     * @return 重新排序后的收支明细
      */
     private List<AcmSortReceiptDetail> reorderReceiptDetailList(List<AcmSortReceiptDetail> detailList) {
         LinkedHashMap<Long, List<AcmSortReceiptDetail>> retMap = new LinkedHashMap<>();
         for (AcmSortReceiptDetail detail : detailList) {
+            if (detail == null) {
+                continue;
+            }
             Long businessType = detail.getBusinessType();
             if (retMap.containsKey(businessType)) {
                 retMap.get(businessType).add(detail);
