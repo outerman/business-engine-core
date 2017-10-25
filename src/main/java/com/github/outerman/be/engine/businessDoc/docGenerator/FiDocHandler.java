@@ -180,7 +180,7 @@ public class FiDocHandler {
         key.append("_accountCode").append(docTemplate.getAccountCode());
         entry.setSourceFlag(docTemplate.getFlag());
 
-        boolean isWage = BusinessTypeUtil.GONGZI_VOUCHERTYPE_LIST.contains(receipt.getSourceVoucherId());
+        boolean isWage = BusinessTypeUtil.GONGZI_VOUCHERTYPE_LIST.contains(receipt.getSourceVoucherTypeId());
         if (!isInputTaxTransfer && !(isWage && mergeIgnoreBusiness(docTemplate.getAccountCode()))) {
             key.append("_businessType").append(detail.getBusinessType());
         }
