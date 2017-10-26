@@ -12,8 +12,6 @@ import java.util.List;
  */
 public final class BusinessTypeUtil {
 
-    // TODO 以下业务编码应该有一个业务类型编码的常量类并引用这个常量类
-
     /**
      * "工资-发放-实发工资"特殊处理, 虽然是"结算方式",但是和其他"本表"的业务,一起单独排序
      */

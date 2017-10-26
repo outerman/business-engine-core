@@ -155,10 +155,10 @@ public class AcmSortReceiptDetail implements Serializable {
     private String assetTypeName;
 
     /** 罚款性质 id */
-    private Long penaltyType; // TODO: 暂未根据name,转换id
+    private Long penaltyType;
 
     /** 借款期限 id */
-    private Long loanTerm; // TODO: 暂未根据name,转换id
+    private Long loanTerm;
 
     /** 时间戳  */
     private Timestamp ts;
