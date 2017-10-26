@@ -1,8 +1,19 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
 
+import java.io.StringReader;
+import java.lang.reflect.Field;
+import java.util.List;
+
+import org.apache.commons.jexl3.internal.Debugger;
+import org.apache.commons.jexl3.parser.ASTIdentifier;
+import org.apache.commons.jexl3.parser.ASTJexlScript;
+import org.apache.commons.jexl3.parser.Parser;
+
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
+import com.github.outerman.be.engine.util.CommonUtil;
+import com.github.outerman.be.engine.util.JexlUtil;
 
 /**
  * Created by shenxy on 14/7/17.
@@ -23,6 +34,7 @@ public class AmountGetter {
     private final static String EXT1_MINUS_AMOUNT = "ext1-amount";
     private final static String AMOUNT_MINUS_EXT1 = "amount-ext1";
     private final static String AMOUNT_TAXDEDUCTIBLEINPUTTAX = "tax-deductibleInputTax";
+    private final static String PRIVILEGE_TAX_AMOUNT = "privilegeTaxAmount";
     private final static String AMOUNT_EXT0 = "ext0";
     private final static String AMOUNT_EXT1 = "ext1";
     private final static String AMOUNT_EXT2 = "ext2";
@@ -59,9 +71,11 @@ public class AmountGetter {
             amount =  -1*sort.getTax();
         }else if(AMOUNT_MINUS_TAXINCLUSIVEAMOUNT.equals(source)){// 负价税合计金额
             amount =  -1*sort.getTaxInclusiveAmount();
-        }else if(EXT1_MINUS_AMOUNT.equals(source)){// 负价税合计金额
+        } else if (PRIVILEGE_TAX_AMOUNT.equals(source)) {
+            amount = sort.getPrivilegeTaxAmount();
+        } else if(EXT1_MINUS_AMOUNT.equals(source)){
             amount =  sort.getExt1()-sort.getAmount();
-        }else if(AMOUNT_MINUS_EXT1.equals(source)){// 负价税合计金额
+        }else if(AMOUNT_MINUS_EXT1.equals(source)){
             amount =  sort.getAmount()-sort.getExt1();
         }else if(AMOUNT_EXT0.equals(source)){// 扩展字段0
             amount = sort.getExt0();
@@ -145,4 +159,48 @@ public class AmountGetter {
         }
         return amount;
     }
+
+    private static String handleFundSource(String fundsource) {
+        if (!fundsource.contains(MAOHAO)) {
+            return fundsource;
+        }
+        String[] array1 = fundsource.split(MAOHAO);
+        for (int index = 0, length = array1.length; index < length; index++) {
+            String str = array1[index];
+            if (!str.contains(JINGHAO)) {
+                continue;
+            }
+            String[] array2 = str.split(JINGHAO);
+            array1[index] = String.format("(%s ? %s : %s)", array2[0], array2[1], array2[2]);
+        }
+        return String.format("(%s ? %s : %s)", array1[0], array1[1], array1[2]);
+    }
+
+    public static Double getAmount(AcmSortReceiptDetail detail, String fundsource) {
+        fundsource = handleFundSource(fundsource);
+        Double result = (Double) JexlUtil.evaluate(fundsource, detail);
+        return result;
+    }
+
+    public static String fundsource2Chinese(String fundsource) {
+        fundsource = handleFundSource(fundsource);
+        Parser lparser = new Parser(new StringReader(";"));
+        ASTJexlScript script = lparser.parse(null, fundsource, null, false, true);
+        List<ASTIdentifier> identifierList = JexlUtil.getIdentifier(script);
+        for (ASTIdentifier identifier : identifierList) {
+            try {
+                Field nameField = identifier.getClass().getDeclaredField("name");
+                nameField.setAccessible(true);
+                nameField.set(nameField, CommonUtil.getColumnNameByFieldName(identifier.getName()));
+            } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+                // do nothing
+            }
+        }
+        Debugger debug = new Debugger();
+        debug.setIndentation(2);
+        debug.debug(script);
+        String parsedText = debug.toString();
+        return parsedText;
+    }
+
 }

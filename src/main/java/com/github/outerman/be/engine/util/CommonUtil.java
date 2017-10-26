@@ -343,6 +343,34 @@ public final class CommonUtil {
         return name;
     }
 
+    public static String getColumnNameById(Long id) {
+        String name = null;
+        if (id == null) {
+            return name;
+        }
+        for (Column column : columns) {
+            if (id.equals(column.getId())) {
+                name = column.getName();
+                break;
+            }
+        }
+        return name;
+    }
+
+    public static String getColumnNameByFieldName(String fieldName) {
+        String name = null;
+        if (StringUtil.isEmpty(fieldName)) {
+            return name;
+        }
+        for (Column column : columns) {
+            if (fieldName.equals(column.getFieldName())) {
+                name = column.getName();
+                break;
+            }
+        }
+        return name;
+    }
+
     public static Long getColumnIdByName(String name) {
         Long id = null;
         if (StringUtil.isEmpty(name)) {

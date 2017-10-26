@@ -23,10 +23,6 @@ public final class StringUtil {
         return format.format(date);
     }
 
-    private StringUtil() {
-        // final util class, avoid instantiate
-    }
-
     /**
      * 判断字符串是否为空或者空串
      *
@@ -39,4 +35,7 @@ public final class StringUtil {
         }
     }
 
+    private StringUtil() {
+        // final util class, avoid instantiate
+    }
 }
