@@ -137,6 +137,9 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
 
     private Integer getFlag(Long columnId, List<SetColumnsTacticsDto> tacticsList) {
         Integer flag = null;
+        if (tacticsList == null) {
+            return flag;
+        }
         for (SetColumnsTacticsDto tactics : tacticsList) {
             Long columnsId = tactics.getColumnsId();
             if (columnId.equals(columnsId)) {

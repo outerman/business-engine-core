@@ -87,6 +87,9 @@ public class TemplateFundsourceValidator implements ITemplateValidatable {
 
     private boolean isVisible(Long columnId, List<SetColumnsTacticsDto> tacticsList) {
         boolean visible = false;
+        if (tacticsList == null) {
+            return visible;
+        }
         for (SetColumnsTacticsDto tactics : tacticsList) {
             Long columnsId = tactics.getColumnsId();
             if (columnId.equals(columnsId)) {
