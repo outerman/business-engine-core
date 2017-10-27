@@ -21,7 +21,7 @@ public class AmountGetter {
             return fundsource;
         }
         String[] array1 = fundsource.split(MAOHAO);
-        if (array1.length != 2) {
+        if (array1.length != 3) {
             return fundsource;
         }
         for (int index = 0, length = array1.length; index < length; index++) {
@@ -43,7 +43,7 @@ public class AmountGetter {
 
     public static <T> Double getAmount(T detail, String fundsource) {
         fundsource = handleFundSource(fundsource);
-        Double result = (Double) JexlUtil.evaluate(fundsource, detail);
+        Double result = Double.parseDouble(JexlUtil.evaluate(fundsource, detail).toString());
         return result;
     }
 
