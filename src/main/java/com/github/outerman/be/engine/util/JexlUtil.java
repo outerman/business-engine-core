@@ -1,6 +1,7 @@
 package com.github.outerman.be.engine.util;
 
 import java.io.StringReader;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +14,7 @@ import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlExpression;
 import org.apache.commons.jexl3.ObjectContext;
+import org.apache.commons.jexl3.internal.Debugger;
 import org.apache.commons.jexl3.parser.ASTIdentifier;
 import org.apache.commons.jexl3.parser.ASTJexlScript;
 import org.apache.commons.jexl3.parser.JexlNode;
@@ -21,7 +23,7 @@ import org.apache.commons.jexl3.parser.Parser;
 import com.github.outerman.be.api.constant.BusinessEngineException;
 
 /**
- * Java Expression Language util
+ * Java Expression Language Util
  * @author gaoxue
  */
 public final class JexlUtil {
@@ -43,7 +45,22 @@ public final class JexlUtil {
     }
 
     /**
-     * evaluate expression with data
+     * Return true if the expression is valid
+     * @param expression
+     * @return true if the expression is valid
+     */
+    public static boolean isExprValid(String expression) {
+        boolean result = true;
+        try {
+            createExpression(expression);
+        } catch (Exception ex) {
+            result = false;
+        }
+        return result;
+    }
+
+    /**
+     * Evaluate the expression with data
      * @param expression
      * @param data
      * @return
@@ -54,7 +71,7 @@ public final class JexlUtil {
     }
 
     /**
-     * evaluate expression with data and params
+     * Evaluate the expression with data, variables in params
      * @param expression
      * @param data
      * @param params
@@ -77,6 +94,11 @@ public final class JexlUtil {
         }
     }
 
+    /**
+     * Parse the expression with JEXL, get {@code ASTIdentifier} node name list
+     * @param expression
+     * @return
+     */
     public static List<String> getIdentifierName(String expression) {
         Parser lparser = new Parser(new StringReader(";"));
         ASTJexlScript script = lparser.parse(null, expression, null, false, true);
@@ -88,7 +110,42 @@ public final class JexlUtil {
         return new ArrayList<>(nameSet);
     }
 
-    public static List<ASTIdentifier> getIdentifier(JexlNode node) {
+    /**
+     * Replace the expression with parsedMap
+     * @param expression
+     * @param parsedMap
+     * @return
+     */
+    public static String getParsedText(String expression, Map<String, String> parsedMap) {
+        Parser lparser = new Parser(new StringReader(";"));
+        ASTJexlScript script = lparser.parse(null, expression, null, false, true);
+        List<ASTIdentifier> identifierList = JexlUtil.getIdentifier(script);
+        for (ASTIdentifier identifier : identifierList) {
+            String name = identifier.getName();
+            if (!parsedMap.containsKey(name)) {
+                continue;
+            }
+            try {
+                Field nameField = identifier.getClass().getDeclaredField("name");
+                nameField.setAccessible(true);
+                nameField.set(identifier, parsedMap.get(name));
+            } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+                // do nothing
+            }
+        }
+        Debugger debug = new Debugger();
+        debug.setIndentation(2);
+        debug.debug(script);
+        String parsedText = debug.toString();
+        return parsedText;
+    }
+
+    /**
+     * Get {@code ASTIdentifier} node list with root {@code node}
+     * @param node
+     * @return
+     */
+    private static List<ASTIdentifier> getIdentifier(JexlNode node) {
         List<ASTIdentifier> result = new ArrayList<>();
         int num = node.jjtGetNumChildren();
         if (num == 0) {

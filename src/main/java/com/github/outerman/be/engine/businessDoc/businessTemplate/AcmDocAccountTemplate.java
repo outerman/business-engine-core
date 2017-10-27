@@ -264,10 +264,14 @@ public class AcmDocAccountTemplate implements IValidatable {
             StringBuilder industryMessage = new StringBuilder();
             Map<String, Integer> influenceCountMap = new HashMap<>();
             for (DocAccountTemplateItem docTemplate : entry.getValue()) {
-                // TODO 校验金额表达式正确性
                 String fundSource = docTemplate.getFundSource();
                 if (StringUtil.isEmpty(fundSource)) {
                     industryMessage.append("分录" + docTemplate.getFlag() + "金额来源不能为空；");
+                    continue;
+                }
+                if (!AmountGetter.validateExpression(fundSource)) {
+                    industryMessage.append("分录" + docTemplate.getFlag() + "金额来源" + AmountGetter.fundsource2Chinese(fundSource) + "格式不正确；");
+                    continue;
                 }
                 String influence = docTemplate.getInfluence();
                 if (StringUtil.isEmpty(influence) && hasInfluenceValue(docTemplate)) {

@@ -80,7 +80,7 @@ public class DocEntryValidator implements IBusinessDocValidatable {
             if (!accountCode.equals(docTemplate.getAccountCode())) {
                 continue;
             }
-            Double amountFromReceipt = AmountGetter.getAmount(detail, docTemplate);
+            Double amountFromReceipt = AmountGetter.getAmount(detail, docTemplate.getFundSource());
             if (Math.abs(amountFromReceipt) != Math.abs(amountFromDoc)) {
                 continue;
             }

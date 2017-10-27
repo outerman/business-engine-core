@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +13,7 @@ import com.github.outerman.be.api.dto.AcmUITemplateDto;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 import com.github.outerman.be.api.vo.SetColumnsTacticsDto;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AcmDocAccountTemplate;
+import com.github.outerman.be.engine.businessDoc.businessTemplate.AmountGetter;
 import com.github.outerman.be.engine.util.CommonUtil;
 import com.github.outerman.be.engine.util.StringUtil;
 
@@ -25,24 +24,11 @@ import com.github.outerman.be.engine.util.StringUtil;
 @Component
 public class TemplateFundsourceValidator implements ITemplateValidatable {
 
-    private static List<String> fieldNameList = new ArrayList<>();
+    private static List<String> EXCLUDE_FIELDNAME_LIST = new ArrayList<>();
 
     static {
-        fieldNameList.add("amount");
-        fieldNameList.add("tax");
-        fieldNameList.add("taxInclusiveAmount");
-        // fieldNameList.add("privilegeTaxAmount"); // 减免税额
-        fieldNameList.add("deductibleInputTax");
-        fieldNameList.add("ext0");
-        fieldNameList.add("ext1");
-        fieldNameList.add("ext2");
-        fieldNameList.add("ext3");
-        fieldNameList.add("ext4");
-        fieldNameList.add("ext5");
-        fieldNameList.add("ext6");
-        fieldNameList.add("ext7");
-        fieldNameList.add("ext8");
-        fieldNameList.add("ext9");
+        EXCLUDE_FIELDNAME_LIST.add("privilegeTaxAmount"); // 减免税额
+        EXCLUDE_FIELDNAME_LIST.add("isDeduction"); // 抵扣
     }
 
     @Autowired
@@ -67,12 +53,20 @@ public class TemplateFundsourceValidator implements ITemplateValidatable {
                 if (StringUtil.isEmpty(fundsource)) {
                     continue;
                 }
-                List<Long> columnIdList = getColumnId(fundsource);
                 List<String> columnNameList = new ArrayList<>();
-                for (Long columnId : columnIdList) {
+                List<String> amountFieldNameList = AmountGetter.getAmountFieldNameList(fundsource);
+                for (String fieldName : amountFieldNameList) {
+                    if (EXCLUDE_FIELDNAME_LIST.contains(fieldName)) {
+                        continue;
+                    }
+                    Long columnId = CommonUtil.getColumnIdByFieldName(fieldName);
+                    if (columnId == null) {
+                        errorMessage.append("分录" + docTemplate.getFlag() + "金额来源无法识别字段" + fieldName + "；");
+                        continue;
+                    }
                     Integer flag = getFlag(columnId, tacticsList);
                     if (flag == null || flag == 0) {
-                        columnNameList.add(CommonUtil.getColumnName(columnId));
+                        columnNameList.add(CommonUtil.getColumnNameById(columnId));
                     }
                 }
                 if (!columnNameList.isEmpty()) {
@@ -90,26 +84,6 @@ public class TemplateFundsourceValidator implements ITemplateValidatable {
             return "";
         }
         return "业务类型 " + docAccountTemplateDto.getBusinessCode() + " 凭证模板金额来源校验失败：" + message.toString();
-    }
-
-    private List<Long> getColumnId(String fundsource) {
-        List<Long> idList = new ArrayList<>();
-        for (String fieldName : fieldNameList) {
-            if (!fundsource.contains(fieldName)) {
-                continue;
-            }
-            if (fieldName.equals("tax")) {
-                String regex = ".*[^A-Za-z]+tax[^A-Za-z]+.*";
-                if (!fundsource.equals("tax") && !Pattern.matches(regex, fundsource)) {
-                    continue;
-                }
-            }
-            Long id = CommonUtil.getColumnIdByFieldName(fieldName);
-            if (id != null) {
-                idList.add(id);
-            }
-        }
-        return idList;
     }
 
     private Integer getFlag(Long columnId, List<SetColumnsTacticsDto> tacticsList) {

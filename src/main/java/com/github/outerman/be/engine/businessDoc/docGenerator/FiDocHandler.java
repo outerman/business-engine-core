@@ -147,7 +147,7 @@ public class FiDocHandler {
     }
 
     private InnerFiDocEntryDto getDocEntryDto(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail, Boolean needMerge) {
-        Double amount = AmountGetter.getAmount(detail, docTemplate);
+        Double amount = AmountGetter.getAmount(detail, docTemplate.getFundSource());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }
@@ -383,10 +383,7 @@ public class FiDocHandler {
     }
 
     private FiDocEntryDto getDocEntryDto(PaymentTemplateItem payDocTemplate, AcmSortReceiptSettlestyle settle) {
-        Double amount = 0.0;
-        if (AmountGetter.AMOUNT_TAXINCLUSIVEAMOUNT.equals(payDocTemplate.getFundSource())) {
-            amount = settle.getTaxInclusiveAmount();
-        }
+        Double amount = AmountGetter.getAmount(settle, payDocTemplate.getFundSource());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }

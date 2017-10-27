@@ -86,7 +86,7 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
                 Integer flag = getFlag(columnId, tacticsList);
                 if (flag == null || flag == 0) {
                     String influenceName = CommonUtil.getInfluenceName(columnIdEntry.getKey());
-                    errorMessage.append("影响因素" + influenceName + "需要元数据模板对应的字段" + CommonUtil.getColumnName(columnId) + "显示；");
+                    errorMessage.append("影响因素" + influenceName + "需要元数据模板对应的字段" + CommonUtil.getColumnNameById(columnId) + "显示；");
                 }
             }
 
@@ -111,7 +111,7 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
                 }
                 Integer flag = getFlag(columnId, tacticsList);
                 if (flag == null || flag < 2) {
-                    errorMessage.append(CommonUtil.getInfluenceName(influence) + "没有默认记录，并且元数据模板对应的字段" + CommonUtil.getColumnName(columnId) + "不必填；");
+                    errorMessage.append(CommonUtil.getInfluenceName(influence) + "没有默认记录，并且元数据模板对应的字段" + CommonUtil.getColumnNameById(columnId) + "不必填；");
                 } else {
                     if (columnId.equals(AcmConst.INVENTORY_COLUMN_ID)) {
                         for (Long attrId : attrList) {

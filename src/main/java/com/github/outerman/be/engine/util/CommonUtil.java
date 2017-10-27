@@ -1,7 +1,9 @@
 package com.github.outerman.be.engine.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.github.outerman.be.api.constant.AcmConst;
 import com.github.outerman.be.api.vo.SetTaxRateDto;
@@ -245,104 +247,6 @@ public final class CommonUtil {
         return name;
     }
 
-    public static String getColumnName(Long id) {
-        String name;
-        if (id == 1L) {
-            name = "金额";
-        } else if (id == 2L) {
-            name = "价税合计";
-        } else if (id == 3L) {
-            name = "税额";
-        } else if (id == 4L) {
-            name = "部门";
-        } else if (id == 5L) {
-            name = "业务员(人员)";
-        } else if (id == 6L) {
-            name = "客户(供应商)";
-        } else if (id == 7L) {
-            name = "商品或服务名称";
-        } else if (id == 8L) {
-            name = "资产类别";
-        } else if (id == 9L) {
-            name = "资产名称";
-        } else if (id == 10L) {
-            name = "数量";
-        } else if (id == 11L) {
-            name = "单价";
-        } else if (id == 12L) {
-            name = "结算方式";
-        } else if (id == 13L) {
-            name = "摘要";
-        } else if (id == 14L) {
-            name = "银行账号";
-        } else if (id == 15L) {
-            name = "票据号";
-        } else if (id == 16L) {
-            name = "税率";
-        } else if (id == 17L) {
-            name = "抵扣";
-        } else if (id == 18L) {
-            name = "被投资人";
-        } else if (id == 19L) {
-            name = "投资类别";
-        } else if (id == 20L) {
-            name = "投资人";
-        } else if (id == 21L) {
-            name = "债权人";
-        } else if (id == 22L) {
-            name = "债务人";
-        } else if (id == 23L) {
-            name = "罚款性质";
-        } else if (id == 24L) {
-            name = "借款期限";
-        } else if (id == 25L) {
-            name = "账号2";
-        } else if (id == 26L) {
-            name = "项目";
-        } else if (id == 27L) {
-            name = "票据编码";
-        } else if (id == 28L) {
-            name = "开票日期";
-        } else if (id == 29L) {
-            name = "认证";
-        } else if (id == 30L) {
-            name = "认证月份";
-        } else if (id == 31L) {
-            name = "可抵扣进项税额";
-        } else if (id == 32L) {
-            name = "票据类型小规模";
-        } else if (id == 33L) {
-            name = "票据类型一般";
-        } else if (id == 34L) {
-            name = "即征即退核算";
-        } else if (id == 35L) {
-            name = "备注";
-        } else if (id == 1000L) {
-            name = "数值扩展字段0";
-        } else if (id == 1001L) {
-            name = "数值扩展字段1";
-        } else if (id == 1002L) {
-            name = "数值扩展字段2";
-        } else if (id == 1003L) {
-            name = "数值扩展字段3";
-        } else if (id == 1004L) {
-            name = "数值扩展字段4";
-        } else if (id == 1005L) {
-            name = "数值扩展字段5";
-        } else if (id == 1006L) {
-            name = "数值扩展字段6";
-        } else if (id == 1007L) {
-            name = "数值扩展字段7";
-        } else if (id == 1008L) {
-            name = "数值扩展字段8";
-        } else if (id == 1009L) {
-            name = "数值扩展字段9";
-        } else {
-            name = id.toString();
-        }
-        return name;
-    }
-
     public static String getColumnNameById(Long id) {
         String name = null;
         if (id == null) {
@@ -397,6 +301,14 @@ public final class CommonUtil {
             }
         }
         return id;
+    }
+
+    public static Map<String, String> getFieldName2NameMap() {
+        Map<String, String> map = new HashMap<>();
+        for (Column column : columns) {
+            map.put(column.getFieldName(), column.getName());
+        }
+        return map;
     }
 
     public static class Column {
