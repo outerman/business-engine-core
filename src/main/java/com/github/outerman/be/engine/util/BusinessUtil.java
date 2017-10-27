@@ -1,4 +1,4 @@
-package com.github.outerman.be.engine.businessDoc;
+package com.github.outerman.be.engine.util;
 
 import com.github.outerman.be.api.constant.AcmConst;
 
@@ -8,26 +8,6 @@ import com.github.outerman.be.api.constant.AcmConst;
  * 工具类
  */
 public class BusinessUtil {
-    public static Long getPaymentTypeFromBusiness(String businessCode) {
-        if (businessCode.startsWith("10")) {
-            return AcmConst.PAYMENTSTYPE_10;
-        }
-        else if (businessCode.startsWith("20")) {
-            return AcmConst.PAYMENTSTYPE_20;
-        }
-        else if (businessCode.startsWith("30")) {
-            return AcmConst.PAYMENTSTYPE_30;
-        }
-        else if (businessCode.startsWith("40")) {
-            return AcmConst.PAYMENTSTYPE_40;
-        }
-        else if (businessCode.startsWith("50")) {
-            return AcmConst.PAYMENTSTYPE_50;
-        }
-        else {
-            return AcmConst.PAYMENTSTYPE_60;
-        }
-    }
 
     public static int paymentDirection(Long businessCode) {
         if (businessCode == null) {

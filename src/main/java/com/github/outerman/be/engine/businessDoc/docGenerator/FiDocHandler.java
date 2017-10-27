@@ -16,8 +16,8 @@ import com.github.outerman.be.api.vo.FiDocEntryDto;
 import com.github.outerman.be.api.vo.PaymentTemplateItem;
 import com.github.outerman.be.api.vo.SetCurrency;
 import com.github.outerman.be.api.vo.SetOrg;
-import com.github.outerman.be.engine.businessDoc.BusinessUtil;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AmountGetter;
+import com.github.outerman.be.engine.util.BusinessUtil;
 import com.github.outerman.be.engine.util.DoubleUtil;
 import com.github.outerman.be.engine.util.StringUtil;
 
