@@ -3,7 +3,7 @@ package com.github.outerman.be.engine.businessDoc.validator;
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AcmDocAccountTemplate;
 import com.github.outerman.be.engine.util.CommonUtil;
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.dto.AcmPaymentTemplateDto;
 import com.github.outerman.be.api.dto.AcmUITemplateDto;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
@@ -44,7 +44,7 @@ public class TemplateIndustryValidator implements ITemplateValidatable {
 
             // 凭证模板区分会计准则，每个会计准则都需要验证
             String industryStr = CommonUtil.getIndustryName(industry) + "行业";
-            for (Long accountingStandard : AcmConst.ACCOUNTING_STANDARD_ID_LIST) {
+            for (Long accountingStandard : CommonConst.ACCOUNTING_STANDARD_ID_LIST) {
                 String key = AcmDocAccountTemplate.getKey(industry, accountingStandard.intValue());
                 if (!docTemplateMap.containsKey(key)) {
                     String accountingStandardStr = CommonUtil.getAccountingStandardName(accountingStandard.intValue());

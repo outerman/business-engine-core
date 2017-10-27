@@ -9,7 +9,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.dto.AcmPaymentTemplateDto;
 import com.github.outerman.be.api.vo.AcmSortReceiptSettlestyle;
 import com.github.outerman.be.api.vo.PaymentTemplateItem;
@@ -86,9 +86,9 @@ public class AcmPaymentTemplate implements IValidatable {
         Long paymentType;
         Integer payType = settle.getPayType(); // 0 收入；1 支出
         if (payType != null && payType == 0) {
-            paymentType = AcmConst.PAYMENTSTYPE_10;
+            paymentType = CommonConst.PAYMENTSTYPE_10;
         } else {
-            paymentType = AcmConst.PAYMENTSTYPE_20;
+            paymentType = CommonConst.PAYMENTSTYPE_20;
         }
         return paymentType;
     }

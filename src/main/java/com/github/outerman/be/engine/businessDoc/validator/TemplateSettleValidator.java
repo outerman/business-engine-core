@@ -1,6 +1,6 @@
 package com.github.outerman.be.engine.businessDoc.validator;
 
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.api.dto.AcmPaymentTemplateDto;
 import com.github.outerman.be.api.dto.AcmUITemplateDto;
@@ -46,7 +46,7 @@ public class TemplateSettleValidator implements ITemplateValidatable {
             for (SetColumnsTacticsDto tactics : entry.getValue()) {
                 Long columnId = tactics.getColumnsId();
                 Integer flag = tactics.getFlag();
-                if (columnId.equals(AcmConst.BANK_ACCOUNT_COLUMN_ID) && flag != null && flag > 0) {
+                if (columnId.equals(CommonConst.BANK_ACCOUNT_COLUMN_ID) && flag != null && flag > 0) {
                     accountVisible = true;
                     break;
                 }
@@ -58,7 +58,7 @@ public class TemplateSettleValidator implements ITemplateValidatable {
             // 凭证模板区分会计准则，每个会计准则都需要验证
             Long industry = entry.getKey();
             String industryStr = CommonUtil.getIndustryName(industry) + "行业";
-            for (Long accountingStandard : AcmConst.ACCOUNTING_STANDARD_ID_LIST) {
+            for (Long accountingStandard : CommonConst.ACCOUNTING_STANDARD_ID_LIST) {
                 String key = AcmDocAccountTemplate.getKey(industry, accountingStandard.intValue());
                 if (!docTemplateMap.containsKey(key)) {
                     continue;

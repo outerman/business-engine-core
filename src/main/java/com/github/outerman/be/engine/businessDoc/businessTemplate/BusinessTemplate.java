@@ -7,7 +7,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.dto.BusinessTemplateDto;
 import com.github.outerman.be.api.dto.TemplateValidateResultDto;
 import com.github.outerman.be.api.vo.SetOrg;
@@ -20,7 +20,7 @@ import com.github.outerman.be.engine.util.StringUtil;
  * Created by shenxy on 7/7/17.
  * 业务类型--主模板
  */
-@Component(AcmConst.BUSINESS_TEMPLATE)
+@Component(CommonConst.BUSINESS_TEMPLATE)
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class BusinessTemplate implements IValidatable {
 

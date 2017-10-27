@@ -8,7 +8,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.constant.ErrorCode;
 import com.github.outerman.be.api.dto.FiDocGenetateResultDto;
 import com.github.outerman.be.api.dto.FiDocGenetateResultDto.ReceiptResult;
@@ -155,7 +155,7 @@ public class DocTemplateGenerator {
                 errorMessage = ErrorCode.ENGINE_DOC_GENETARE_EMPTY_DETAIL_ERROR_MSG;
             }
             Long paymenysType = receipt.getPaymentsType();
-            if (paymenysType != null && paymenysType == AcmConst.PAYMENTSTYPE_60) {
+            if (paymenysType != null && paymenysType == CommonConst.PAYMENTSTYPE_60) {
                 // 请会计处理分类业务类型的流水账不生成凭证，直接审核
                 errorMessage = ErrorCode.ENGINE_DOC_GENETARE_UNRESOVE_ERROR_MSG;
                 failList = resultDto.getUnResolvedReceipt();

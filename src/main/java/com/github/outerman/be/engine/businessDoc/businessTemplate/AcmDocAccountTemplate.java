@@ -4,7 +4,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.constant.ErrorCode;
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
@@ -110,7 +110,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                 }
             } else if ("departmentAttr,personAttr".equals(influence)) { // 部门属性，人员属性
                 if (detailDepartmentAttr != null && detailDepartmentAttr.equals(departmentAttr)) {
-                    if (detailDepartmentAttr.equals(AcmConst.DEPTPROPERTY_002)) { // 生产部门，匹配人员属性
+                    if (detailDepartmentAttr.equals(CommonConst.DEPTPROPERTY_002)) { // 生产部门，匹配人员属性
                         if (detailPersonAttr != null && detailPersonAttr.equals(personAttr)) {
                             resultList.add(docTemplate);
                             continue;
@@ -120,7 +120,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                         continue;
                     }
                 }
-                if (detailDepartmentAttr != null && detailDepartmentAttr.equals(AcmConst.DEPTPROPERTY_002) && personAttr != null && personAttr == 0) { // 部门属性，人员属性影响因素默认规则
+                if (detailDepartmentAttr != null && detailDepartmentAttr.equals(CommonConst.DEPTPROPERTY_002) && personAttr != null && personAttr == 0) { // 部门属性，人员属性影响因素默认规则
                     defaultDocTemplate = docTemplate;
                 }
             } else if ("vatTaxpayer".equals(influence) || "vatTaxpayer,qualification".equals(influence) || "vatTaxpayer,taxType".equals(influence)) {
@@ -320,15 +320,15 @@ public class AcmDocAccountTemplate implements IValidatable {
             return true;
         }
         boolean result = false;
-        if (AcmConst.INFLUENCE_DEPARTMENT_ATTR.equals(influence)) {
+        if (CommonConst.INFLUENCE_DEPARTMENT_ATTR.equals(influence)) {
             result = docTemplate.getDepartmentAttr() != null;
-        } else if (AcmConst.INFLUENCE_DEPT_PERSON_ATTR.equals(influence)) {
+        } else if (CommonConst.INFLUENCE_DEPT_PERSON_ATTR.equals(influence)) {
             result = docTemplate.getDepartmentAttr() != null && docTemplate.getPersonAttr() != null;
-        } else if (AcmConst.INFLUENCE_VAT_TAXPAYER.equals(influence)) {
+        } else if (CommonConst.INFLUENCE_VAT_TAXPAYER.equals(influence)) {
             result = docTemplate.getVatTaxpayer() != null;
-        } else if (AcmConst.INFLUENCE_VAT_TAXPAYER_QUALIFICATION.equals(influence)) {
+        } else if (CommonConst.INFLUENCE_VAT_TAXPAYER_QUALIFICATION.equals(influence)) {
             result = docTemplate.getVatTaxpayer() != null && docTemplate.getQualification() != null;
-        } else if (AcmConst.INFLUENCE_VAT_TAXPAYER_TAXTYPE.equals(influence)) {
+        } else if (CommonConst.INFLUENCE_VAT_TAXPAYER_TAXTYPE.equals(influence)) {
             result = docTemplate.getVatTaxpayer() != null && docTemplate.getTaxType() != null;
         } else {
             result = docTemplate.getExtendAttr() != null;

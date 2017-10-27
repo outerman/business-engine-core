@@ -23,6 +23,7 @@ public class BusinessEngineManager {
     private TemplateValidateService templateValidateService;
 
     public BusinessEngineManager() {
+        @SuppressWarnings("resource")
         ApplicationContext context = new ClassPathXmlApplicationContext("/META-INF/spring/be-spring-context.xml");
         businessGenerateService = context.getBean(BusinessGenerateService.class);
         templateMaintainService = context.getBean(TemplateMaintainService.class);

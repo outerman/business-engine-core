@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.constant.BusinessTypeUtil;
 import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
@@ -292,9 +292,9 @@ public class FiDocHandler {
         boolean result = false;
         String[] accountArray = null;
         Long accountingStandards = org.getAccountingStandards();
-        if (accountingStandards.equals(AcmConst.ACCOUNTINGSTANDARDS_0001)) {
+        if (accountingStandards.equals(CommonConst.ACCOUNTINGSTANDARDS_0001)) {
             accountArray = MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2007;
-        } else if (accountingStandards.equals(AcmConst.ACCOUNTINGSTANDARDS_0002)) {
+        } else if (accountingStandards.equals(CommonConst.ACCOUNTINGSTANDARDS_0002)) {
             accountArray = MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2013;
         }
         if (accountArray == null) {

@@ -132,4 +132,7 @@ public final class DoubleUtil {
         return formatDoubleScale2(value, true);
     }
 
+    private DoubleUtil() {
+        // final util class, avoid instantiate
+    }
 }

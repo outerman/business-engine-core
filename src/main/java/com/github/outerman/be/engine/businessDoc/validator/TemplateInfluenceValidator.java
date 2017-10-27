@@ -1,6 +1,6 @@
 package com.github.outerman.be.engine.businessDoc.validator;
 
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AcmDocAccountTemplate;
 import com.github.outerman.be.engine.util.CommonUtil;
@@ -113,7 +113,7 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
                 if (flag == null || flag < 2) {
                     errorMessage.append(CommonUtil.getInfluenceName(influence) + "没有默认记录，并且元数据模板对应的字段" + CommonUtil.getColumnNameById(columnId) + "不必填；");
                 } else {
-                    if (columnId.equals(AcmConst.INVENTORY_COLUMN_ID)) {
+                    if (columnId.equals(CommonConst.INVENTORY_COLUMN_ID)) {
                         for (Long attrId : attrList) {
                             String propertyName = CommonUtil.getInventoryPropertyName(attrId);
                             if (!businessAssetMap.containsKey(propertyName)) {

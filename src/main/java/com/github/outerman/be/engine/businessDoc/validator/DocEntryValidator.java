@@ -4,7 +4,7 @@ package com.github.outerman.be.engine.businessDoc.validator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
@@ -69,8 +69,8 @@ public class DocEntryValidator implements IBusinessDocValidatable {
         String accountCode = entry.getAccountCode();
         long accountingStandardId = setOrg.getAccountingStandards().longValue();
         if (accountCode.startsWith("1002") || accountCode.startsWith("1511") 
-                || (accountCode.startsWith("3001") && accountingStandardId == AcmConst.ACCOUNTINGSTANDARDS_0002)
-                || (accountCode.startsWith("4001") && accountingStandardId == AcmConst.ACCOUNTINGSTANDARDS_0001)) {
+                || (accountCode.startsWith("3001") && accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0002)
+                || (accountCode.startsWith("4001") && accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0001)) {
             // 一些实际可能会取凭证模板科目对应下级科目的业务，实际使用科目和模板科目不一致，暂时不校验，例如银行存款（银行账号相关），实收资本（投资人相关），长期股权投资（被投资人相关）
             return "";
         }

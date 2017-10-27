@@ -4,7 +4,7 @@ import com.github.outerman.be.api.vo.SetColumnsSpecialVo;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
 import com.github.outerman.be.engine.util.CommonUtil;
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.dto.AcmUITemplateDto;
 import com.github.outerman.be.api.dto.BusinessAssetDto;
 import com.github.outerman.be.api.dto.BusinessAssetTypeDto;
@@ -86,7 +86,7 @@ public class AcmUITemplate implements IValidatable {
                 if (invoiceId == null || columnId == null) {
                     continue;
                 }
-                if (!columnId.equals(AcmConst.VAT_TAX_PAYER_41_COLUMN_ID) && !columnId.equals(AcmConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
+                if (!columnId.equals(CommonConst.VAT_TAX_PAYER_41_COLUMN_ID) && !columnId.equals(CommonConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
                     continue;
                 }
                 List<SetColumnsTacticsDto> tacticsInvoiceList;
@@ -105,9 +105,9 @@ public class AcmUITemplate implements IValidatable {
                 SetColumnsTacticsDto vatTaxpayer42 = null;
                 for (SetColumnsTacticsDto tactics : invoiceEntry.getValue()) {
                     Long columnId = tactics.getColumnsId();
-                    if (columnId.equals(AcmConst.VAT_TAX_PAYER_41_COLUMN_ID)) {
+                    if (columnId.equals(CommonConst.VAT_TAX_PAYER_41_COLUMN_ID)) {
                         vatTaxpayer41 = tactics;
-                    } else if (columnId.equals(AcmConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
+                    } else if (columnId.equals(CommonConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
                         vatTaxpayer42 = tactics;
                     }
                 }
@@ -161,8 +161,8 @@ public class AcmUITemplate implements IValidatable {
                 if (invoiceId == null || columnId == null) {
                     continue;
                 }
-                if (!columnId.equals(AcmConst.BANK_ACCOUNT_COLUMN_ID) && !columnId.equals(AcmConst.TAX_RATE_COLUMN_ID)
-                        && !columnId.equals(AcmConst.VAT_TAX_PAYER_41_COLUMN_ID) && !columnId.equals(AcmConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
+                if (!columnId.equals(CommonConst.BANK_ACCOUNT_COLUMN_ID) && !columnId.equals(CommonConst.TAX_RATE_COLUMN_ID)
+                        && !columnId.equals(CommonConst.VAT_TAX_PAYER_41_COLUMN_ID) && !columnId.equals(CommonConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
                     // 银行账号、税率、一般纳税人、小规模纳税人
                     continue;
                 }
@@ -186,14 +186,14 @@ public class AcmUITemplate implements IValidatable {
                 Boolean isSmallScaleTaxPayer = false;
                 for (SetColumnsTacticsDto tactics : invoiceEntry.getValue()) {
                     Long columnId = tactics.getColumnsId();
-                    if (columnId.equals(AcmConst.BANK_ACCOUNT_COLUMN_ID)) {
+                    if (columnId.equals(CommonConst.BANK_ACCOUNT_COLUMN_ID)) {
                         tacticsBankAccount = tactics;
-                    } else if (columnId.equals(AcmConst.TAX_RATE_COLUMN_ID)) {
+                    } else if (columnId.equals(CommonConst.TAX_RATE_COLUMN_ID)) {
                         tacticsTaxRate = tactics;
-                    } else if (columnId.equals(AcmConst.VAT_TAX_PAYER_41_COLUMN_ID)) {
+                    } else if (columnId.equals(CommonConst.VAT_TAX_PAYER_41_COLUMN_ID)) {
                         Integer flag = tactics.getFlag();
                         isGeneralTaxPayer = (flag != null && flag > 0);
-                    } else if (columnId.equals(AcmConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
+                    } else if (columnId.equals(CommonConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
                         Integer flag = tactics.getFlag();
                         isSmallScaleTaxPayer = (flag != null && flag > 0);
                     }
@@ -201,7 +201,7 @@ public class AcmUITemplate implements IValidatable {
                 if (tacticsBankAccount != null) {
                     // 结算方式的特殊输入规则不区分票据类型，银行账号在 special 表中 column id 为 12，在 tactics 中为 14
                     Integer flag = tacticsBankAccount.getFlag();
-                    if (flag != null && flag > 0 && !specialHasColumn(specialList, AcmConst.SETTLE_STYLE_COLUMN_ID, null)) {
+                    if (flag != null && flag > 0 && !specialHasColumn(specialList, CommonConst.SETTLE_STYLE_COLUMN_ID, null)) {
                         accountInvoiceNameList.add(invoiceName);
                     }
                 }
@@ -211,7 +211,7 @@ public class AcmUITemplate implements IValidatable {
                         Map<Integer, List<SetColumnsSpecialVo>> vatTaxpayerMap = new HashMap<>();
                         for (SetColumnsSpecialVo special : specialList) {
                             Long columnId = special.getColumnsId();
-                            if (!AcmConst.TAX_RATE_COLUMN_ID.equals(columnId)) {
+                            if (!CommonConst.TAX_RATE_COLUMN_ID.equals(columnId)) {
                                 continue;
                             }
                             Integer vatTaxpayer = special.getVatTaxpayer();
@@ -227,15 +227,15 @@ public class AcmUITemplate implements IValidatable {
                         if (isGeneralTaxPayer) {
                             Integer vatTaxpayer = 41;
                             List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
-                            if (!specialHasColumn(vatTaxpayerList, AcmConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
+                            if (!specialHasColumn(vatTaxpayerList, CommonConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
                                 taxRateInvoiceNameList.add(invoiceName + CommonUtil.getVatTaxPayerName(vatTaxpayer));
                             }
                         }
                         // 小规模纳税人收入类型业务才需要校验税率
-                        if (isSmallScaleTaxPayer && tacticsTaxRate.getPaymentsId().equals(AcmConst.PAYMENTSTYPE_10)) {
+                        if (isSmallScaleTaxPayer && tacticsTaxRate.getPaymentsId().equals(CommonConst.PAYMENTSTYPE_10)) {
                             Integer vatTaxpayer = 42;
                             List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
-                            if (!specialHasColumn(vatTaxpayerList, AcmConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
+                            if (!specialHasColumn(vatTaxpayerList, CommonConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
                                 taxRateInvoiceNameList.add(invoiceName + CommonUtil.getVatTaxPayerName(vatTaxpayer));
                             }
                         }
@@ -270,11 +270,11 @@ public class AcmUITemplate implements IValidatable {
                     continue;
                 }
                 Integer flag = tactics.getFlag();
-                if (columnId.equals(AcmConst.INVENTORY_COLUMN_ID) || columnId.equals(AcmConst.ASSET_COLUMN_ID)) {
+                if (columnId.equals(CommonConst.INVENTORY_COLUMN_ID) || columnId.equals(CommonConst.ASSET_COLUMN_ID)) {
                     if (flag == 1 || flag == 2) {
                         inventoryVisible = true;
                     }
-                } else if (columnId.equals(AcmConst.ASSET_TYPE_COLUMN_ID)) {
+                } else if (columnId.equals(CommonConst.ASSET_TYPE_COLUMN_ID)) {
                     if (flag == 1 || flag == 2) {
                         assetTypeVisible = true;
                     }

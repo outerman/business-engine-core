@@ -3,7 +3,7 @@ package com.github.outerman.be.engine.businessDoc.businessTemplate;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.util.SpringContextHelper;
 import com.github.outerman.be.engine.util.StringUtil;
-import com.github.outerman.be.api.constant.AcmConst;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.constant.BusinessEngineException;
 import com.github.outerman.be.api.vo.SetOrg;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class TemplateManager {
         if (businessTemplateMap.containsKey(key)) {
             ret = businessTemplateMap.get(key);
         } else {
-            ret = (BusinessTemplate) contextHelper.getBean(AcmConst.BUSINESS_TEMPLATE);
+            ret = (BusinessTemplate) contextHelper.getBean(CommonConst.BUSINESS_TEMPLATE);
         }
         ret.init(org, businessCode, provider);
         return ret;

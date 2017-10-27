@@ -18,9 +18,9 @@ public final class BusinessTypeUtil {
     public final static List<Long> SPECIAL_ORDER = Arrays.asList(2025001010L, 2020002050L);
 
     //工资相关的单据类型id, 生成凭证时有特殊处理
-    public final static List<Long> GONGZI_VOUCHERTYPE_LIST = Arrays.asList(AcmConst.VOUCHERTYPE_0003,
-            AcmConst.VOUCHERTYPE_0004, AcmConst.VOUCHERTYPE_0005, AcmConst.VOUCHERTYPE_0006, AcmConst.VOUCHERTYPE_0007,
-            AcmConst.VOUCHERTYPE_0008, AcmConst.VOUCHERTYPE_0009);
+    public final static List<Long> GONGZI_VOUCHERTYPE_LIST = Arrays.asList(CommonConst.VOUCHERTYPE_0003,
+            CommonConst.VOUCHERTYPE_0004, CommonConst.VOUCHERTYPE_0005, CommonConst.VOUCHERTYPE_0006, CommonConst.VOUCHERTYPE_0007,
+            CommonConst.VOUCHERTYPE_0008, CommonConst.VOUCHERTYPE_0009);
 
     /* 固定不做合并的业务: 账户内互转的三项. 因为这三项在模板上是"本表"平, 但是业务含义更接近"收支结算", 所以参照"结算情况"的处理方式不做合并 */
     public final static List<Long> NOT_MERGE_BUSINESS = Arrays.asList(401000L, 401050L, 402000L);
