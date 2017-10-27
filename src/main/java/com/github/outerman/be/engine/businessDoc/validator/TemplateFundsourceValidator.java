@@ -38,7 +38,7 @@ public class TemplateFundsourceValidator implements ITemplateValidatable {
 
     @Override
     public String validate(AcmDocAccountTemplateDto docAccountTemplateDto, AcmPaymentTemplateDto paymentTemplateDto, AcmUITemplateDto uiTemplateDto) {
-        // 凭证模板金额来源表达式使用的字段需要元数据模板对应的字段显示
+        // 凭证模板金额来源表达式使用的字段需要元数据模板对应的字段至少在一种票据类型下显示
         StringBuilder message = new StringBuilder();
         // 验证每个行业
         Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
@@ -64,8 +64,7 @@ public class TemplateFundsourceValidator implements ITemplateValidatable {
                         errorMessage.append("分录" + docTemplate.getFlag() + "金额来源无法识别字段" + fieldName + "；");
                         continue;
                     }
-                    Integer flag = getFlag(columnId, tacticsList);
-                    if (flag == null || flag == 0) {
+                    if (!isVisible(columnId, tacticsList)) {
                         columnNameList.add(CommonUtil.getColumnNameById(columnId));
                     }
                 }
@@ -86,16 +85,19 @@ public class TemplateFundsourceValidator implements ITemplateValidatable {
         return "业务类型 " + docAccountTemplateDto.getBusinessCode() + " 凭证模板金额来源校验失败：" + message.toString();
     }
 
-    private Integer getFlag(Long columnId, List<SetColumnsTacticsDto> tacticsList) {
-        Integer flag = null;
+    private boolean isVisible(Long columnId, List<SetColumnsTacticsDto> tacticsList) {
+        boolean visible = false;
         for (SetColumnsTacticsDto tactics : tacticsList) {
             Long columnsId = tactics.getColumnsId();
             if (columnId.equals(columnsId)) {
-                flag = tactics.getFlag();
-                break;
+                Integer flag = tactics.getFlag();
+                visible = !(flag == null || flag == 0);
+                if (visible) { // 多种票据类型只要有一种票据类型下显示就返回
+                    return visible;
+                }
             }
         }
-        return flag;
+        return visible;
     }
 
 }
