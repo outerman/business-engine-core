@@ -43,7 +43,11 @@ public class AmountGetter {
 
     public static <T> Double getAmount(T detail, String fundsource) {
         fundsource = handleFundSource(fundsource);
-        Double result = Double.parseDouble(JexlUtil.evaluate(fundsource, detail).toString());
+        Object obj = JexlUtil.evaluate(fundsource, detail);
+        if (obj == null) {
+            return 0.0;
+        }
+        Double result = Double.parseDouble(obj.toString());
         return result;
     }
 
