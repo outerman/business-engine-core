@@ -275,12 +275,12 @@ public class AcmDocAccountTemplate implements IValidatable {
                 }
                 String influence = docTemplate.getInfluence();
                 if (StringUtil.isEmpty(influence) && hasInfluenceValue(docTemplate)) {
-                    industryMessage.append("影响因素取值有数据，影响因素为空；");
+                    industryMessage.append("分录" + docTemplate.getFlag() + "影响因素取值有数据，影响因素为空；");
                     continue;
                 }
                 if (!hasValidInfluenceValue(docTemplate)) {
                     String influeceName = CommonUtil.getInfluenceName(influence);
-                    industryMessage.append("影响因素" + influeceName + "对应取值字段不能为空；");
+                    industryMessage.append("分录" + docTemplate.getFlag() + "影响因素" + influeceName + "对应取值字段不能为空；");
                     continue;
                 }
                 if ("vatTaxpayer,taxType".equals(influence) || "vatTaxpayer,qualification".equals(influence)) {
@@ -297,7 +297,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                     String[] key = countEntry.getKey().split("_");
                     String influence = key[0];
                     String flag = key[1];
-                    industryMessage.append("分组" + flag + "影响因素" + CommonUtil.getInfluenceName(influence) + "必须有两条记录；");
+                    industryMessage.append("分录" + flag + "影响因素" + CommonUtil.getInfluenceName(influence) + "必须有两条记录；");
                 }
             }
             if (industryMessage.length() != 0) {

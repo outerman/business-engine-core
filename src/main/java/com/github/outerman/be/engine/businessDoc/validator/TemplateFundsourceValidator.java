@@ -29,6 +29,7 @@ public class TemplateFundsourceValidator implements ITemplateValidatable {
     static {
         EXCLUDE_FIELDNAME_LIST.add("privilegeTaxAmount"); // 减免税额
         EXCLUDE_FIELDNAME_LIST.add("isDeduction"); // 抵扣
+        EXCLUDE_FIELDNAME_LIST.add("isQualification"); // 认证 前端自己控制
     }
 
     @Autowired
