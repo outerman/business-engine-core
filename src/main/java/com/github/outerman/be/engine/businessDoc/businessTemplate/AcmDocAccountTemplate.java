@@ -283,7 +283,7 @@ public class AcmDocAccountTemplate implements IValidatable {
                     industryMessage.append("分录" + docTemplate.getFlag() + "影响因素" + influeceName + "对应取值字段不能为空；");
                     continue;
                 }
-                if ("vatTaxpayer,taxType".equals(influence) || "vatTaxpayer,qualification".equals(influence)) {
+                if ("vatTaxpayer,taxType".equals(influence)) { //  || "vatTaxpayer,qualification".equals(influence) 认证影响因素两条的校验去掉
                     String countKey = influence + "_" + docTemplate.getFlag();
                     Integer count = 1;
                     if (influenceCountMap.containsKey(countKey)) {
