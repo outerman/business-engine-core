@@ -83,6 +83,9 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
             List<SetColumnsTacticsDto> tacticsList = tacticsMap.get(industry);
             for (Entry<String, Long> columnIdEntry : influenceColumnIdMap.entrySet()) {
                 Long columnId = columnIdEntry.getValue();
+                if (columnId == null || columnId.equals(CommonConst.QUALIFICATION_COLUMN_ID)) {
+                    continue;
+                }
                 Integer flag = getFlag(columnId, tacticsList);
                 if (flag == null || flag == 0) {
                     String influenceName = CommonUtil.getInfluenceName(columnIdEntry.getKey());
