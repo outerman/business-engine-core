@@ -142,10 +142,10 @@ public class FiDocHandler {
         } else {
             // 新增分录，按照排序规则放到指定位置
             if (INPUT_TAX_TRANSFER_SUMMARY.equals(docTemplate.getSummary())) {
-                addSpecialEntry(entry, inputTaxTransferList);
+                addSpecialEntry(entry, inputTaxTransferList, docTemplate);
             } else if (!docTemplate.getIsSettlement() || BusinessTypeUtil.SPECIAL_ORDER.contains(docTemplate.getBusinessCode())) {
                 // 本表自评时
-                addSpecialEntry(entry, ownSortList);
+                addSpecialEntry(entry, ownSortList, docTemplate);
             } else {
                 addEntry(entry);
             }
@@ -316,8 +316,8 @@ public class FiDocHandler {
         return result;
     }
 
-    private void addSpecialEntry(FiDocEntryDto entry, List<FiDocEntryDto> list) {
-        if (list.size() == 0) {
+    private void addSpecialEntry(FiDocEntryDto entry, List<FiDocEntryDto> list, DocAccountTemplateItem docTemplate) {
+        if (list.size() == 0 || BusinessTypeUtil.NOT_MERGE_BUSINESS.contains(docTemplate.getBusinessCode())) {
             list.add(entry);
             return;
         }
