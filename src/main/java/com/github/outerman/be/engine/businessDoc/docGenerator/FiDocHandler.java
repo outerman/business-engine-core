@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.github.outerman.be.api.constant.CommonConst;
+import com.github.outerman.be.api.constant.BusinessCode;
 import com.github.outerman.be.api.constant.BusinessTypeUtil;
 import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
@@ -69,6 +70,12 @@ public class FiDocHandler {
         entrys.addAll(debitTaxList);
         entrys.addAll(creditMainList);
         entrys.addAll(creditTaxList);
+        // 动产清理收入（资产模块） 、不动产清理收入（资产模块）本表平分录放在最后，这两项业务是从资产管理模块过来的，只会有一条明细
+        String businessCode = receipt.getAcmSortReceiptDetailList().get(0).getBusinessCode().toString();
+        if (businessCode.equals(BusinessCode.BUSINESS_1020001200) || businessCode.equals(BusinessCode.BUSINESS_1020001205)) {
+            entrys.removeAll(ownSortList);
+            entrys.addAll(ownSortList);
+        }
         entrys.addAll(inputTaxTransferList);
         // 正负混录的流水账收支明细，分录合并之后分录金额可能为 0 ，需要去掉金额为 0 的分录
         List<FiDocEntryDto> zeroAmountList = new ArrayList<>();
