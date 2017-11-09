@@ -1,9 +1,12 @@
 package com.github.outerman.be.engine.businessDoc.docGenerator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,8 +53,28 @@ public class DocTemplateGenerator {
         SetCurrency currency = templateProvider.getBaseCurrency(org.getId());
         FiDocGenetateResultDto resultDto = new FiDocGenetateResultDto();
 
+        Map<String, BusinessTemplate> templateMap = new HashMap<>();
+        Set<String> accountCodeSet = new HashSet<>();
+        List<AcmSortReceiptDetail> detailList = new ArrayList<>();
+        for (AcmSortReceipt receipt : receiptList) {
+            detailList.addAll(receipt.getAcmSortReceiptDetailList());
+            for (AcmSortReceiptDetail detail : receipt.getAcmSortReceiptDetailList()) {
+                String businessCode = detail.getBusinessCode().toString();
+                if (templateMap.containsKey(businessCode)) {
+                    continue;
+                }
+                BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(org, businessCode, templateProvider);
+                templateMap.put(businessCode, businessTemplate);
+                accountCodeSet.addAll(businessTemplate.getDocAccountTemplate().getDocTemplateDto().getCodeList());
+                accountCodeSet.addAll(businessTemplate.getPaymentTemplate().getAccountCodeList());
+            }
+        }
+
+        Map<String, FiAccount> accountMap = templateProvider.getAccountCode(org.getId(), new ArrayList<String>(accountCodeSet), detailList);
         for (AcmSortReceipt receipt : receiptList) {
             FiDocHandler docHandler = new FiDocHandler(org, currency, receipt);
+            docHandler.setTemplateMap(templateMap);
+            docHandler.setAccountMap(accountMap);
             boolean result = convertReceipt(docHandler, resultDto);
             if (!result) {
                 continue;
@@ -79,24 +102,23 @@ public class DocTemplateGenerator {
 
         SetOrg org = docHandler.getOrg();
         List<AcmSortReceiptDetail> detailList = reorderReceiptDetailList(receipt.getAcmSortReceiptDetailList());
+        Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
+        Map<String, FiAccount> accountMap = docHandler.getAccountMap();
+        BusinessTemplate businessTemplate = null;
         for (AcmSortReceiptDetail detail : detailList) {
             String businessCode = detail.getBusinessCode().toString();
-            BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(org, businessCode, templateProvider);
+            if (!templateMap.containsKey(businessCode)) {
+                continue;
+            }
+            businessTemplate = templateMap.get(businessCode);
             List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(org, detail);
             if (docTemplateList.isEmpty()) {
                 resultDto.addFailed(receipt, String.format("业务类型 %s 凭证模板数据没有找到", businessCode.toString()));
                 return false;
             }
-
-            // TODO 科目编码处理，考虑缓存，考虑外部一次调用获取全部数据
-            List<String> accountCodeList = new ArrayList<>();
-            for (DocAccountTemplateItem docTemplate : docTemplateList) {
-                accountCodeList.add(docTemplate.getAccountCode());
-            }
-            Map<String, FiAccount> codeMap = templateProvider.getAccountCode(org.getId(), accountCodeList, detailList);
             for (DocAccountTemplateItem docTemplate : docTemplateList) {
                 List<ReceiptResult> failList = new ArrayList<>();
-                docTemplate = templateProvider.requestAdvice(docTemplate, codeMap, detail, failList);
+                docTemplate = templateProvider.requestAdvice(docTemplate, accountMap, detail, failList);
                 if (!failList.isEmpty()) {
                     ReceiptResult fail = failList.get(0);
                     fail.setReceipt(receipt);
@@ -120,11 +142,6 @@ public class DocTemplateGenerator {
             return true;
         }
 
-        // TODO: 结算方式暂时没有和businessCode挂钩, 所以取任何一个都会返回所有
-        BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(org, detailList.get(0).getBusinessCode().toString(), templateProvider);
-        // TODO 科目编码处理
-        List<String> accountCodeList = businessTemplate.getPaymentTemplate().getAccountCodeList();
-        Map<String, FiAccount> codeMap = templateProvider.getAccountCode(org.getId(), accountCodeList, detailList);
         // 结算方式转换分录
         for (AcmSortReceiptSettlestyle settle : settleList) {
             if (settle == null) {
@@ -137,7 +154,7 @@ public class DocTemplateGenerator {
                 return false;
             }
             // requestAdvice 中没有获取到结算模板数据时抛出了异常
-            payDocTemplate = templateProvider.requestAdvice(payDocTemplate, codeMap, settle);
+            payDocTemplate = templateProvider.requestAdvice(payDocTemplate, accountMap, settle);
 
             docHandler.addEntry(payDocTemplate, settle);
         }

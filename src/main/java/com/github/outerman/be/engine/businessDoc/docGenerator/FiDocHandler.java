@@ -12,12 +12,14 @@ import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.AcmSortReceiptSettlestyle;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
+import com.github.outerman.be.api.vo.FiAccount;
 import com.github.outerman.be.api.vo.FiDocDto;
 import com.github.outerman.be.api.vo.FiDocEntryDto;
 import com.github.outerman.be.api.vo.PaymentTemplateItem;
 import com.github.outerman.be.api.vo.SetCurrency;
 import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AmountGetter;
+import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
 import com.github.outerman.be.engine.util.BusinessUtil;
 import com.github.outerman.be.engine.util.DoubleUtil;
 import com.github.outerman.be.engine.util.StringUtil;
@@ -29,6 +31,10 @@ public class FiDocHandler {
     private SetCurrency currency;
 
     private AcmSortReceipt receipt;
+
+    private Map<String, BusinessTemplate> templateMap;
+
+    private Map<String, FiAccount> accountMap;
 
     private FiDocDto fiDocDto;
 
@@ -219,15 +225,15 @@ public class FiDocHandler {
                 entry.setPersonId(detail.getEmployee());
                 key.append("_personId").append(detail.getEmployee());
             }
-            if (docTemplate.getIsAuxAccCustomer()) { // 客户
+            if (docTemplate.getIsAuxAccCustomer() != null && docTemplate.getIsAuxAccCustomer()) { // 客户
                 entry.setCustomerId(detail.getConsumer());
                 key.append("_customerId").append(detail.getConsumer());
             }
-            if (docTemplate.getIsAuxAccSupplier()) { // 供应商
+            if (docTemplate.getIsAuxAccSupplier() != null && docTemplate.getIsAuxAccSupplier()) { // 供应商
                 entry.setSupplierId(detail.getVendor());
                 key.append("_supplierId").append(detail.getVendor());
             }
-            if (docTemplate.getIsAuxAccInventory()) { // 存货
+            if (docTemplate.getIsAuxAccInventory() != null && docTemplate.getIsAuxAccInventory()) { // 存货
                 if (detail.getAssetId() != null) {
                     entry.setInventoryId(detail.getAssetId());
                     key.append("_inventoryId").append(detail.getAssetId());
@@ -236,11 +242,11 @@ public class FiDocHandler {
                     key.append("_inventoryId").append(detail.getInventory());
                 }
             }
-            if (docTemplate.getIsAuxAccProject()) { // 项目
+            if (docTemplate.getIsAuxAccProject() != null && docTemplate.getIsAuxAccProject()) { // 项目
                 entry.setProjectId(detail.getProject());
                 key.append("_projectId").append(detail.getProject());
             }
-            if(docTemplate.getIsQuantityCalc()){ // 数量辅助核算时，值传给凭证，不作为分组的依据
+            if(docTemplate.getIsQuantityCalc() != null && docTemplate.getIsQuantityCalc()){ // 数量辅助核算时，值传给凭证，不作为分组的依据
                 entry.setQuantity(detail.getCommodifyNum());
             }
             // 银行账号
@@ -251,16 +257,14 @@ public class FiDocHandler {
                 key.append("_bankAccountId").append(detail.getBankAccountId());
                 entry.setBankAccountId(detail.getBankAccountId());
             }
-            if (docTemplate.getIsMultiCalc()) { // 多币种
+            if (docTemplate.getIsMultiCalc() != null && docTemplate.getIsMultiCalc()) { // 多币种
                 entry.setCurrencyId(currency.getId());
                 key.append("_currencyId").append(currency.getId());
             }
             // 即征即退，影响合并
             if (docTemplate.getIsAuxAccLevyAndRetreat() != null && docTemplate.getIsAuxAccLevyAndRetreat()) {
-                if (detail.getDrawbackPolicy() != null) {
-                    entry.setLevyAndRetreatId(detail.getDrawbackPolicy());
-                    key.append("_levyAndRetreatId").append(detail.getDrawbackPolicy());
-                }
+                entry.setLevyAndRetreatId(detail.getDrawbackPolicy());
+                key.append("_levyAndRetreatId").append(detail.getDrawbackPolicy());
             }
         }
 
@@ -397,19 +401,19 @@ public class FiDocHandler {
 
         FiDocEntryDto entry = new FiDocEntryDto();
         if (payDocTemplate.getIsAuxAccCalc() != null && payDocTemplate.getIsAuxAccCalc()) {
-            if (payDocTemplate.getIsAuxAccPerson()) { // 人员
+            if (payDocTemplate.getIsAuxAccPerson() != null && payDocTemplate.getIsAuxAccPerson()) { // 人员
                 entry.setPersonId(settle.getEmployee());
             }
-            if (payDocTemplate.getIsAuxAccCustomer()) { // 客户
+            if (payDocTemplate.getIsAuxAccCustomer() != null && payDocTemplate.getIsAuxAccCustomer()) { // 客户
                 entry.setCustomerId(settle.getConsumer());
             }
-            if (payDocTemplate.getIsAuxAccSupplier()) { // 供应商
+            if (payDocTemplate.getIsAuxAccSupplier() != null && payDocTemplate.getIsAuxAccSupplier()) { // 供应商
                 entry.setSupplierId(settle.getVendor());
             }
-            if (payDocTemplate.getIsAuxAccBankAccount()) { // 银行账号
+            if (payDocTemplate.getIsAuxAccBankAccount() != null && payDocTemplate.getIsAuxAccBankAccount()) { // 银行账号
                 entry.setBankAccountId(settle.getBankAccountId());
             }
-            if (payDocTemplate.getIsMultiCalc()) { // 多币种
+            if (payDocTemplate.getIsMultiCalc() != null && payDocTemplate.getIsMultiCalc()) { // 多币种
                 entry.setCurrencyId(currency.getId());
             }
         }
@@ -482,6 +486,22 @@ public class FiDocHandler {
 
     public void setReceipt(AcmSortReceipt receipt) {
         this.receipt = receipt;
+    }
+
+    public Map<String, BusinessTemplate> getTemplateMap() {
+        return templateMap;
+    }
+
+    public void setTemplateMap(Map<String, BusinessTemplate> templateMap) {
+        this.templateMap = templateMap;
+    }
+
+    public Map<String, FiAccount> getAccountMap() {
+        return accountMap;
+    }
+
+    public void setAccountMap(Map<String, FiAccount> accountMap) {
+        this.accountMap = accountMap;
     }
 
     class InnerFiDocEntryDto {
