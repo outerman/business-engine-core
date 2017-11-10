@@ -122,14 +122,14 @@ public class FiDocHandler {
         if (BusinessTypeUtil.NOT_MERGE_BUSINESS.contains(docTemplate.getBusinessCode())) {
             needMerge = false;
         }
-        InnerFiDocEntryDto innerEntry = getDocEntryDto(docTemplate, detail, needMerge);
+        InnerFiDocEntryDto innerEntry = getDocEntryDto(docTemplate, detail);
         if (innerEntry == null) {
             return;
         }
 
         String key = innerEntry.getKey();
         FiDocEntryDto entry = innerEntry.getFiDocEntryDto();
-        if (entryMap.containsKey(key)) {
+        if (needMerge && entryMap.containsKey(key)) {
             // 按照分录合并规则需要合并
             Double quantity = entry.getQuantity();
             FiDocEntryDto existEntry = entryMap.get(key);
@@ -159,16 +159,14 @@ public class FiDocHandler {
         }
     }
 
-    private InnerFiDocEntryDto getDocEntryDto(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail, Boolean needMerge) {
+    private InnerFiDocEntryDto getDocEntryDto(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail) {
         Double amount = AmountGetter.getAmount(detail, docTemplate.getFundSource());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }
 
+        FiAccount account = docTemplate.getAccount();
         StringBuilder key = new StringBuilder();
-        if (!needMerge) { // 不需要合并时，key 增加明细 id
-            key.append(detail.getId().toString());
-        }
         boolean isInputTaxTransfer = INPUT_TAX_TRANSFER_SUMMARY.equals(docTemplate.getSummary());
         if (isInputTaxTransfer) { // 进项税额凭证分录单独处理合并
             key.append("_inputTaxTransfer");
@@ -188,13 +186,13 @@ public class FiDocHandler {
         key.append("_summary").append(summary);
         entry.setSummary(summary);
 
-        entry.setAccountId(docTemplate.getAccountId());
-        entry.setAccountCode(docTemplate.getAccountCode());
-        key.append("_accountCode").append(docTemplate.getAccountCode());
+        entry.setAccountId(account.getId());
+        entry.setAccountCode(account.getCode());
+        key.append("_accountCode").append(account.getCode());
         entry.setSourceFlag(docTemplate.getFlag());
 
         boolean isWage = BusinessTypeUtil.GONGZI_VOUCHERTYPE_LIST.contains(receipt.getSourceVoucherTypeId());
-        if (!isInputTaxTransfer && !(isWage && mergeIgnoreBusiness(docTemplate.getAccountCode()))) {
+        if (!isInputTaxTransfer && !(isWage && mergeIgnoreBusiness(account.getCode()))) {
             key.append("_businessType").append(detail.getBusinessType());
         }
         entry.setSourceBusinessTypeId(detail.getBusinessType());
@@ -216,24 +214,24 @@ public class FiDocHandler {
             entry.setOrigAmountDr(amount);
         }
 
-        if (docTemplate.getIsAuxAccCalc() != null && docTemplate.getIsAuxAccCalc()) {
-            if (docTemplate.getIsAuxAccDepartment() != null && docTemplate.getIsAuxAccDepartment()) { // 部门
+        if (account.getIsAuxAccCalc() != null && account.getIsAuxAccCalc()) {
+            if (account.getIsAuxAccDepartment() != null && account.getIsAuxAccDepartment()) { // 部门
                 entry.setDepartmentId(detail.getDepartment());
                 key.append("_departmentId").append(detail.getDepartment());
             }
-            if (docTemplate.getIsAuxAccPerson() != null && docTemplate.getIsAuxAccPerson()) { // 人员
+            if (account.getIsAuxAccPerson() != null && account.getIsAuxAccPerson()) { // 人员
                 entry.setPersonId(detail.getEmployee());
                 key.append("_personId").append(detail.getEmployee());
             }
-            if (docTemplate.getIsAuxAccCustomer() != null && docTemplate.getIsAuxAccCustomer()) { // 客户
+            if (account.getIsAuxAccCustomer() != null && account.getIsAuxAccCustomer()) { // 客户
                 entry.setCustomerId(detail.getConsumer());
                 key.append("_customerId").append(detail.getConsumer());
             }
-            if (docTemplate.getIsAuxAccSupplier() != null && docTemplate.getIsAuxAccSupplier()) { // 供应商
+            if (account.getIsAuxAccSupplier() != null && account.getIsAuxAccSupplier()) { // 供应商
                 entry.setSupplierId(detail.getVendor());
                 key.append("_supplierId").append(detail.getVendor());
             }
-            if (docTemplate.getIsAuxAccInventory() != null && docTemplate.getIsAuxAccInventory()) { // 存货
+            if (account.getIsAuxAccInventory() != null && account.getIsAuxAccInventory()) { // 存货
                 if (detail.getAssetId() != null) {
                     entry.setInventoryId(detail.getAssetId());
                     key.append("_inventoryId").append(detail.getAssetId());
@@ -242,11 +240,11 @@ public class FiDocHandler {
                     key.append("_inventoryId").append(detail.getInventory());
                 }
             }
-            if (docTemplate.getIsAuxAccProject() != null && docTemplate.getIsAuxAccProject()) { // 项目
+            if (account.getIsAuxAccProject() != null && account.getIsAuxAccProject()) { // 项目
                 entry.setProjectId(detail.getProject());
                 key.append("_projectId").append(detail.getProject());
             }
-            if(docTemplate.getIsQuantityCalc() != null && docTemplate.getIsQuantityCalc()){ // 数量辅助核算时，值传给凭证，不作为分组的依据
+            if(account.getIsQuantityCalc() != null && account.getIsQuantityCalc()){ // 数量辅助核算时，值传给凭证，不作为分组的依据
                 entry.setQuantity(detail.getCommodifyNum());
             }
             // 银行账号
@@ -257,12 +255,12 @@ public class FiDocHandler {
                 key.append("_bankAccountId").append(detail.getBankAccountId());
                 entry.setBankAccountId(detail.getBankAccountId());
             }
-            if (docTemplate.getIsMultiCalc() != null && docTemplate.getIsMultiCalc()) { // 多币种
+            if (account.getIsMultiCalc() != null && account.getIsMultiCalc()) { // 多币种
                 entry.setCurrencyId(currency.getId());
                 key.append("_currencyId").append(currency.getId());
             }
             // 即征即退，影响合并
-            if (docTemplate.getIsAuxAccLevyAndRetreat() != null && docTemplate.getIsAuxAccLevyAndRetreat()) {
+            if (account.getIsAuxAccLevyAndRetreat() != null && account.getIsAuxAccLevyAndRetreat()) {
                 entry.setLevyAndRetreatId(detail.getDrawbackPolicy());
                 key.append("_levyAndRetreatId").append(detail.getDrawbackPolicy());
             }
@@ -399,29 +397,30 @@ public class FiDocHandler {
             return null;
         }
 
+        FiAccount account = payDocTemplate.getAccount();
         FiDocEntryDto entry = new FiDocEntryDto();
-        if (payDocTemplate.getIsAuxAccCalc() != null && payDocTemplate.getIsAuxAccCalc()) {
-            if (payDocTemplate.getIsAuxAccPerson() != null && payDocTemplate.getIsAuxAccPerson()) { // 人员
+        if (account.getIsAuxAccCalc() != null && account.getIsAuxAccCalc()) {
+            if (account.getIsAuxAccPerson() != null && account.getIsAuxAccPerson()) { // 人员
                 entry.setPersonId(settle.getEmployee());
             }
-            if (payDocTemplate.getIsAuxAccCustomer() != null && payDocTemplate.getIsAuxAccCustomer()) { // 客户
+            if (account.getIsAuxAccCustomer() != null && account.getIsAuxAccCustomer()) { // 客户
                 entry.setCustomerId(settle.getConsumer());
             }
-            if (payDocTemplate.getIsAuxAccSupplier() != null && payDocTemplate.getIsAuxAccSupplier()) { // 供应商
+            if (account.getIsAuxAccSupplier() != null && account.getIsAuxAccSupplier()) { // 供应商
                 entry.setSupplierId(settle.getVendor());
             }
-            if (payDocTemplate.getIsAuxAccBankAccount() != null && payDocTemplate.getIsAuxAccBankAccount()) { // 银行账号
+            if (account.getIsAuxAccBankAccount() != null && account.getIsAuxAccBankAccount()) { // 银行账号
                 entry.setBankAccountId(settle.getBankAccountId());
             }
-            if (payDocTemplate.getIsMultiCalc() != null && payDocTemplate.getIsMultiCalc()) { // 多币种
+            if (account.getIsMultiCalc() != null && account.getIsMultiCalc()) { // 多币种
                 entry.setCurrencyId(currency.getId());
             }
         }
 
         String summary = getSettleSummary(settle, payDocTemplate);
         entry.setSummary(summary);
-        entry.setAccountId(payDocTemplate.getAccountId());
-        entry.setAccountCode(payDocTemplate.getSubjectDefault());
+        entry.setAccountId(account.getId());
+        entry.setAccountCode(account.getCode());
 
         // 0 借 1 贷，流水账不区分币种，本币原币金额一样
         Boolean direction = payDocTemplate.getDirection();
@@ -462,6 +461,111 @@ public class FiDocHandler {
             }
         }
         return summary;
+    }
+
+    /**
+     * 根据凭证模板和流水账收支明细获取对应的科目信息，没有获取到时返回 {@code null}
+     * @param docTemplate 凭证模板信息
+     * @param detail 流水账收支明细信息
+     * @return 科目信息
+     */
+    public FiAccount getAccount(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail) {
+        FiAccount account;
+        String accountCode = docTemplate.getAccountCode();
+        String businessCode = detail.getBusinessCode().toString();
+        if ("1002".equals(accountCode)) {
+            Long bankAccountId = detail.getBankAccountId();
+            if (businessCode.equals(BusinessCode.BUSINESS_402000) && "accountInAttr".equals(docTemplate.getInfluence())
+                    || (businessCode.equals(BusinessCode.BUSINESS_401050) && detail.getInBankAccountId() != null)) {
+                bankAccountId = detail.getInBankAccountId();
+            }
+            account = accountMap.get(accountCode + "_" + bankAccountId);
+        } else if (isInvestorAccount(docTemplate)) {
+            Long investorId = detail.getInvestorId();
+            if (investorId == null) {
+                investorId = 0L;
+            }
+            account = accountMap.get(accountCode + "_" + investorId);
+            if (account == null) {
+                account = accountMap.get(accountCode + "_0");
+            }
+        } else if (isInvesteeAccount(docTemplate)) {
+            Long investeeId = detail.getByInvestorId();
+            if (investeeId == null) {
+                investeeId = 0L;
+            }
+            account = accountMap.get(accountCode + "_" + investeeId);
+            if (account == null) {
+                account = accountMap.get(accountCode + "_0");
+            }
+        } else {
+            account = accountMap.get(accountCode);
+        }
+        if (account != null) {
+            String key = account.getCode() + "_" + businessCode;
+            if (accountMap.containsKey(key)) {
+                account = accountMap.get(key);
+            }
+        }
+        return account;
+    }
+
+    /**
+     * 凭证模板对应科目是否投资人相关的科目
+     * @param template 凭证模板
+     * @return 是否投资人相关的科目
+     */
+    private boolean isInvestorAccount(DocAccountTemplateItem template) {
+        boolean result = false;
+        if (template.getAccountingStandardsId() == null) {
+            return result;
+        }
+        long accountingStandardId = template.getAccountingStandardsId().longValue();
+        String accountCode = template.getAccountCode();
+        // 企业会计准则2007 实收资本科目 4001、小企业会计准则2013 实收资本科目 3001 为投资人相关的科目
+        if ((accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0001 && "4001".equals(accountCode))
+                || (accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0002 && "3001".equals(accountCode))) {
+            result = true;
+        }
+        return result;
+    }
+
+    /**
+     * 凭证模板对应科目是否被投资人相关的科目
+     * @param template 凭证模板
+     * @return 是否被投资人相关的科目
+     */
+    private boolean isInvesteeAccount(DocAccountTemplateItem template) {
+        boolean result = false;
+        if (template.getAccountingStandardsId() == null) {
+            return result;
+        }
+        long accountingStandardId = template.getAccountingStandardsId().longValue();
+        String accountCode = template.getAccountCode();
+        // 企业会计准则2007 长期股权投资-成本科目 151101、小企业会计准则2013 长期股权投资科目 1511 为被投资人相关的科目
+        if ((accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0001 && "151101".equals(accountCode))
+                || (accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0002 && "1511".equals(accountCode))) {
+            result = true;
+        }
+        return result;
+    }
+
+    /**
+     * 根据结算凭证模板和流水账结算明细获取对应的科目信息，没有获取到时返回 {@code null}
+     * @param payDocTemplate 结算凭证模板信息
+     * @param settle 流水账结算明细信息
+     * @param accountMap 科目信息 map
+     * @return 科目信息
+     */
+    public FiAccount getAccount(PaymentTemplateItem payDocTemplate, AcmSortReceiptSettlestyle settle) {
+        FiAccount account;
+        String accountCode = payDocTemplate.getSubjectDefault();
+        if ("1002".equals(accountCode)) {
+            account = accountMap.get(accountCode + "_" + settle.getBankAccountId());
+        } else {
+            account = accountMap.get(accountCode);
+        }
+        return account;
     }
 
     public SetOrg getOrg() {

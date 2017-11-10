@@ -38,10 +38,7 @@ public class DocTemplateGenerator {
     @Autowired
     private TemplateManager templateManager;
 
-    private ITemplateProvider templateProvider;
-
     public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
-        this.templateProvider = templateProvider;
         if (receiptList == null || receiptList.isEmpty()) {
             throw ErrorCode.EXCEPTION_RECEIPT_EMPATY;
         }
@@ -100,10 +97,8 @@ public class DocTemplateGenerator {
             return false;
         }
 
-        SetOrg org = docHandler.getOrg();
         List<AcmSortReceiptDetail> detailList = reorderReceiptDetailList(receipt.getAcmSortReceiptDetailList());
         Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
-        Map<String, FiAccount> accountMap = docHandler.getAccountMap();
         BusinessTemplate businessTemplate = null;
         for (AcmSortReceiptDetail detail : detailList) {
             String businessCode = detail.getBusinessCode().toString();
@@ -111,20 +106,18 @@ public class DocTemplateGenerator {
                 continue;
             }
             businessTemplate = templateMap.get(businessCode);
-            List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(org, detail);
+            List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(docHandler.getOrg(), detail);
             if (docTemplateList.isEmpty()) {
                 resultDto.addFailed(receipt, String.format("业务类型 %s 凭证模板数据没有找到", businessCode.toString()));
                 return false;
             }
             for (DocAccountTemplateItem docTemplate : docTemplateList) {
-                List<ReceiptResult> failList = new ArrayList<>();
-                docTemplate = templateProvider.requestAdvice(docTemplate, accountMap, detail, failList);
-                if (!failList.isEmpty()) {
-                    ReceiptResult fail = failList.get(0);
-                    fail.setReceipt(receipt);
-                    resultDto.addFailed(fail);
+                FiAccount account = docHandler.getAccount(docTemplate, detail);
+                if (account == null) {
+                    resultDto.addFailed(receipt, docTemplate.getAccountCode() + "科目没有查询到，请联系管理员！");
                     return false;
                 }
+                docTemplate.setAccount(account);
 
                 docHandler.addEntry(docTemplate, detail);
             }
@@ -153,8 +146,12 @@ public class DocTemplateGenerator {
                 resultDto.addFailed(receipt, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG);
                 return false;
             }
-            // requestAdvice 中没有获取到结算模板数据时抛出了异常
-            payDocTemplate = templateProvider.requestAdvice(payDocTemplate, accountMap, settle);
+            FiAccount account = docHandler.getAccount(payDocTemplate, settle);
+            if (account == null) {
+                resultDto.addFailed(receipt, payDocTemplate.getSubjectDefault() + "科目没有查询到，请联系管理员！");
+                return false;
+            }
+            payDocTemplate.setAccount(account);
 
             docHandler.addEntry(payDocTemplate, settle);
         }
