@@ -206,6 +206,7 @@ public class FiDocHandler {
         }
         // 0 借 1 贷，流水账不区分币种，本币原币金额一样
         Boolean direction = docTemplate.getDirection();
+        key.append("_direction").append(direction);
         if (direction) {
             entry.setAmountCr(amount);
             entry.setOrigAmountCr(amount);

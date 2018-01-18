@@ -1,12 +1,18 @@
 package com.github.outerman.be.engine.businessDoc.dataProvider;
 
-import com.github.outerman.be.api.vo.*;
-import com.github.outerman.be.api.dto.BusinessAssetDto;
-import com.github.outerman.be.api.dto.BusinessAssetTypeDto;
-import com.github.outerman.be.api.dto.FiDocGenetateResultDto.ReceiptResult;
-
 import java.util.List;
 import java.util.Map;
+
+import com.github.outerman.be.api.dto.BusinessAssetDto;
+import com.github.outerman.be.api.dto.BusinessAssetTypeDto;
+import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
+import com.github.outerman.be.api.vo.DocAccountTemplateItem;
+import com.github.outerman.be.api.vo.FiAccount;
+import com.github.outerman.be.api.vo.PaymentTemplateItem;
+import com.github.outerman.be.api.vo.SetColumnsSpecialVo;
+import com.github.outerman.be.api.vo.SetColumnsTacticsDto;
+import com.github.outerman.be.api.vo.SetCurrency;
+import com.github.outerman.be.api.vo.SetTaxRateDto;
 
 /**
  * Created by shenxy on 18/7/17.
@@ -33,7 +39,4 @@ public interface ITemplateProvider {
 
     Map<String, FiAccount> getAccountCode(Long orgId, List<String> codeList, List<AcmSortReceiptDetail> detailList);
 
-    PaymentTemplateItem requestAdvice(PaymentTemplateItem acmPayDoc, Map<String, FiAccount> codeMap, AcmSortReceiptSettlestyle sett);
-
-    DocAccountTemplateItem requestAdvice(DocAccountTemplateItem acmBusinessDoc, Map<String, FiAccount> codeMap, AcmSortReceiptDetail acmSortReceiptDetail, List<ReceiptResult> fiDocReturnFailList);
 }
