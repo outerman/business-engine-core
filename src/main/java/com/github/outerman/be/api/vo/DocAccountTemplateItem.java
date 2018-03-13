@@ -1,13 +1,13 @@
 package com.github.outerman.be.api.vo;
 
 import java.io.Serializable;
+import java.util.Map;
 
-/** 业务凭证模板 */
+/**
+ * 业务凭证模板 
+ */
 public class DocAccountTemplateItem implements Serializable {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = -3818718679387513417L;
 
     private Long id;// id
@@ -25,6 +25,9 @@ public class DocAccountTemplateItem implements Serializable {
     private String flag;// 标识取值
 
     private String influence;// 影响因素
+
+    /** 影响因素取值 map */
+    private Map<String, String> influenceMap;
 
     private Long vatTaxpayer;// 纳税人性质
 
@@ -95,6 +98,22 @@ public class DocAccountTemplateItem implements Serializable {
 
     public void setInfluence(String influence) {
         this.influence = influence;
+    }
+
+    /**
+     * 获取影响因素取值 map
+     * @return 影响因素取值 map
+     */
+    public Map<String, String> getInfluenceMap() {
+        return influenceMap;
+    }
+
+    /**
+     * 设置影响因素取值 map
+     * @param influenceMap 影响因素取值 map
+     */
+    public void setInfluenceMap(Map<String, String> influenceMap) {
+        this.influenceMap = influenceMap;
     }
 
     public Long getDepartmentAttr() {

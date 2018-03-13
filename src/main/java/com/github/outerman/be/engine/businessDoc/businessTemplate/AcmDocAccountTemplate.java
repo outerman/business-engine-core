@@ -28,8 +28,6 @@ public class AcmDocAccountTemplate implements IValidatable {
 
     private AcmDocAccountTemplateDto docTemplateDto;
 
-    private ITemplateProvider templateProvider;
-
     /**
      * 初始化方法，按照企业、业务类型编码，获取凭证模板数据
      * <p>企业 id 为 0 时获取系统预置数据
@@ -38,7 +36,6 @@ public class AcmDocAccountTemplate implements IValidatable {
      * @param templateProvider
      */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
-        this.templateProvider = templateProvider;
         docTemplateDto = new AcmDocAccountTemplateDto();
         docTemplateDto.setOrg(org);
         docTemplateDto.setBusinessCode(businessCode);
@@ -89,6 +86,7 @@ public class AcmDocAccountTemplate implements IValidatable {
 
     private List<DocAccountTemplateItem> getDocTemplate(List<DocAccountTemplateItem> docTemplateListWithFlag, AcmSortReceiptDetail detail) {
         List<DocAccountTemplateItem> resultList = new ArrayList<>();
+        Map<String, String> detailInfluenceMap = detail.getInfluenceMap();
         DocAccountTemplateItem defaultDocTemplate = null; // 影响因素默认匹配规则，影响因素值为 0 的记录
         for (DocAccountTemplateItem docTemplate : docTemplateListWithFlag) {
             String influence = docTemplate.getInfluence();
@@ -97,115 +95,28 @@ public class AcmDocAccountTemplate implements IValidatable {
                 continue;
             }
 
-            Long departmentAttr = docTemplate.getDepartmentAttr();
-            Long personAttr = docTemplate.getPersonAttr();
-            Long extendAttr = docTemplate.getExtendAttr();
-            Long detailDepartmentAttr = detail.getDepartmentProperty();
-            Long detailPersonAttr = detail.getEmployeeAttribute();
-            if ("departmentAttr".equals(influence)) { // 部门属性
-                if (detailDepartmentAttr != null && detailDepartmentAttr.equals(departmentAttr)) {
-                    resultList.add(docTemplate);
-                } else if (departmentAttr != null && departmentAttr == 0) { // 部门属性影响因素默认规则
-                    defaultDocTemplate = docTemplate;
-                }
-            } else if ("departmentAttr,personAttr".equals(influence)) { // 部门属性，人员属性
-                if (detailDepartmentAttr != null && detailDepartmentAttr.equals(departmentAttr)) {
-                    if (detailDepartmentAttr.equals(CommonConst.DEPTPROPERTY_002)) { // 生产部门，匹配人员属性
-                        if (detailPersonAttr != null && detailPersonAttr.equals(personAttr)) {
-                            resultList.add(docTemplate);
-                            continue;
+            Map<String, String> influenceMap = docTemplate.getInfluenceMap();
+            if (influenceMap != null) {
+                boolean match = true;
+                for (Entry<String, String> entry : influenceMap.entrySet()) {
+                    influence = entry.getKey();
+                    String value = entry.getValue();
+                    if (detailInfluenceMap == null || !detailInfluenceMap.containsKey(influence)) {
+                        match = false;
+                        if (value.equals("默认")) {
+                            defaultDocTemplate = docTemplate;
+                        } else {
+                            break;
                         }
-                    } else { // 非生产部门，当作只有部门影响因素处理
-                        resultList.add(docTemplate);
-                        continue;
+                    } else {
+                        String detailValue = detailInfluenceMap.get(influence);
+                        if (!value.equals(detailValue)) {
+                            match = false;
+                            break;
+                        }
                     }
                 }
-                if (detailDepartmentAttr != null && detailDepartmentAttr.equals(CommonConst.DEPTPROPERTY_002) && personAttr != null && personAttr == 0) { // 部门属性，人员属性影响因素默认规则
-                    defaultDocTemplate = docTemplate;
-                }
-            } else if ("vatTaxpayer".equals(influence) || "vatTaxpayer,qualification".equals(influence) || "vatTaxpayer,taxType".equals(influence)) {
-                // 纳税人性质，纳税人性质、认证，纳税人性质、计税方式
-                Long vatTaxpayer = docTemplateDto.getOrg().getVatTaxpayer();
-                if (vatTaxpayer == null) {
-                    throw ErrorCode.EXCEPTION_ORG_VATTAXPAYER_EMPTY;
-                }
-                if (!vatTaxpayer.equals(docTemplate.getVatTaxpayer())) {
-                    continue;
-                }
-                if ("vatTaxpayer".equals(influence)) {
-                    resultList.add(docTemplate);
-                } else if ("vatTaxpayer,qualification".equals(influence)) {
-                    Boolean detailQualification = (detail.getIsQualification() == null || detail.getIsQualification() == 0) ? false : true;
-                    Boolean qualification = docTemplate.getQualification();
-                    if (detailQualification.equals(qualification)) {
-                        resultList.add(docTemplate);
-                    }
-                } else if ("vatTaxpayer,taxType".equals(influence)) {
-                    Boolean isGeneral = docTemplate.getTaxType();
-                    if (isGeneral == null) {
-                        continue;
-                    }
-                    Long taxRateId = detail.getTaxRateId();
-                    if (CommonUtil.isSimple(taxRateId, templateProvider) && !isGeneral) {
-                        resultList.add(docTemplate);
-                    } else if (CommonUtil.isGeneral(taxRateId, templateProvider) && isGeneral) {
-                        resultList.add(docTemplate);
-                    }
-                }
-            } else if ("punishmentAttr".equals(influence)) { // 罚款性质
-                Long penaltyType = detail.getPenaltyType();
-                if (penaltyType != null && penaltyType.equals(extendAttr)) {
-                    resultList.add(docTemplate);
-                } else if (extendAttr != null && extendAttr == 0) {
-                    defaultDocTemplate = docTemplate;
-                }
-            } else if ("borrowAttr".equals(influence)) { // 借款期限
-                Long loanTerm = detail.getLoanTerm();
-                if (loanTerm != null && loanTerm.equals(extendAttr)) {
-                    resultList.add(docTemplate);
-                } else if (extendAttr != null && extendAttr == 0) {
-                    defaultDocTemplate = docTemplate;
-                }
-            } else if ("assetAttr".equals(influence)) { // 资产属性
-                Long assetAttr = detail.getAssetAttr();
-                if (assetAttr != null && assetAttr.equals(extendAttr)) {
-                    resultList.add(docTemplate);
-                } else if (extendAttr != null && extendAttr == 0) {
-                    defaultDocTemplate = docTemplate;
-                }
-            } else if ("accountInAttr".equals(influence)) { // 账户属性流入
-                Long inBankAccountTypeId = detail.getInBankAccountTypeId();
-                if (inBankAccountTypeId != null && inBankAccountTypeId.equals(extendAttr)) {
-                    resultList.add(docTemplate);
-                } else if (extendAttr != null && extendAttr == 0) {
-                    defaultDocTemplate = docTemplate;
-                }
-            } else if ("accountOutAttr".equals(influence)) { // 账户属性流出
-                Long bankAccountTypeId = detail.getBankAccountTypeId();
-                if (bankAccountTypeId != null && bankAccountTypeId.equals(extendAttr)) {
-                    resultList.add(docTemplate);
-                } else if (extendAttr != null && extendAttr == 0) {
-                    defaultDocTemplate = docTemplate;
-                }
-            } else if ("formula".equals(influence)) { // 表达式
-                Double ext1 = detail.getExt1();
-                Double amount = detail.getAmount();
-                if (ext1 == null || amount == null) {
-                    continue;
-                }
-                if(ext1 > amount){ // 扩展1>金额
-                    if(extendAttr != null && extendAttr == 1L){
-                        resultList.add(docTemplate);
-                    }
-                }
-                if(ext1 <= amount){ // 扩展1≤金额
-                    if(extendAttr != null && extendAttr == 2L){
-                        resultList.add(docTemplate);
-                    }
-                }
-            } else if ("inventoryAttr".equals(influence)) { // 存货属性
-                Long inventoryPropertyTemplateId = detail.getInventoryPropertyTemplateId();
-                if (inventoryPropertyTemplateId != null && inventoryPropertyTemplateId.equals(extendAttr)) {
+                if (match) {
                     resultList.add(docTemplate);
                 }
             }

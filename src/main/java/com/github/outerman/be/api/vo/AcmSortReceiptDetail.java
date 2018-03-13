@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Map;
 
 /** 理票单明细表 */
 public class AcmSortReceiptDetail implements Serializable {
@@ -257,6 +258,9 @@ public class AcmSortReceiptDetail implements Serializable {
 
     /**即征即退*/
     private Long drawbackPolicy;
+
+    /** 影响因素取值 map */
+    private Map<String, String> influenceMap;
 
     public Long getUnitId() {
         return unitId;
@@ -1226,6 +1230,22 @@ public class AcmSortReceiptDetail implements Serializable {
 
     public void setDrawbackPolicy(Long drawbackPolicy) {
         this.drawbackPolicy = drawbackPolicy;
+    }
+
+    /**
+     * 获取影响因素取值 map
+     * @return 影响因素取值 map
+     */
+    public Map<String, String> getInfluenceMap() {
+        return influenceMap;
+    }
+
+    /**
+     * 设置影响因素取值 map
+     * @param influenceMap 影响因素取值 map
+     */
+    public void setInfluenceMap(Map<String, String> influenceMap) {
+        this.influenceMap = influenceMap;
     }
 
 }
