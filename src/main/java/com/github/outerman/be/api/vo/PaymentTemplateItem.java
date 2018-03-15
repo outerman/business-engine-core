@@ -7,17 +7,8 @@ public class PaymentTemplateItem implements Serializable {
 
     private static final long serialVersionUID = 4424620273857892825L;
 
-    /** 主键id */
-    private Long id;
-
-    /** 组织机构id */
-    private Long orgId;
-
     /** 收支类型 */
     private Long paymentsType;
-
-    /** 结算方式[set_settlement_type] */
-    private Long settlement;
 
     /** 账户属性 */
     private Long accountType;
@@ -38,33 +29,6 @@ public class PaymentTemplateItem implements Serializable {
     private Boolean reversal;
 
     private FiAccount account;
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /** 主键id */
-    public Long getId() {
-        return id;
-    }
-
-    public void setOrgId(Long orgId) {
-        this.orgId = orgId;
-    }
-
-    /** 组织机构id */
-    public Long getOrgId() {
-        return orgId;
-    }
-
-    public void setSettlement(Long settlement) {
-        this.settlement = settlement;
-    }
-
-    /** 结算方式[set_settlement_type] */
-    public Long getSettlement() {
-        return settlement;
-    }
 
     public void setSubjectType(String subjectType) {
         this.subjectType = subjectType;
