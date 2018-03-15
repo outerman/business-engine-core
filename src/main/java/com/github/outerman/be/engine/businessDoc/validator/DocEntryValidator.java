@@ -1,6 +1,11 @@
 package com.github.outerman.be.engine.businessDoc.validator;
 
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,13 +18,7 @@ import com.github.outerman.be.api.vo.FiDocEntryDto;
 import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AmountGetter;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
-import com.github.outerman.be.engine.util.CommonUtil;
 import com.github.outerman.be.engine.util.StringUtil;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by shenxy on 19/7/17.
@@ -91,108 +90,108 @@ public class DocEntryValidator implements IBusinessDocValidatable {
         }
 
         // 3.3) 根据业务单据数据和凭证模板影响因素以及取值，查找凭证模板数据
-        List<DocAccountTemplateItem> resultList = new ArrayList<>();
-        for (DocAccountTemplateItem docTemplate : docTemplateWithAccountList) {
-            String influence = docTemplate.getInfluence();
-            if (StringUtil.isEmpty(influence)) {
-                resultList.add(docTemplate);
-                continue;
-            }
-            if (influence.contains("vatTaxpayer")) {
-                if (!setOrg.getVatTaxpayer().equals(docTemplate.getVatTaxpayer())) {
-                    continue;
-                }
-                if ("vatTaxpayer".equals(influence)) {
-                    resultList.add(docTemplate);
-                } else if ("vatTaxpayer,taxType".equals(influence)) {
-                    Boolean taxType = docTemplate.getTaxType();
-                    if (taxType == null) {
-                        taxType = false;
-                    }
-                    Long taxRateId = detail.getTaxRateId();
-                    if (taxType && CommonUtil.isGeneral(taxRateId, businessTemplate.getTemplateProvider())) {
-                        resultList.add(docTemplate);
-                    } else if (!taxType && CommonUtil.isSimple(taxRateId, businessTemplate.getTemplateProvider())) {
-                        resultList.add(docTemplate);
-                    }
-                } else if ("vatTaxpayer,qualification".equals(influence)) {
-                    Boolean qualification = docTemplate.getQualification();
-                    Byte detailQualification = detail.getIsQualification();
-                    if (qualification != null && detailQualification != null) {
-                        if ((qualification && detail.getIsQualification() == 1) || (!qualification && detail.getIsQualification() == 0)) {
-                            resultList.add(docTemplate);
-                        }
-                    }
-                }
-            } else if ("departmentAttr".equals(influence)) {
-                Long departmentAttr = docTemplate.getDepartmentAttr();
-                Long detailDepartmentAttr = detail.getDepartmentProperty();
-                if (detailDepartmentAttr == null) {
-                    detailDepartmentAttr = 0L;
-                }
-                if (departmentAttr != null && departmentAttr.equals(detailDepartmentAttr)) {
-                    resultList.add(docTemplate);
-                }
-            } else if ("departmentAttr,personAttr".equals(influence)) {
-                Long departmentAttr = docTemplate.getDepartmentAttr();
-                Long personAttr = docTemplate.getPersonAttr();
-                Long detailPersonAttr = detail.getEmployeeAttribute();
-                if (detailPersonAttr == null) {
-                    detailPersonAttr = 0L;
-                }
-                if (departmentAttr != null && departmentAttr.equals(detail.getDepartmentProperty()) && personAttr != null && personAttr.equals(detailPersonAttr)) {
-                    resultList.add(docTemplate);
-                }
-            } else if ("assetAttr".equals(influence)) {
-                Long extendAttr = docTemplate.getExtendAttr();
-                Long assetAttr = detail.getAssetAttr();
-                if (assetAttr == null) {
-                    assetAttr = 0L;
-                }
-                if (extendAttr != null && extendAttr.equals(assetAttr)) {
-                    resultList.add(docTemplate);
-                }
-            } else if ("punishmentAttr".equals(influence)) {
-                Long extendAttr = docTemplate.getExtendAttr();
-                Long penaltyType = detail.getPenaltyType();
-                if (penaltyType == null) {
-                    penaltyType = 0L;
-                }
-                if (extendAttr != null && extendAttr.equals(penaltyType)) {
-                    resultList.add(docTemplate);
-                }
-            } else if ("borrowAttr".equals(influence)) {
-                Long extendAttr = docTemplate.getExtendAttr();
-                Long loanTerm = detail.getLoanTerm();
-                if (loanTerm == null) {
-                    loanTerm = 0L;
-                }
-                if (extendAttr != null && extendAttr.equals(loanTerm)) {
-                    resultList.add(docTemplate);
-                }
-            } else if ("accountInAttr".equals(influence)) {
-                Long extendAttr = docTemplate.getExtendAttr();
-                Long inBankAccountTypeId = detail.getInBankAccountTypeId();
-                if (inBankAccountTypeId == null) {
-                    inBankAccountTypeId = 0L;
-                }
-                if (extendAttr != null && extendAttr.equals(inBankAccountTypeId)) {
-                    resultList.add(docTemplate);
-                }
-            } else if ("accountOutAttr ".equals(influence)) {
-                Long extendAttr = docTemplate.getExtendAttr();
-                Long bankAccountTypeId = detail.getBankAccountTypeId();
-                if (bankAccountTypeId == null) {
-                    bankAccountTypeId = 0L;
-                }
-                if (extendAttr != null && extendAttr.equals(bankAccountTypeId)) {
-                    resultList.add(docTemplate);
-                }
-            }
-        }
-        if (resultList.size() != 1) {
-            return message + "没有找到或者找到多个一致的凭证模板数据；";
-        }
+//        List<DocAccountTemplateItem> resultList = new ArrayList<>();
+//        for (DocAccountTemplateItem docTemplate : docTemplateWithAccountList) {
+//            String influence = docTemplate.getInfluence();
+//            if (StringUtil.isEmpty(influence)) {
+//                resultList.add(docTemplate);
+//                continue;
+//            }
+//            if (influence.contains("vatTaxpayer")) {
+//                if (!setOrg.getVatTaxpayer().equals(docTemplate.getVatTaxpayer())) {
+//                    continue;
+//                }
+//                if ("vatTaxpayer".equals(influence)) {
+//                    resultList.add(docTemplate);
+//                } else if ("vatTaxpayer,taxType".equals(influence)) {
+//                    Boolean taxType = docTemplate.getTaxType();
+//                    if (taxType == null) {
+//                        taxType = false;
+//                    }
+//                    Long taxRateId = detail.getTaxRateId();
+//                    if (taxType && CommonUtil.isGeneral(taxRateId, businessTemplate.getTemplateProvider())) {
+//                        resultList.add(docTemplate);
+//                    } else if (!taxType && CommonUtil.isSimple(taxRateId, businessTemplate.getTemplateProvider())) {
+//                        resultList.add(docTemplate);
+//                    }
+//                } else if ("vatTaxpayer,qualification".equals(influence)) {
+//                    Boolean qualification = docTemplate.getQualification();
+//                    Byte detailQualification = detail.getIsQualification();
+//                    if (qualification != null && detailQualification != null) {
+//                        if ((qualification && detail.getIsQualification() == 1) || (!qualification && detail.getIsQualification() == 0)) {
+//                            resultList.add(docTemplate);
+//                        }
+//                    }
+//                }
+//            } else if ("departmentAttr".equals(influence)) {
+//                Long departmentAttr = docTemplate.getDepartmentAttr();
+//                Long detailDepartmentAttr = detail.getDepartmentProperty();
+//                if (detailDepartmentAttr == null) {
+//                    detailDepartmentAttr = 0L;
+//                }
+//                if (departmentAttr != null && departmentAttr.equals(detailDepartmentAttr)) {
+//                    resultList.add(docTemplate);
+//                }
+//            } else if ("departmentAttr,personAttr".equals(influence)) {
+//                Long departmentAttr = docTemplate.getDepartmentAttr();
+//                Long personAttr = docTemplate.getPersonAttr();
+//                Long detailPersonAttr = detail.getEmployeeAttribute();
+//                if (detailPersonAttr == null) {
+//                    detailPersonAttr = 0L;
+//                }
+//                if (departmentAttr != null && departmentAttr.equals(detail.getDepartmentProperty()) && personAttr != null && personAttr.equals(detailPersonAttr)) {
+//                    resultList.add(docTemplate);
+//                }
+//            } else if ("assetAttr".equals(influence)) {
+//                Long extendAttr = docTemplate.getExtendAttr();
+//                Long assetAttr = detail.getAssetAttr();
+//                if (assetAttr == null) {
+//                    assetAttr = 0L;
+//                }
+//                if (extendAttr != null && extendAttr.equals(assetAttr)) {
+//                    resultList.add(docTemplate);
+//                }
+//            } else if ("punishmentAttr".equals(influence)) {
+//                Long extendAttr = docTemplate.getExtendAttr();
+//                Long penaltyType = detail.getPenaltyType();
+//                if (penaltyType == null) {
+//                    penaltyType = 0L;
+//                }
+//                if (extendAttr != null && extendAttr.equals(penaltyType)) {
+//                    resultList.add(docTemplate);
+//                }
+//            } else if ("borrowAttr".equals(influence)) {
+//                Long extendAttr = docTemplate.getExtendAttr();
+//                Long loanTerm = detail.getLoanTerm();
+//                if (loanTerm == null) {
+//                    loanTerm = 0L;
+//                }
+//                if (extendAttr != null && extendAttr.equals(loanTerm)) {
+//                    resultList.add(docTemplate);
+//                }
+//            } else if ("accountInAttr".equals(influence)) {
+//                Long extendAttr = docTemplate.getExtendAttr();
+//                Long inBankAccountTypeId = detail.getInBankAccountTypeId();
+//                if (inBankAccountTypeId == null) {
+//                    inBankAccountTypeId = 0L;
+//                }
+//                if (extendAttr != null && extendAttr.equals(inBankAccountTypeId)) {
+//                    resultList.add(docTemplate);
+//                }
+//            } else if ("accountOutAttr ".equals(influence)) {
+//                Long extendAttr = docTemplate.getExtendAttr();
+//                Long bankAccountTypeId = detail.getBankAccountTypeId();
+//                if (bankAccountTypeId == null) {
+//                    bankAccountTypeId = 0L;
+//                }
+//                if (extendAttr != null && extendAttr.equals(bankAccountTypeId)) {
+//                    resultList.add(docTemplate);
+//                }
+//            }
+//        }
+//        if (resultList.size() != 1) {
+//            return message + "没有找到或者找到多个一致的凭证模板数据；";
+//        }
         return "";
     }
 }

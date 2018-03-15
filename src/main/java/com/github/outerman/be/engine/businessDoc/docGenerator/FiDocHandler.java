@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.constant.BusinessCode;
@@ -268,27 +269,11 @@ public class FiDocHandler {
         }
 
         if (!isInputTaxTransfer && !isWage) {
-            String influence = docTemplate.getInfluence();
-            if (!StringUtil.isEmpty(influence)) {
-                if (influence.equals("departmentAttr")) { // 部门属性
-                    key.append("_departmentAttr").append(detail.getDepartmentProperty());
-                } else if (influence.equals("departmentAttr,personAttr")) { // 部门属性、人员属性
-                    key.append("_departmentAttr").append(detail.getDepartmentProperty());
-                    key.append("_personAttr").append(detail.getEmployeeAttribute());
-                } else if (influence.equals("vatTaxpayer")) { // 纳税人性质；vatTaxpayer,qualification、vatTaxpayer,taxType
-                    key.append("_vatTaxpayer").append(org.getVatTaxpayer());
-                } else if (influence.equals("punishmentAttr")) { // 罚款性质
-                    key.append("_punishmentAttr").append(detail.getPenaltyType());
-                } else if (influence.equals("borrowAttr")) { // 借款期限
-                    key.append("_borrowAttr").append(detail.getLoanTerm());
-                } else if (influence.equals("assetAttr")) { // 资产类别
-                    key.append("_assetAttr").append(detail.getAssetAttr());
-                } else if (influence.equals("accountInAttr")) { // 流入账户属性
-                    key.append("_accountInAttr").append(detail.getInBankAccountId());
-                } else if (influence.equals("accountOutAttr")) { // 流出账户属性
-                    key.append("_accountOutAttr").append(detail.getBankAccountId());
+            Map<String, String> influenceMap = docTemplate.getInfluenceMap();
+            if (influenceMap != null) {
+                for (Entry<String, String> influence : influenceMap.entrySet()) {
+                    key.append("_" + influence.getKey()).append(influence.getValue());
                 }
-                // TODO formula inventoryAttr
             }
         }
 
