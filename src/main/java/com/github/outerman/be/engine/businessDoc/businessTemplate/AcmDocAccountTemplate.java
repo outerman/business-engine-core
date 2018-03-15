@@ -1,10 +1,16 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.constant.ErrorCode;
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
@@ -14,9 +20,6 @@ import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
 import com.github.outerman.be.engine.util.CommonUtil;
 import com.github.outerman.be.engine.util.StringUtil;
-
-import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Created by shenxy on 16/12/28.
@@ -185,15 +188,6 @@ public class AcmDocAccountTemplate implements IValidatable {
                     continue;
                 }
                 String influence = docTemplate.getInfluence();
-                if (StringUtil.isEmpty(influence) && hasInfluenceValue(docTemplate)) {
-                    industryMessage.append("分录" + docTemplate.getFlag() + "影响因素取值有数据，影响因素为空；");
-                    continue;
-                }
-                if (!hasValidInfluenceValue(docTemplate)) {
-                    String influeceName = CommonUtil.getInfluenceName(influence);
-                    industryMessage.append("分录" + docTemplate.getFlag() + "影响因素" + influeceName + "对应取值字段不能为空；");
-                    continue;
-                }
                 if ("vatTaxpayer,taxType".equals(influence)) { //  || "vatTaxpayer,qualification".equals(influence) 认证影响因素两条的校验去掉
                     String countKey = influence + "_" + docTemplate.getFlag();
                     Integer count = 1;
@@ -223,36 +217,6 @@ public class AcmDocAccountTemplate implements IValidatable {
             return "";
         }
         return errorMessage + message.toString();
-    }
-
-    private boolean hasValidInfluenceValue(DocAccountTemplateItem docTemplate) {
-        String influence = docTemplate.getInfluence();
-        if (StringUtil.isEmpty(influence)) {
-            return true;
-        }
-        boolean result = false;
-        if (CommonConst.INFLUENCE_DEPARTMENT_ATTR.equals(influence)) {
-            result = docTemplate.getDepartmentAttr() != null;
-        } else if (CommonConst.INFLUENCE_DEPT_PERSON_ATTR.equals(influence)) {
-            result = docTemplate.getDepartmentAttr() != null && docTemplate.getPersonAttr() != null;
-        } else if (CommonConst.INFLUENCE_VAT_TAXPAYER.equals(influence)) {
-            result = docTemplate.getVatTaxpayer() != null;
-        } else if (CommonConst.INFLUENCE_VAT_TAXPAYER_QUALIFICATION.equals(influence)) {
-            result = docTemplate.getVatTaxpayer() != null && docTemplate.getQualification() != null;
-        } else if (CommonConst.INFLUENCE_VAT_TAXPAYER_TAXTYPE.equals(influence)) {
-            result = docTemplate.getVatTaxpayer() != null && docTemplate.getTaxType() != null;
-        } else {
-            result = docTemplate.getExtendAttr() != null;
-        }
-        return result;
-    }
-
-    private boolean hasInfluenceValue(DocAccountTemplateItem docTemplate) {
-        if (docTemplate == null) {
-            return false;
-        }
-        return docTemplate.getVatTaxpayer() != null || docTemplate.getDepartmentAttr() != null || docTemplate.getPersonAttr() != null
-                || (docTemplate.getExtendAttr() != null && docTemplate.getExtendAttr() != 9999999999L) || docTemplate.getTaxType() != null || docTemplate.getQualification() != null;
     }
 
     public static String getKey(Long industry, Integer standard) {

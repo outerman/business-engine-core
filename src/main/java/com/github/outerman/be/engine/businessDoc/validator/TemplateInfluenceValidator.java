@@ -65,16 +65,10 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
                     attrList = new ArrayList<>();
                     influenceValueMap.put(influence, attrList);
                 }
-                if ("departmentAttr".equals(influence)) {
-                    Long departmentAttr = docTemplate.getDepartmentAttr();
-                    attrList.add(departmentAttr);
-                } else if ("departmentAttr,personAttr".equals(influence)) {
-                    Long personAttr = docTemplate.getPersonAttr();
-                    attrList.add(personAttr);
-                } else {
-                    Long extendAttr = docTemplate.getExtendAttr();
-                    attrList.add(extendAttr);
-                }
+//                Map<String, String> influenceMap = docTemplate.getInfluenceMap();
+//                for (Entry<String, String> item : influenceMap.entrySet()) {
+//                    attrList.add(Long.parseLong(item.getValue()));
+//                }
             }
 
             StringBuilder errorMessage = new StringBuilder();
