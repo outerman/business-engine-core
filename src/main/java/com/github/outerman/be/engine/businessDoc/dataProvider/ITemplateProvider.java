@@ -12,7 +12,6 @@ import com.github.outerman.be.api.vo.PaymentTemplateItem;
 import com.github.outerman.be.api.vo.SetColumnsSpecialVo;
 import com.github.outerman.be.api.vo.SetColumnsTacticsDto;
 import com.github.outerman.be.api.vo.SetCurrency;
-import com.github.outerman.be.api.vo.SetTaxRateDto;
 
 /**
  * Created by shenxy on 18/7/17.
@@ -32,8 +31,6 @@ public interface ITemplateProvider {
     List<BusinessAssetDto> getInventoryProperty(String businessCode);
 
     List<BusinessAssetTypeDto> getAssetType(String businessCode);
-
-    List<SetTaxRateDto> getTaxRateList(Long orgId);
 
     SetCurrency getBaseCurrency(Long orgId);
 

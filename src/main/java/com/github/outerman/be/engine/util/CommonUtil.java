@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.github.outerman.be.api.constant.CommonConst;
-import com.github.outerman.be.api.vo.SetTaxRateDto;
-import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 
 /**
  * 工具类
@@ -65,44 +63,6 @@ public final class CommonUtil {
         columns.add(new Column(1007L, "数值扩展字段7", "ext7"));
         columns.add(new Column(1008L, "数值扩展字段8", "ext8"));
         columns.add(new Column(1009L, "数值扩展字段9", "ext9"));
-    }
-
-    private static void initTaxRate(ITemplateProvider provider) {
-        if (!general.isEmpty() && !simple.isEmpty()) {
-            return;
-        }
-        List<SetTaxRateDto> taxRateList = provider.getTaxRateList(0L);
-        if (taxRateList == null || taxRateList.isEmpty()) {
-            return;
-        }
-        for (SetTaxRateDto setTaxRateDto : taxRateList) {
-            Long id = setTaxRateDto.getId();
-            // 1一般 2简易 3其他
-            if (setTaxRateDto.getType().equals(1L)) {
-                general.add(id);
-            }
-            if (setTaxRateDto.getType().equals(2L)) {
-                simple.add(id);
-            }
-            if (setTaxRateDto.getType().equals(3L)) {
-                special.add(id);
-            }
-        }
-    }
-
-    public static boolean isSimple(Long taxRateId, ITemplateProvider provider) {
-        initTaxRate(provider);
-        return simple.contains(taxRateId);
-    }
-
-    public static boolean isGeneral(Long taxRateId, ITemplateProvider provider) {
-        initTaxRate(provider);
-        return general.contains(taxRateId);
-    }
-
-    public static boolean isSpecial(Long taxRateId, ITemplateProvider provider) {
-        initTaxRate(provider);
-        return special.contains(taxRateId);
     }
 
     public static String getIndustryName(Long id) {
