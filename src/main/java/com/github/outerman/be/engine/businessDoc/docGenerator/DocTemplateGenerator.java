@@ -111,9 +111,9 @@ public class DocTemplateGenerator {
             AcmSortReceipt voucher = voucherList.get(index);
             if (voucher == null) {
                 voucher = new AcmSortReceipt();
+                voucherList.set(index, voucher);
                 voucher.setValid(false);
                 ReceiptResult fail = new ReceiptResult();
-                fail.setReceipt(voucher);
                 fail.setMsg(String.format(ErrorCode.VOUCHER_EMPTY, Integer.toString(index + 1)));
                 failList.add(fail);
                 continue;
@@ -133,20 +133,21 @@ public class DocTemplateGenerator {
     private boolean convertVoucher(FiDocHandler docHandler, FiDocGenetateResultDto resultDto) {
         AcmSortReceipt voucher = docHandler.getReceipt();
         List<AcmSortReceiptDetail> detailList = reorderDetailList(voucher.getAcmSortReceiptDetailList());
-        Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
         BusinessTemplate businessTemplate = null;
+        Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
+        // 业务明细转换凭证分录
         for (AcmSortReceiptDetail detail : detailList) {
             String businessCode = detail.getBusinessCode();
             businessTemplate = templateMap.get(businessCode);
             List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(docHandler.getOrg(), detail);
             if (docTemplateList.isEmpty()) {
-                resultDto.addFailed(voucher, String.format("业务类型 %s 凭证模板数据没有找到", businessCode));
+                resultDto.addFailed(voucher, String.format(ErrorCode.DOC_TEMPLATE_EMPTY, businessCode));
                 return false;
             }
             for (DocAccountTemplateItem docTemplate : docTemplateList) {
                 FiAccount account = docHandler.getAccount(docTemplate, detail);
                 if (account == null) {
-                    resultDto.addFailed(voucher, docTemplate.getAccountCode() + "科目没有查询到，请联系管理员！");
+                    resultDto.addFailed(voucher, String.format(ErrorCode.ACCOUNT_CODE_INVALID, docTemplate.getAccountCode()));
                     return false;
                 }
                 docTemplate.setAccount(account);
@@ -157,8 +158,8 @@ public class DocTemplateGenerator {
 
         FiDocDto fiDocDto = docHandler.getFiDocDto();
         if (fiDocDto.getEntrys().isEmpty()) {
-            // 所有流水账明细处理之后，凭证分录为空：获取到的金额字段都是 0
-            resultDto.addFailed(voucher, "凭证分录为空");
+            // 所有明细处理之后，凭证分录为空：获取到的金额字段都是 0
+            resultDto.addFailed(voucher, ErrorCode.ENTRY_EMPTY);
             return false;
         }
 
@@ -167,7 +168,7 @@ public class DocTemplateGenerator {
             return true;
         }
 
-        // 结算方式转换分录
+        // 结算明细转换凭证分录
         for (AcmSortReceiptSettlestyle settle : settleList) {
             if (settle == null) {
                 continue;
@@ -175,12 +176,12 @@ public class DocTemplateGenerator {
 
             PaymentTemplateItem payDocTemplate = businessTemplate.getPaymentTemplate().getTemplate(settle);
             if (payDocTemplate == null) {
-                resultDto.addFailed(voucher, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG);
+                resultDto.addFailed(voucher, ErrorCode.SETTLE_TEMPLATE_EMPTY);
                 return false;
             }
             FiAccount account = docHandler.getAccount(payDocTemplate, settle);
             if (account == null) {
-                resultDto.addFailed(voucher, payDocTemplate.getSubjectDefault() + "科目没有查询到，请联系管理员！");
+                resultDto.addFailed(voucher, String.format(ErrorCode.ACCOUNT_CODE_INVALID, payDocTemplate.getSubjectDefault()));
                 return false;
             }
             payDocTemplate.setAccount(account);

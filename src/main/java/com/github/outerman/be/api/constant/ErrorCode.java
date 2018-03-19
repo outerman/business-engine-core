@@ -14,11 +14,16 @@ public class ErrorCode {
     /** 企业信息为空 */
     public static final BusinessEngineException EXCEPTION_ORG_EMPATY = new BusinessEngineException("70901", "企业信息为空");
 
-    /** 结算方式模板未找到，可能为账号保存异常 */
-    public static final String ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG = "结算方式模板未找到，可能为账号保存异常";
-
     public static final String VOUCHER_EMPTY = "第%s条单据信息为空";
 
     public static final String VOUCHER_DETAIL_EMPTY = "第%s条单据明细数据为空";
+
+    public static final String DOC_TEMPLATE_EMPTY = "业务编码%s没有找到匹配的凭证模板数据";
+
+    public static final String ACCOUNT_CODE_INVALID = "编码%s没有找到对应的科目信息";
+
+    public static final String ENTRY_EMPTY = "所有分录取到的金额为 0";
+
+    public static final String SETTLE_TEMPLATE_EMPTY = "没有找到匹配的结算凭证模板数据，请检查账户属性、收支业务属性";
 
 }
