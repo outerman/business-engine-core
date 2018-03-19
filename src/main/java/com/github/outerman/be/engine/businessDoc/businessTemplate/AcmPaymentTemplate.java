@@ -46,7 +46,7 @@ public class AcmPaymentTemplate implements IValidatable {
                 paymentTemplateDto.getCodeList().add(acmPayDocTemplate.getSubjectDefault());
             }
         }
-        paymentTemplateDto.getPayMap().putAll(payMap);
+        paymentTemplateDto.getSettleTemplateMap().putAll(payMap);
     }
 
     public List<String> getAccountCodeList() {
@@ -58,11 +58,11 @@ public class AcmPaymentTemplate implements IValidatable {
     }
 
     public PaymentTemplateItem getTemplate(AcmSortReceiptSettlestyle settle) {
-        if (paymentTemplateDto.getPayMap() == null) {
+        if (paymentTemplateDto.getSettleTemplateMap() == null) {
             return null;
         }
 
-        return paymentTemplateDto.getPayMap().get(settle.getBusinessPropertyId() + "" + settle.getBankAccountAttr());
+        return paymentTemplateDto.getSettleTemplateMap().get(settle.getBusinessPropertyId() + "" + settle.getBankAccountAttr());
     }
 
     @Override

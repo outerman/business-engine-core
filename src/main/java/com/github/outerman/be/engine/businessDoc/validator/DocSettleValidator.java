@@ -49,7 +49,7 @@ public class DocSettleValidator implements IBusinessDocValidatable {
         AcmSortReceiptSettlestyle settlestyle = acmSortReceipt.getAcmSortReceiptSettlestyleList().get(0);
         String accountCode = entry.getAccountCode();
         Double amount = entry.getAmountDr() == null ? entry.getAmountCr() : entry.getAmountDr();
-        Map<String, PaymentTemplateItem> payTemplateMap = businessTemplate.getPaymentTemplate().getPaymentTemplateDto().getPayMap();
+        Map<String, PaymentTemplateItem> payTemplateMap = businessTemplate.getPaymentTemplate().getPaymentTemplateDto().getSettleTemplateMap();
         List<PaymentTemplateItem> docTemplateWithAccountList = new ArrayList<>();
         for (PaymentTemplateItem payTemplate : payTemplateMap.values()) {
             if (!accountCode.startsWith(payTemplate.getSubjectDefault())) {

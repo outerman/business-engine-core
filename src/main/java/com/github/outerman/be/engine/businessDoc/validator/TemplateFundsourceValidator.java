@@ -42,7 +42,7 @@ public class TemplateFundsourceValidator implements ITemplateValidatable {
         StringBuilder message = new StringBuilder();
         // 验证每个行业
         Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
-        for (Entry<String, List<DocAccountTemplateItem>> entry : docAccountTemplateDto.getAllPossibleTemplate().entrySet()) {
+        for (Entry<String, List<DocAccountTemplateItem>> entry : docAccountTemplateDto.getDocTemplateMap().entrySet()) {
             StringBuilder errorMessage = new StringBuilder();
 
             String key = entry.getKey();

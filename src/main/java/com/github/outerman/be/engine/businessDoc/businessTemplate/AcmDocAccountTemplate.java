@@ -51,10 +51,10 @@ public class AcmDocAccountTemplate implements IValidatable {
         List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
         all.forEach(template -> {
             String key = getKey(org);
-            if (docTemplateDto.getAllPossibleTemplate().get(key) == null) {
-                docTemplateDto.getAllPossibleTemplate().put(key, new ArrayList<>());
+            if (docTemplateDto.getDocTemplateMap().get(key) == null) {
+                docTemplateDto.getDocTemplateMap().put(key, new ArrayList<>());
             }
-            docTemplateDto.getAllPossibleTemplate().get(key).add(template);
+            docTemplateDto.getDocTemplateMap().get(key).add(template);
             if (!docTemplateDto.getCodeList().contains(template.getAccountCode())) {
                 docTemplateDto.getCodeList().add(template.getAccountCode());
             }
@@ -142,7 +142,7 @@ public class AcmDocAccountTemplate implements IValidatable {
         }
         List<DocAccountTemplateItem> docTemplateList = new ArrayList<>();
         String key = getKey(org);
-        Map<String, List<DocAccountTemplateItem>> map = docTemplateDto.getAllPossibleTemplate();
+        Map<String, List<DocAccountTemplateItem>> map = docTemplateDto.getDocTemplateMap();
         if (map.containsKey(key)) {
             docTemplateList = map.get(key);
         }
@@ -165,7 +165,7 @@ public class AcmDocAccountTemplate implements IValidatable {
         // 影响因素取值有数据时，影响因素必须要有值；影响因素有值时，对应的取值必须有数据；
         // 同一分组纳税人、计税方式，纳税人、认证影响因素需要两条记录
         String errorMessage = "业务类型 " + docTemplateDto.getBusinessCode() + " 凭证模板数据校验失败：";
-        Map<String, List<DocAccountTemplateItem>> docTemplateMap = docTemplateDto.getAllPossibleTemplate();
+        Map<String, List<DocAccountTemplateItem>> docTemplateMap = docTemplateDto.getDocTemplateMap();
         if (docTemplateMap.isEmpty()) {
             return errorMessage + "缺少凭证模板数据；";
         }

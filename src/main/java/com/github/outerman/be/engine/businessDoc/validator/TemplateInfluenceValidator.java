@@ -41,7 +41,7 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
         StringBuilder message = new StringBuilder();
         // 验证每个行业
         Map<Long, List<SetColumnsTacticsDto>> tacticsMap = uiTemplateDto.getTacticsMap();
-        for (Entry<String, List<DocAccountTemplateItem>> entry : docAccountTemplateDto.getAllPossibleTemplate().entrySet()) {
+        for (Entry<String, List<DocAccountTemplateItem>> entry : docAccountTemplateDto.getDocTemplateMap().entrySet()) {
             Map<String, Long> influenceColumnIdMap = new HashMap<>();
             Map<String, List<Long>> influenceValueMap = new HashMap<>();
             for (DocAccountTemplateItem docTemplate : entry.getValue()) {
