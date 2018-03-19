@@ -73,7 +73,7 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
 
             StringBuilder errorMessage = new StringBuilder();
             String key = entry.getKey();
-            Long industry = AcmDocAccountTemplate.getIndustry(key);
+            Long industry = AcmDocAccountTemplate.getValue(key, AcmDocAccountTemplate.INDUSTRY_ID);
             List<SetColumnsTacticsDto> tacticsList = tacticsMap.get(industry);
             for (Entry<String, Long> columnIdEntry : influenceColumnIdMap.entrySet()) {
                 Long columnId = columnIdEntry.getValue();
@@ -121,7 +121,7 @@ public class TemplateInfluenceValidator implements ITemplateValidatable {
                 }
             }
             if (errorMessage.length() != 0) {
-                Integer accountingStandard = AcmDocAccountTemplate.getAccountingStandard(key);
+                Long accountingStandard = AcmDocAccountTemplate.getValue(key, AcmDocAccountTemplate.ACCOUNTING_STANDARDS_ID);
                 String industryStr = CommonUtil.getAccountingStandardName(accountingStandard) + CommonUtil.getIndustryName(industry) + "行业，";
                 message.append(industryStr + errorMessage.toString());
             }

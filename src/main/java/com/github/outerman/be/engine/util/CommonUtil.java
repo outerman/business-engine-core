@@ -121,7 +121,7 @@ public final class CommonUtil {
         return name;
     }
 
-    public static String getAccountingStandardName(Integer id) {
+    public static String getAccountingStandardName(Long id) {
         String name;
         if (id == 18) {
             name = "企业会计准则2007";

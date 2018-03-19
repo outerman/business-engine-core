@@ -38,8 +38,6 @@ public class BusinessTemplate implements IValidatable {
 
     private BusinessTemplateDto businessTemplateDto;
 
-    private ITemplateProvider templateProvider;
-
     /**
      * 初始化方法，按照企业、业务类型编码，获取凭证模板、结算模板、元数据模板数据
      * <p>企业 id 为 0 时获取系统预置数据
@@ -48,7 +46,6 @@ public class BusinessTemplate implements IValidatable {
      * @param templateProvider
      */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
-        this.templateProvider = templateProvider;
         docAccountTemplate.init(org, businessCode, templateProvider);
         paymentTemplate.init(org, businessCode, templateProvider);
         uiTemplate.init(org, businessCode, templateProvider);
@@ -116,14 +113,6 @@ public class BusinessTemplate implements IValidatable {
 
     public void setUiTemplate(AcmUITemplate uiTemplate) {
         this.uiTemplate = uiTemplate;
-    }
-
-    /**
-     * 获取templateProvider
-     * @return templateProvider
-     */
-    public ITemplateProvider getTemplateProvider() {
-        return templateProvider;
     }
 
 }

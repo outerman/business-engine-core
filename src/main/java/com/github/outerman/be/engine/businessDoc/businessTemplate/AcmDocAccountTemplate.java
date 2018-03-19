@@ -29,6 +29,12 @@ import com.github.outerman.be.engine.util.StringUtil;
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class AcmDocAccountTemplate implements IValidatable {
 
+    public static final String INDUSTRY_ID = "industryId";
+
+    public static final String ACCOUNTING_STANDARDS_ID = "accountingStandardsId";
+
+    public static final String VAT_TAXPAYER_ID = "vatTaxpayerId";
+
     private AcmDocAccountTemplateDto docTemplateDto;
 
     /**
@@ -45,7 +51,7 @@ public class AcmDocAccountTemplate implements IValidatable {
 
         List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
         all.forEach(template -> {
-            String key = getKey(template.getIndustry(), template.getAccountingStandardsId());
+            String key = getKey(org);
             if (docTemplateDto.getAllPossibleTemplate().get(key) == null) {
                 docTemplateDto.getAllPossibleTemplate().put(key, new ArrayList<>());
             }
@@ -144,7 +150,7 @@ public class AcmDocAccountTemplate implements IValidatable {
             return resultMap;
         }
         List<DocAccountTemplateItem> docTemplateList = new ArrayList<>();
-        String key = getKey(org.getIndustry(), org.getAccountingStandards().intValue());
+        String key = getKey(org);
         Map<String, List<DocAccountTemplateItem>> map = docTemplateDto.getAllPossibleTemplate();
         if (map.containsKey(key)) {
             docTemplateList = map.get(key);
@@ -207,8 +213,8 @@ public class AcmDocAccountTemplate implements IValidatable {
             }
             if (industryMessage.length() != 0) {
                 String key = entry.getKey();
-                Long industry = getIndustry(key);
-                Integer accountingStandard = getAccountingStandard(key);
+                Long industry = getValue(key, INDUSTRY_ID);
+                Long accountingStandard = getValue(key, ACCOUNTING_STANDARDS_ID);
                 String industryErrorMessage = CommonUtil.getAccountingStandardName(accountingStandard) + CommonUtil.getIndustryName(industry) + "行业，";
                 message.append(industryErrorMessage + industryMessage.toString());
             }
@@ -219,22 +225,22 @@ public class AcmDocAccountTemplate implements IValidatable {
         return errorMessage + message.toString();
     }
 
-    public static String getKey(Long industry, Integer standard) {
-        return industry + "_" + standard;
+    public static String getKey(SetOrg org) {
+        StringBuilder key = new StringBuilder();
+        key.append(INDUSTRY_ID).append(":").append(org.getIndustry()).append(";");
+        key.append(ACCOUNTING_STANDARDS_ID).append(":").append(org.getAccountingStandards()).append(";");
+        key.append(VAT_TAXPAYER_ID).append(":").append(org.getVatTaxpayer());
+        return key.toString();
     }
 
-    public static Long getIndustry(String key) {
-        String[] keyArray = key.split("_");
-        if (keyArray.length == 2) {
-            return Long.parseLong(keyArray[0]);
-        }
-        return null;
-    }
-
-    public static Integer getAccountingStandard(String key) {
-        String[] keyArray = key.split("_");
-        if (keyArray.length == 2) {
-            return Integer.parseInt(keyArray[1]);
+    public static Long getValue(String key, String keyName) {
+        String[] keyArray = key.split(";");
+        for (String keyString : keyArray) {
+            String[] keyValue = keyString.split(":");
+            String _keyName = keyValue[0];
+            if (keyName.equals(_keyName)) {
+                return Long.parseLong(keyValue[1]);
+            }
         }
         return null;
     }
