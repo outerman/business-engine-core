@@ -1,16 +1,15 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
-import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.engine.util.SpringContextHelper;
-import com.github.outerman.be.engine.util.StringUtil;
-import com.github.outerman.be.api.constant.CommonConst;
-import com.github.outerman.be.api.constant.BusinessEngineException;
-import com.github.outerman.be.api.vo.SetOrg;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.github.outerman.be.api.constant.CommonConst;
+import com.github.outerman.be.api.vo.SetOrg;
+import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
+import com.github.outerman.be.engine.util.SpringContextHelper;
 
 /**
  * Created by shenxy on 19/7/17.
@@ -28,13 +27,6 @@ public class TemplateManager {
     private SpringContextHelper contextHelper;
 
     public BusinessTemplate fetchBusinessTemplate(SetOrg org, String businessCode, ITemplateProvider provider) {
-        if (org == null || StringUtil.isEmpty(businessCode)) {
-            throw new BusinessEngineException("", "参数（org、businessCode）不能为空");
-        }
-        if (org.getId() == null) {
-            org.setId(0L);
-        }
-
         BusinessTemplate ret;
         String key = getKey(org.getId(), businessCode);
         if (businessTemplateMap.containsKey(key)) {
