@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.constant.BusinessCode;
-import com.github.outerman.be.api.constant.BusinessTypeUtil;
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.AcmSortReceiptSettlestyle;
@@ -49,17 +48,6 @@ public class FiDocHandler {
     private List<FiDocEntryDto> creditTaxList = new ArrayList<>();
     /** 凭证模板中本表自平分录 */
     private List<FiDocEntryDto> ownSortList = new ArrayList<>();
-    /** 进项税额转出分录 */
-    private List<FiDocEntryDto> inputTaxTransferList = new ArrayList<>();
-
-    /** 进项税额转出凭证分录摘要 */
-    private static String INPUT_TAX_TRANSFER_SUMMARY = "进项税额转出";
-
-    /** 小企业会计准则2013，工资单生成凭证分录合并时忽略业务类型的科目列表 */
-    private static String[] MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2013 = { "560202", "560102", "410110", "400103", "400203", "43010102", "5401" };
-
-    /** 企业会计准则2007，工资单生成凭证分录合并时忽略业务类型的科目列表 */
-    private static String[] MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2007 = { "660211", "660111", "510110", "500103", "520103", "53010102", "6401" };
 
     private Map<String, FiDocEntryDto> entryMap = new HashMap<>();;
 
@@ -77,13 +65,6 @@ public class FiDocHandler {
         entrys.addAll(debitTaxList);
         entrys.addAll(creditMainList);
         entrys.addAll(creditTaxList);
-        // 动产清理收入（资产模块） 、不动产清理收入（资产模块）本表平分录放在最后，这两项业务是从资产管理模块过来的，只会有一条明细
-        String businessCode = receipt.getAcmSortReceiptDetailList().get(0).getBusinessCode();
-        if (businessCode.equals(BusinessCode.BUSINESS_1020001200) || businessCode.equals(BusinessCode.BUSINESS_1020001205)) {
-            entrys.removeAll(ownSortList);
-            entrys.addAll(ownSortList);
-        }
-        entrys.addAll(inputTaxTransferList);
         // 正负混录的流水账收支明细，分录合并之后分录金额可能为 0 ，需要去掉金额为 0 的分录
         List<FiDocEntryDto> zeroAmountList = new ArrayList<>();
         for (FiDocEntryDto docEntry : entrys) {
@@ -120,9 +101,6 @@ public class FiDocHandler {
 
     public void addEntry(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail) {
         boolean needMerge = true;
-        if (BusinessTypeUtil.NOT_MERGE_BUSINESS.contains(docTemplate.getBusinessCode())) {
-            needMerge = false;
-        }
         InnerFiDocEntryDto innerEntry = getDocEntryDto(docTemplate, detail);
         if (innerEntry == null) {
             return;
@@ -148,9 +126,7 @@ public class FiDocHandler {
             existEntry.setPrice(DoubleUtil.div(amount, existEntry.getQuantity()));
         } else {
             // 新增分录，按照排序规则放到指定位置
-            if (INPUT_TAX_TRANSFER_SUMMARY.equals(docTemplate.getSummary())) {
-                addSpecialEntry(entry, inputTaxTransferList, docTemplate);
-            } else if (!docTemplate.getIsSettlement() || BusinessTypeUtil.SPECIAL_ORDER.contains(docTemplate.getBusinessCode())) {
+            if (!docTemplate.getIsSettlement()) {
                 // 本表自评时
                 addSpecialEntry(entry, ownSortList, docTemplate);
             } else {
@@ -168,11 +144,7 @@ public class FiDocHandler {
 
         FiAccount account = docTemplate.getAccount();
         StringBuilder key = new StringBuilder();
-        boolean isInputTaxTransfer = INPUT_TAX_TRANSFER_SUMMARY.equals(docTemplate.getSummary());
-        if (isInputTaxTransfer) { // 进项税额凭证分录单独处理合并
-            key.append("_inputTaxTransfer");
-        }
-        boolean isOwnSort = !docTemplate.getIsSettlement() || BusinessTypeUtil.SPECIAL_ORDER.contains(docTemplate.getBusinessCode());
+        boolean isOwnSort = !docTemplate.getIsSettlement();
         if (isOwnSort) {
             key.append("_ownSort");
         }
@@ -192,10 +164,7 @@ public class FiDocHandler {
         key.append("_accountCode").append(account.getCode());
         entry.setSourceFlag(docTemplate.getFlag());
 
-        boolean isWage = BusinessTypeUtil.GONGZI_VOUCHERTYPE_LIST.contains(receipt.getSourceVoucherTypeId());
-        if (!isInputTaxTransfer && !(isWage && mergeIgnoreBusiness(account.getCode()))) {
-            key.append("_businessType").append(detail.getBusinessType());
-        }
+        key.append("_businessType").append(detail.getBusinessType());
         entry.setSourceBusinessTypeId(detail.getBusinessType());
         // TODO notesNum invoiceType taxRate
         // 单价 看是否抵扣然后传递不同的单价
@@ -268,12 +237,10 @@ public class FiDocHandler {
             }
         }
 
-        if (!isInputTaxTransfer && !isWage) {
-            Map<String, String> influenceMap = docTemplate.getInfluenceMap();
-            if (influenceMap != null) {
-                for (Entry<String, String> influence : influenceMap.entrySet()) {
-                    key.append("_" + influence.getKey()).append(influence.getValue());
-                }
+        Map<String, String> influenceMap = docTemplate.getInfluenceMap();
+        if (influenceMap != null) {
+            for (Entry<String, String> influence : influenceMap.entrySet()) {
+                key.append("_" + influence.getKey()).append(influence.getValue());
             }
         }
 
@@ -283,29 +250,8 @@ public class FiDocHandler {
         return result;
     }
 
-    private boolean mergeIgnoreBusiness(String accountCode) {
-        boolean result = false;
-        String[] accountArray = null;
-        Long accountingStandards = org.getAccountingStandards();
-        if (accountingStandards.equals(CommonConst.ACCOUNTINGSTANDARDS_0001)) {
-            accountArray = MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2007;
-        } else if (accountingStandards.equals(CommonConst.ACCOUNTINGSTANDARDS_0002)) {
-            accountArray = MERGE_IGNORE_BUSINESSTYPE_ACCOUNTCODE_2013;
-        }
-        if (accountArray == null) {
-            return result;
-        }
-        for (String account : accountArray) {
-            if (accountCode.startsWith(account)) {
-                result = true;
-                break;
-            }
-        }
-        return result;
-    }
-
     private void addSpecialEntry(FiDocEntryDto entry, List<FiDocEntryDto> list, DocAccountTemplateItem docTemplate) {
-        if (list.size() == 0 || BusinessTypeUtil.NOT_MERGE_BUSINESS.contains(docTemplate.getBusinessCode())) {
+        if (list.size() == 0) {
             list.add(entry);
             return;
         }
