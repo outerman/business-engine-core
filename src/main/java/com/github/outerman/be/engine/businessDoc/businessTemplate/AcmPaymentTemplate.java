@@ -28,10 +28,10 @@ public class AcmPaymentTemplate implements IValidatable {
     private AcmPaymentTemplateDto paymentTemplateDto;
 
     /**
-     * 初始化方法，按照企业、业务类型编码，获取凭证结算模板数据
+     * 初始化方法，按照企业、业务编码，获取凭证结算模板数据
      * <p>企业 id 为 0 时获取系统预置数据
      * @param org 企业信息
-     * @param businessCode 业务类型编码
+     * @param businessCode 业务编码
      * @param templateProvider
      */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
@@ -40,13 +40,14 @@ public class AcmPaymentTemplate implements IValidatable {
         paymentTemplateDto.setBusinessCode(businessCode);
 
         List<PaymentTemplateItem> payTemp = templateProvider.getPayTemplate(org.getId(), businessCode);
-        paymentTemplateDto.getPayMap().putAll(getPay(payTemp));
-
+        Map<String, PaymentTemplateItem> payMap = new HashMap<>();
         for (PaymentTemplateItem acmPayDocTemplate : payTemp) {
+            payMap.put(acmPayDocTemplate.getPaymentsType().toString() + acmPayDocTemplate.getAccountType(), acmPayDocTemplate);
             if (!paymentTemplateDto.getCodeList().contains(acmPayDocTemplate.getSubjectDefault())) {
                 paymentTemplateDto.getCodeList().add(acmPayDocTemplate.getSubjectDefault());
             }
         }
+        paymentTemplateDto.getPayMap().putAll(payMap);
     }
 
     public List<String> getAccountCodeList() {
@@ -64,16 +65,6 @@ public class AcmPaymentTemplate implements IValidatable {
 
         Long paymentType = getPaymentsType(settle);
         return paymentTemplateDto.getPayMap().get(paymentType + "" + settle.getBankAccountAttr());
-    }
-
-    private Map<String, PaymentTemplateItem> getPay(List<PaymentTemplateItem> payTemp) {
-        Map<String, PaymentTemplateItem> payMap = new HashMap<>();
-
-        for (PaymentTemplateItem acmPayDocTemplate : payTemp) {
-            payMap.put(acmPayDocTemplate.getPaymentsType().toString() + acmPayDocTemplate.getAccountType(), acmPayDocTemplate);
-        }
-
-        return payMap;
     }
 
     @Override

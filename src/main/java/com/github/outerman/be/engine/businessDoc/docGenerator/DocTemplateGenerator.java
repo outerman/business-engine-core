@@ -129,7 +129,7 @@ public class DocTemplateGenerator {
                 continue;
             }
             for (int detailIndex = 0, detailLength = detailList.size(); detailIndex < detailLength; detailIndex++) {
-                AcmSortReceiptDetail detail = detailList.get(detailLength);
+                AcmSortReceiptDetail detail = detailList.get(detailIndex);
                 String businessCode = detail.getBusinessCode();
                 if (StringUtil.isEmpty(businessCode)) {
                     voucher.setValid(false);

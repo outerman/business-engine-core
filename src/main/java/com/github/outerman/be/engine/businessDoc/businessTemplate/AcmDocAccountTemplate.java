@@ -38,10 +38,10 @@ public class AcmDocAccountTemplate implements IValidatable {
     private AcmDocAccountTemplateDto docTemplateDto;
 
     /**
-     * 初始化方法，按照企业、业务类型编码，获取凭证模板数据
+     * 初始化方法，按照企业、业务编码，获取业务凭证模板数据
      * <p>企业 id 为 0 时获取系统预置数据
      * @param org 企业信息
-     * @param businessCode 业务类型编码
+     * @param businessCode 业务编码
      * @param templateProvider
      */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
@@ -56,13 +56,11 @@ public class AcmDocAccountTemplate implements IValidatable {
                 docTemplateDto.getAllPossibleTemplate().put(key, new ArrayList<>());
             }
             docTemplateDto.getAllPossibleTemplate().get(key).add(template);
+            if (!docTemplateDto.getCodeList().contains(template.getAccountCode())) {
+                docTemplateDto.getCodeList().add(template.getAccountCode());
+            }
         });
 
-        for (DocAccountTemplateItem acmBusinessDocTemplate : all) {
-            if (!docTemplateDto.getCodeList().contains(acmBusinessDocTemplate.getAccountCode())) {
-                docTemplateDto.getCodeList().add(acmBusinessDocTemplate.getAccountCode());
-            }
-        }
     }
 
     /**
