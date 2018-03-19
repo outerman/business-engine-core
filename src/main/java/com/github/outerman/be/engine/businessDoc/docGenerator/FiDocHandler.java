@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.github.outerman.be.api.constant.BusinessCode;
-import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.AcmSortReceiptSettlestyle;
@@ -366,24 +365,6 @@ public class FiDocHandler {
                 bankAccountId = detail.getInBankAccountId();
             }
             account = accountMap.get(accountCode + "_" + bankAccountId);
-        } else if (isInvestorAccount(docTemplate)) {
-            Long investorId = detail.getInvestorId();
-            if (investorId == null) {
-                investorId = 0L;
-            }
-            account = accountMap.get(accountCode + "_" + investorId);
-            if (account == null) {
-                account = accountMap.get(accountCode + "_0");
-            }
-        } else if (isInvesteeAccount(docTemplate)) {
-            Long investeeId = detail.getByInvestorId();
-            if (investeeId == null) {
-                investeeId = 0L;
-            }
-            account = accountMap.get(accountCode + "_" + investeeId);
-            if (account == null) {
-                account = accountMap.get(accountCode + "_0");
-            }
         } else {
             account = accountMap.get(accountCode);
         }
@@ -394,46 +375,6 @@ public class FiDocHandler {
             }
         }
         return account;
-    }
-
-    /**
-     * 凭证模板对应科目是否投资人相关的科目
-     * @param template 凭证模板
-     * @return 是否投资人相关的科目
-     */
-    private boolean isInvestorAccount(DocAccountTemplateItem template) {
-        boolean result = false;
-        if (template.getAccountingStandardsId() == null) {
-            return result;
-        }
-        long accountingStandardId = template.getAccountingStandardsId().longValue();
-        String accountCode = template.getAccountCode();
-        // 企业会计准则2007 实收资本科目 4001、小企业会计准则2013 实收资本科目 3001 为投资人相关的科目
-        if ((accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0001 && "4001".equals(accountCode))
-                || (accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0002 && "3001".equals(accountCode))) {
-            result = true;
-        }
-        return result;
-    }
-
-    /**
-     * 凭证模板对应科目是否被投资人相关的科目
-     * @param template 凭证模板
-     * @return 是否被投资人相关的科目
-     */
-    private boolean isInvesteeAccount(DocAccountTemplateItem template) {
-        boolean result = false;
-        if (template.getAccountingStandardsId() == null) {
-            return result;
-        }
-        long accountingStandardId = template.getAccountingStandardsId().longValue();
-        String accountCode = template.getAccountCode();
-        // 企业会计准则2007 长期股权投资-成本科目 151101、小企业会计准则2013 长期股权投资科目 1511 为被投资人相关的科目
-        if ((accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0001 && "151101".equals(accountCode))
-                || (accountingStandardId == CommonConst.ACCOUNTINGSTANDARDS_0002 && "1511".equals(accountCode))) {
-            result = true;
-        }
-        return result;
     }
 
     /**
