@@ -50,9 +50,6 @@ public class DocTemplateGenerator {
             return resultDto;
         }
 
-        List<FiDocDto> docList = new ArrayList<>();
-        SetCurrency currency = templateProvider.getBaseCurrency(org.getId());
-
         Map<String, BusinessTemplate> templateMap = new HashMap<>();
         Set<String> accountCodeSet = new HashSet<>();
         List<AcmSortReceiptDetail> detailList = new ArrayList<>();
@@ -72,8 +69,10 @@ public class DocTemplateGenerator {
                 accountCodeSet.addAll(businessTemplate.getPaymentTemplate().getAccountCodeList());
             }
         }
-
         Map<String, FiAccount> accountMap = templateProvider.getAccountCode(org.getId(), new ArrayList<String>(accountCodeSet), detailList);
+
+        SetCurrency currency = templateProvider.getBaseCurrency(org.getId());
+        List<FiDocDto> docList = new ArrayList<>();
         for (AcmSortReceipt voucher : voucherList) {
             if (!voucher.getValid()) {
                 continue;
@@ -133,7 +132,7 @@ public class DocTemplateGenerator {
 
     private boolean convertVoucher(FiDocHandler docHandler, FiDocGenetateResultDto resultDto) {
         AcmSortReceipt voucher = docHandler.getReceipt();
-        List<AcmSortReceiptDetail> detailList = reorderReceiptDetailList(voucher.getAcmSortReceiptDetailList());
+        List<AcmSortReceiptDetail> detailList = reorderDetailList(voucher.getAcmSortReceiptDetailList());
         Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
         BusinessTemplate businessTemplate = null;
         for (AcmSortReceiptDetail detail : detailList) {
@@ -196,7 +195,7 @@ public class DocTemplateGenerator {
      * @param detailList
      * @return 重新排序后的收支明细
      */
-    private List<AcmSortReceiptDetail> reorderReceiptDetailList(List<AcmSortReceiptDetail> detailList) {
+    private List<AcmSortReceiptDetail> reorderDetailList(List<AcmSortReceiptDetail> detailList) {
         LinkedHashMap<Long, List<AcmSortReceiptDetail>> retMap = new LinkedHashMap<>();
         for (AcmSortReceiptDetail detail : detailList) {
             if (detail == null) {
@@ -213,8 +212,8 @@ public class DocTemplateGenerator {
         }
 
         List<AcmSortReceiptDetail> ret = new ArrayList<>();
-        for (List<AcmSortReceiptDetail> acmSortReceiptDetails : retMap.values()) {
-            ret.addAll(acmSortReceiptDetails);
+        for (List<AcmSortReceiptDetail> details : retMap.values()) {
+            ret.addAll(details);
         }
         return ret;
     }
