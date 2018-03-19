@@ -30,58 +30,59 @@ public class TemplateSettleValidator implements ITemplateValidatable {
 
     @Override
     public String validate(AcmDocAccountTemplateDto docAccountTemplateDto, AcmPaymentTemplateDto paymentTemplateDto, AcmUITemplateDto uiTemplateDto) {
+        return "";
         // 元数据模板银行账号（结算方式）显示（现在显示即必填）时，凭证模板对方科目来源必须存在结算方式
-        if (docAccountTemplateDto.getBusinessCode().toString().startsWith("40")) {
-            // 存取现金/内部账户互转 都是本表自平
-            return "";
-        }
-
-        String errorMessage = "业务类型 " + docAccountTemplateDto.getBusinessCode() + " 元数据模板银行账户（结算方式）显示时，凭证模板需要存在对应科目来源为结算方式的数据：";
-        Map<String, List<DocAccountTemplateItem>> docTemplateMap = docAccountTemplateDto.getAllPossibleTemplate();
-
-        // 验证每个行业
-        StringBuilder industryMessage = new StringBuilder();
-        for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
-            boolean accountVisible = false;
-            for (SetColumnsTacticsDto tactics : entry.getValue()) {
-                Long columnId = tactics.getColumnsId();
-                Integer flag = tactics.getFlag();
-                if (columnId.equals(CommonConst.BANK_ACCOUNT_COLUMN_ID) && flag != null && flag > 0) {
-                    accountVisible = true;
-                    break;
-                }
-            }
-            if (!accountVisible) {
-                continue;
-            }
-
-            // 凭证模板区分会计准则，每个会计准则都需要验证
-            Long industry = entry.getKey();
-            String industryStr = CommonUtil.getIndustryName(industry) + "行业";
-            for (Long accountingStandard : CommonConst.ACCOUNTING_STANDARD_ID_LIST) {
-                String key = AcmDocAccountTemplate.getKey(industry, accountingStandard.intValue());
-                if (!docTemplateMap.containsKey(key)) {
-                    continue;
-                }
-
-                boolean docTemplateHasSettle = false;
-                List<DocAccountTemplateItem> docTemplateList = docTemplateMap.get(key);
-                for (DocAccountTemplateItem docTemplate : docTemplateList) {
-                    Boolean isSettlement = docTemplate.getIsSettlement();
-                    if (isSettlement != null && isSettlement) {
-                        docTemplateHasSettle = true;
-                        break;
-                    }
-                }
-                if (!docTemplateHasSettle) {
-                    industryMessage.append(CommonUtil.getAccountingStandardName(accountingStandard.intValue()) + industryStr + "；");
-                }
-            }
-        }
-        if (industryMessage.length() == 0) {
-            return "";
-        }
-        return errorMessage + industryMessage.toString();
+//        if (docAccountTemplateDto.getBusinessCode().toString().startsWith("40")) {
+//            // 存取现金/内部账户互转 都是本表自平
+//            return "";
+//        }
+//
+//        String errorMessage = "业务类型 " + docAccountTemplateDto.getBusinessCode() + " 元数据模板银行账户（结算方式）显示时，凭证模板需要存在对应科目来源为结算方式的数据：";
+//        Map<String, List<DocAccountTemplateItem>> docTemplateMap = docAccountTemplateDto.getAllPossibleTemplate();
+//
+//        // 验证每个行业
+//        StringBuilder industryMessage = new StringBuilder();
+//        for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
+//            boolean accountVisible = false;
+//            for (SetColumnsTacticsDto tactics : entry.getValue()) {
+//                Long columnId = tactics.getColumnsId();
+//                Integer flag = tactics.getFlag();
+//                if (columnId.equals(CommonConst.BANK_ACCOUNT_COLUMN_ID) && flag != null && flag > 0) {
+//                    accountVisible = true;
+//                    break;
+//                }
+//            }
+//            if (!accountVisible) {
+//                continue;
+//            }
+//
+//            // 凭证模板区分会计准则，每个会计准则都需要验证
+//            Long industry = entry.getKey();
+//            String industryStr = CommonUtil.getIndustryName(industry) + "行业";
+//            for (Long accountingStandard : CommonConst.ACCOUNTING_STANDARD_ID_LIST) {
+//                String key = AcmDocAccountTemplate.getKey(industry, accountingStandard.intValue());
+//                if (!docTemplateMap.containsKey(key)) {
+//                    continue;
+//                }
+//
+//                boolean docTemplateHasSettle = false;
+//                List<DocAccountTemplateItem> docTemplateList = docTemplateMap.get(key);
+//                for (DocAccountTemplateItem docTemplate : docTemplateList) {
+//                    Boolean isSettlement = docTemplate.getIsSettlement();
+//                    if (isSettlement != null && isSettlement) {
+//                        docTemplateHasSettle = true;
+//                        break;
+//                    }
+//                }
+//                if (!docTemplateHasSettle) {
+//                    industryMessage.append(CommonUtil.getAccountingStandardName(accountingStandard.intValue()) + industryStr + "；");
+//                }
+//            }
+//        }
+//        if (industryMessage.length() == 0) {
+//            return "";
+//        }
+//        return errorMessage + industryMessage.toString();
     }
 
 }
