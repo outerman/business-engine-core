@@ -26,6 +26,7 @@ import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.TemplateManager;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
+import com.github.outerman.be.engine.util.StringUtil;
 
 /**
  * Created by shenxy on 16/12/28. 生成凭证的工具类
@@ -126,6 +127,18 @@ public class DocTemplateGenerator {
                 fail.setMsg(String.format(ErrorCode.VOUCHER_DETAIL_EMPTY, Integer.toString(index + 1)));
                 failList.add(fail);
                 continue;
+            }
+            for (int detailIndex = 0, detailLength = detailList.size(); detailIndex < detailLength; detailIndex++) {
+                AcmSortReceiptDetail detail = detailList.get(detailLength);
+                String businessCode = detail.getBusinessCode();
+                if (StringUtil.isEmpty(businessCode)) {
+                    voucher.setValid(false);
+                    ReceiptResult fail = new ReceiptResult();
+                    fail.setReceipt(voucher);
+                    fail.setMsg(String.format(ErrorCode.BUSINESS_CODE_EMPTY, Integer.toString(index + 1), Integer.toString(detailIndex + 1)));
+                    failList.add(fail);
+                    break;
+                }
             }
         }
     }
