@@ -11,6 +11,9 @@ public class AcmSortReceiptDetail implements Serializable {
 
     private String businessCode;
 
+    /** 业务属性：收入或者支出 */
+    private Long businessPropertyId;
+
     /** 是否抵扣(0:否1：是)  */
     private Byte isDeduction;
 
@@ -218,6 +221,22 @@ public class AcmSortReceiptDetail implements Serializable {
 
     public void setBusinessCode(String businessCode) {
         this.businessCode = businessCode;
+    }
+
+    /**
+     * 获取业务属性：收入或者支出
+     * @return 业务属性：收入或者支出
+     */
+    public Long getBusinessPropertyId() {
+        return businessPropertyId;
+    }
+
+    /**
+     * 设置业务属性：收入或者支出
+     * @param businessPropertyId 业务属性：收入或者支出
+     */
+    public void setBusinessPropertyId(Long businessPropertyId) {
+        this.businessPropertyId = businessPropertyId;
     }
 
     public Long getConsumer() {

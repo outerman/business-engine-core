@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.AcmSortReceiptSettlestyle;
@@ -18,7 +19,6 @@ import com.github.outerman.be.api.vo.SetCurrency;
 import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AmountGetter;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
-import com.github.outerman.be.engine.util.BusinessUtil;
 import com.github.outerman.be.engine.util.DoubleUtil;
 import com.github.outerman.be.engine.util.StringUtil;
 
@@ -152,7 +152,7 @@ public class FiDocHandler {
         entry.setSourceBusinessTypeId(detail.getBusinessType());
         // 单价 看是否抵扣然后传递不同的单价
         Boolean isDeduction = detail.getIsDeduction() != null && detail.getIsDeduction() == 1;
-        if (BusinessUtil.paymentDirection(detail.getBusinessCode()) == 1 || isDeduction) {
+        if (detail.getBusinessPropertyId() == CommonConst.PAYMENT_DIRECTION_IN || isDeduction) {
             entry.setPrice(detail.getPrice());
         } else {
             entry.setPrice(detail.getTaxInclusivePrice());
