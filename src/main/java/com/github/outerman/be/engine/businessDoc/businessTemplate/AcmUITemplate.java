@@ -143,114 +143,115 @@ public class AcmUITemplate implements IValidatable {
      * @return
      */
     private String validateSpecial() {
-        Map<Long, List<SetColumnsSpecialVo>> specialMap = uiTemplateDto.getSpecialMap();
-        // 校验银行账号（结算方式）、税率（征收率）显示（Flag = 1 | 2）时，特殊输入规则中要有对应的数据
-        StringBuilder message = new StringBuilder();
-        // 验证所有行业
-        for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
-            List<SetColumnsSpecialVo> specialList = specialMap.get(entry.getKey());
-            if (specialList == null) {
-                specialList = new ArrayList<>();
-            }
-
-            // 不同票据类型元数据配置不同，分别验证
-            Map<Long, List<SetColumnsTacticsDto>> tacticsInvoiceMap = new HashMap<>();
-            for (SetColumnsTacticsDto tactics : entry.getValue()) {
-                Long invoiceId = tactics.getInvoiceId();
-                Long columnId = tactics.getColumnsId();
-                if (invoiceId == null || columnId == null) {
-                    continue;
-                }
-                if (!columnId.equals(CommonConst.BANK_ACCOUNT_COLUMN_ID) && !columnId.equals(CommonConst.TAX_RATE_COLUMN_ID)
-                        && !columnId.equals(CommonConst.VAT_TAX_PAYER_41_COLUMN_ID) && !columnId.equals(CommonConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
-                    // 银行账号、税率、一般纳税人、小规模纳税人
-                    continue;
-                }
-                List<SetColumnsTacticsDto> tacticsInvoiceList;
-                if (tacticsInvoiceMap.containsKey(invoiceId)) {
-                    tacticsInvoiceList = tacticsInvoiceMap.get(invoiceId);
-                } else {
-                    tacticsInvoiceList = new ArrayList<>();
-                    tacticsInvoiceMap.put(invoiceId, tacticsInvoiceList);
-                }
-                tacticsInvoiceList.add(tactics);
-            }
-
-            List<String> accountInvoiceNameList = new ArrayList<>();
-            List<String> taxRateInvoiceNameList = new ArrayList<>();
-            for (Entry<Long, List<SetColumnsTacticsDto>> invoiceEntry : tacticsInvoiceMap.entrySet()) {
-                String invoiceName = CommonUtil.getInvoiceName(invoiceEntry.getKey());
-                SetColumnsTacticsDto tacticsBankAccount = null;
-                SetColumnsTacticsDto tacticsTaxRate = null;
-                Boolean isGeneralTaxPayer = false;
-                Boolean isSmallScaleTaxPayer = false;
-                for (SetColumnsTacticsDto tactics : invoiceEntry.getValue()) {
-                    Long columnId = tactics.getColumnsId();
-                    if (columnId.equals(CommonConst.BANK_ACCOUNT_COLUMN_ID)) {
-                        tacticsBankAccount = tactics;
-                    } else if (columnId.equals(CommonConst.TAX_RATE_COLUMN_ID)) {
-                        tacticsTaxRate = tactics;
-                    } else if (columnId.equals(CommonConst.VAT_TAX_PAYER_41_COLUMN_ID)) {
-                        Integer flag = tactics.getFlag();
-                        isGeneralTaxPayer = (flag != null && flag > 0);
-                    } else if (columnId.equals(CommonConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
-                        Integer flag = tactics.getFlag();
-                        isSmallScaleTaxPayer = (flag != null && flag > 0);
-                    }
-                }
-                if (tacticsBankAccount != null) {
-                    // 结算方式的特殊输入规则不区分票据类型，银行账号在 special 表中 column id 为 12，在 tactics 中为 14
-                    Integer flag = tacticsBankAccount.getFlag();
-                    if (flag != null && flag > 0 && !specialHasColumn(specialList, CommonConst.SETTLE_STYLE_COLUMN_ID, null)) {
-                        accountInvoiceNameList.add(invoiceName);
-                    }
-                }
-                if (tacticsTaxRate != null) {
-                    Integer flag = tacticsTaxRate.getFlag();
-                    if (flag != null && flag > 0) {
-                        Map<Integer, List<SetColumnsSpecialVo>> vatTaxpayerMap = new HashMap<>();
-                        for (SetColumnsSpecialVo special : specialList) {
-                            Long columnId = special.getColumnsId();
-                            if (!CommonConst.TAX_RATE_COLUMN_ID.equals(columnId)) {
-                                continue;
-                            }
-                            Integer vatTaxpayer = special.getVatTaxpayer();
-                            List<SetColumnsSpecialVo> vatTaxpayerList;
-                            if (vatTaxpayerMap.containsKey(vatTaxpayer)) {
-                                vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
-                            } else {
-                                vatTaxpayerList = new ArrayList<>();
-                                vatTaxpayerMap.put(vatTaxpayer, vatTaxpayerList);
-                            }
-                            vatTaxpayerList.add(special);
-                        }
-                        if (isGeneralTaxPayer) {
-                            Integer vatTaxpayer = 41;
-                            List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
-                            if (!specialHasColumn(vatTaxpayerList, CommonConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
-                                taxRateInvoiceNameList.add(invoiceName + CommonUtil.getVatTaxPayerName(vatTaxpayer));
-                            }
-                        }
-                        // 小规模纳税人收入类型业务才需要校验税率
-                        if (isSmallScaleTaxPayer && tacticsTaxRate.getPaymentsId().equals(CommonConst.PAYMENTSTYPE_10)) {
-                            Integer vatTaxpayer = 42;
-                            List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
-                            if (!specialHasColumn(vatTaxpayerList, CommonConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
-                                taxRateInvoiceNameList.add(invoiceName + CommonUtil.getVatTaxPayerName(vatTaxpayer));
-                            }
-                        }
-                    }
-                }
-            }
-            String industryStr = CommonUtil.getIndustryName(entry.getKey()) + "行业，";
-            if (!accountInvoiceNameList.isEmpty()) {
-                message.append(industryStr + String.join("、", accountInvoiceNameList) + "银行账号（结算方式）显示，可选账户类型未设置；");
-            }
-            if (!taxRateInvoiceNameList.isEmpty()) {
-                message.append(industryStr + String.join("、", taxRateInvoiceNameList) + "税率显示，可选税率未设置；");
-            }
-        }
-        return message.toString();
+        return "";
+//        Map<Long, List<SetColumnsSpecialVo>> specialMap = uiTemplateDto.getSpecialMap();
+//        // 校验银行账号（结算方式）、税率（征收率）显示（Flag = 1 | 2）时，特殊输入规则中要有对应的数据
+//        StringBuilder message = new StringBuilder();
+//        // 验证所有行业
+//        for (Entry<Long, List<SetColumnsTacticsDto>> entry : uiTemplateDto.getTacticsMap().entrySet()) {
+//            List<SetColumnsSpecialVo> specialList = specialMap.get(entry.getKey());
+//            if (specialList == null) {
+//                specialList = new ArrayList<>();
+//            }
+//
+//            // 不同票据类型元数据配置不同，分别验证
+//            Map<Long, List<SetColumnsTacticsDto>> tacticsInvoiceMap = new HashMap<>();
+//            for (SetColumnsTacticsDto tactics : entry.getValue()) {
+//                Long invoiceId = tactics.getInvoiceId();
+//                Long columnId = tactics.getColumnsId();
+//                if (invoiceId == null || columnId == null) {
+//                    continue;
+//                }
+//                if (!columnId.equals(CommonConst.BANK_ACCOUNT_COLUMN_ID) && !columnId.equals(CommonConst.TAX_RATE_COLUMN_ID)
+//                        && !columnId.equals(CommonConst.VAT_TAX_PAYER_41_COLUMN_ID) && !columnId.equals(CommonConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
+//                    // 银行账号、税率、一般纳税人、小规模纳税人
+//                    continue;
+//                }
+//                List<SetColumnsTacticsDto> tacticsInvoiceList;
+//                if (tacticsInvoiceMap.containsKey(invoiceId)) {
+//                    tacticsInvoiceList = tacticsInvoiceMap.get(invoiceId);
+//                } else {
+//                    tacticsInvoiceList = new ArrayList<>();
+//                    tacticsInvoiceMap.put(invoiceId, tacticsInvoiceList);
+//                }
+//                tacticsInvoiceList.add(tactics);
+//            }
+//
+//            List<String> accountInvoiceNameList = new ArrayList<>();
+//            List<String> taxRateInvoiceNameList = new ArrayList<>();
+//            for (Entry<Long, List<SetColumnsTacticsDto>> invoiceEntry : tacticsInvoiceMap.entrySet()) {
+//                String invoiceName = CommonUtil.getInvoiceName(invoiceEntry.getKey());
+//                SetColumnsTacticsDto tacticsBankAccount = null;
+//                SetColumnsTacticsDto tacticsTaxRate = null;
+//                Boolean isGeneralTaxPayer = false;
+//                Boolean isSmallScaleTaxPayer = false;
+//                for (SetColumnsTacticsDto tactics : invoiceEntry.getValue()) {
+//                    Long columnId = tactics.getColumnsId();
+//                    if (columnId.equals(CommonConst.BANK_ACCOUNT_COLUMN_ID)) {
+//                        tacticsBankAccount = tactics;
+//                    } else if (columnId.equals(CommonConst.TAX_RATE_COLUMN_ID)) {
+//                        tacticsTaxRate = tactics;
+//                    } else if (columnId.equals(CommonConst.VAT_TAX_PAYER_41_COLUMN_ID)) {
+//                        Integer flag = tactics.getFlag();
+//                        isGeneralTaxPayer = (flag != null && flag > 0);
+//                    } else if (columnId.equals(CommonConst.VAT_TAX_PAYER_42_COLUMN_ID)) {
+//                        Integer flag = tactics.getFlag();
+//                        isSmallScaleTaxPayer = (flag != null && flag > 0);
+//                    }
+//                }
+//                if (tacticsBankAccount != null) {
+//                    // 结算方式的特殊输入规则不区分票据类型，银行账号在 special 表中 column id 为 12，在 tactics 中为 14
+//                    Integer flag = tacticsBankAccount.getFlag();
+//                    if (flag != null && flag > 0 && !specialHasColumn(specialList, CommonConst.SETTLE_STYLE_COLUMN_ID, null)) {
+//                        accountInvoiceNameList.add(invoiceName);
+//                    }
+//                }
+//                if (tacticsTaxRate != null) {
+//                    Integer flag = tacticsTaxRate.getFlag();
+//                    if (flag != null && flag > 0) {
+//                        Map<Integer, List<SetColumnsSpecialVo>> vatTaxpayerMap = new HashMap<>();
+//                        for (SetColumnsSpecialVo special : specialList) {
+//                            Long columnId = special.getColumnsId();
+//                            if (!CommonConst.TAX_RATE_COLUMN_ID.equals(columnId)) {
+//                                continue;
+//                            }
+//                            Integer vatTaxpayer = special.getVatTaxpayer();
+//                            List<SetColumnsSpecialVo> vatTaxpayerList;
+//                            if (vatTaxpayerMap.containsKey(vatTaxpayer)) {
+//                                vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
+//                            } else {
+//                                vatTaxpayerList = new ArrayList<>();
+//                                vatTaxpayerMap.put(vatTaxpayer, vatTaxpayerList);
+//                            }
+//                            vatTaxpayerList.add(special);
+//                        }
+//                        if (isGeneralTaxPayer) {
+//                            Integer vatTaxpayer = 41;
+//                            List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
+//                            if (!specialHasColumn(vatTaxpayerList, CommonConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
+//                                taxRateInvoiceNameList.add(invoiceName + CommonUtil.getVatTaxPayerName(vatTaxpayer));
+//                            }
+//                        }
+//                        // 小规模纳税人收入类型业务才需要校验税率
+//                        if (isSmallScaleTaxPayer && tacticsTaxRate.getPaymentsId().equals(CommonConst.PAYMENTSTYPE_10)) {
+//                            Integer vatTaxpayer = 42;
+//                            List<SetColumnsSpecialVo> vatTaxpayerList = vatTaxpayerMap.get(vatTaxpayer);
+//                            if (!specialHasColumn(vatTaxpayerList, CommonConst.TAX_RATE_COLUMN_ID, invoiceEntry.getKey())) {
+//                                taxRateInvoiceNameList.add(invoiceName + CommonUtil.getVatTaxPayerName(vatTaxpayer));
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            String industryStr = CommonUtil.getIndustryName(entry.getKey()) + "行业，";
+//            if (!accountInvoiceNameList.isEmpty()) {
+//                message.append(industryStr + String.join("、", accountInvoiceNameList) + "银行账号（结算方式）显示，可选账户类型未设置；");
+//            }
+//            if (!taxRateInvoiceNameList.isEmpty()) {
+//                message.append(industryStr + String.join("、", taxRateInvoiceNameList) + "税率显示，可选税率未设置；");
+//            }
+//        }
+//        return message.toString();
     }
 
     /**

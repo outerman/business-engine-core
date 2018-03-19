@@ -152,7 +152,7 @@ public class FiDocHandler {
         entry.setSourceBusinessTypeId(detail.getBusinessType());
         // 单价 看是否抵扣然后传递不同的单价
         Boolean isDeduction = detail.getIsDeduction() != null && detail.getIsDeduction() == 1;
-        if (detail.getBusinessPropertyId() == CommonConst.PAYMENT_DIRECTION_IN || isDeduction) {
+        if (detail.getBusinessPropertyId() == CommonConst.BUSINESSPROPERTY_income || isDeduction) {
             entry.setPrice(detail.getPrice());
         } else {
             entry.setPrice(detail.getTaxInclusivePrice());

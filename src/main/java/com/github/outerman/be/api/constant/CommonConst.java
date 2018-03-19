@@ -1,114 +1,16 @@
 package com.github.outerman.be.api.constant;
 
-import java.util.Arrays;
-import java.util.List;
-
 public final class CommonConst {
 
     /**
-     * 收支方向: 没有方向
+     * 业务属性:  4000040001: 收入
      */
-    public static final int PAYMENT_DIRECTION_UNKNOWN = 0;
+    public static final long BUSINESSPROPERTY_income = 4000040001L;
 
     /**
-     * 收支方向: 收入
+     * 业务属性:  4000040002: 支出
      */
-    public static final int PAYMENT_DIRECTION_IN = 1;
-
-    /**
-     * 收支防线: 支出
-     */
-    public static final int PAYMENT_DIRECTION_OUT = 2;
-
-    /**
-     * 从 yj-common里移动过来
-     */
-    /**
-     * 收支类型: 10000: 收入
-     */
-    public static final long PAYMENTSTYPE_10 = 10000L;
-
-    /**
-     * 收支类型: 10001: 支出
-     */
-    public static final long PAYMENTSTYPE_20 = 10001L;
-
-    /**
-     * 收支类型: 10002: 成本/折旧和摊销
-     */
-    public static final long PAYMENTSTYPE_30 = 10002L;
-
-    /**
-     * 收支类型: 10003: 存取现金/内部账户互转
-     */
-    public static final long PAYMENTSTYPE_40 = 10003L;
-
-    /**
-     * 收支类型: 10004: 收款/付款
-     */
-    public static final long PAYMENTSTYPE_50 = 10004L;
-
-    /**
-     * 收支类型: 10005: 请会计处理
-     */
-    public static final long PAYMENTSTYPE_60 = 10005L;
-
-    /**
-     * 部门属性: 200000000000071: 与生产相关
-     *
-     * 从 yj-common里移动过来
-     */
-    public static final long DEPTPROPERTY_002 = 200000000000071L;
-
-    /**
-     * 单据类型
-     */
-    public static final long VOUCHERTYPE = 39L;
-
-    /**
-     * 单据类型: 109: 理票单
-     */
-    public static final long VOUCHERTYPE_0001 = 109L;
-
-    /**
-     * 单据类型: 110: 工资单
-     */
-    public static final long VOUCHERTYPE_0002 = 110L;
-
-    /**
-     * 单据类型: 100001: 工资单-工资-计提
-     */
-    public static final long VOUCHERTYPE_0003 = 100001L;
-
-    /**
-     * 单据类型: 100002: 工资单-社保-计提
-     */
-    public static final long VOUCHERTYPE_0004 = 100002L;
-
-    /**
-     * 单据类型: 100003: 工资单-住房公积金-计提
-     */
-    public static final long VOUCHERTYPE_0005 = 100003L;
-
-    /**
-     * 单据类型: 100004: 工资单-工资-发放
-     */
-    public static final long VOUCHERTYPE_0006 = 100004L;
-
-    /**
-     * 单据类型: 100005: 工资单-社保-缴纳
-     */
-    public static final long VOUCHERTYPE_0007 = 100005L;
-
-    /**
-     * 单据类型: 100006: 工资单-住房公积金-缴纳
-     */
-    public static final long VOUCHERTYPE_0008 = 100006L;
-
-    /**
-     * 单据类型: 100007: 工资单-个税-缴纳
-     */
-    public static final long VOUCHERTYPE_0009 = 100007L;
+    public static final long BUSINESSPROPERTY_expenditure = 4000040002L;
 
     public static final String BUSINESS_TEMPLATE = "BusinessTemplate";
 
@@ -153,9 +55,6 @@ public final class CommonConst {
 
     /** 小规模纳税人 column id */
     public static final Long VAT_TAX_PAYER_42_COLUMN_ID = 32L;
-
-    /** 会计准则 id 列表 */
-    public static final List<Long> ACCOUNTING_STANDARD_ID_LIST = Arrays.asList(18L, 19L);
 
     /**
      * 企业会计准则: 18: 企业会计准则2007

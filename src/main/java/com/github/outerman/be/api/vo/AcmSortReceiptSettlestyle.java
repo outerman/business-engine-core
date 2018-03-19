@@ -6,6 +6,9 @@ public class AcmSortReceiptSettlestyle implements Serializable {
 
     private static final long serialVersionUID = -4813159299386061246L;
 
+    /** 业务属性：收入或者支出 */
+    private Long businessPropertyId;
+
     /** 金额  */
     private Double taxInclusiveAmount;
 
@@ -24,11 +27,24 @@ public class AcmSortReceiptSettlestyle implements Serializable {
     /** 员工  */
     private Long employee;
 
-    /** 支付方向  */
-    private Integer payType;
-
     /** 摘要  */
     private String memo;
+
+    /**
+     * 获取业务属性：收入或者支出
+     * @return 业务属性：收入或者支出
+     */
+    public Long getBusinessPropertyId() {
+        return businessPropertyId;
+    }
+
+    /**
+     * 设置业务属性：收入或者支出
+     * @param businessPropertyId 业务属性：收入或者支出
+     */
+    public void setBusinessPropertyId(Long businessPropertyId) {
+        this.businessPropertyId = businessPropertyId;
+    }
 
     public void setTaxInclusiveAmount(Double taxInclusiveAmount) {
         this.taxInclusiveAmount = taxInclusiveAmount;
@@ -71,14 +87,6 @@ public class AcmSortReceiptSettlestyle implements Serializable {
 
     public void setConsumer(Long consumer) {
         this.consumer = consumer;
-    }
-
-    public Integer getPayType() {
-        return payType;
-    }
-
-    public void setPayType(Integer payType) {
-        this.payType = payType;
     }
 
     public String getBankAccountAttr() {
