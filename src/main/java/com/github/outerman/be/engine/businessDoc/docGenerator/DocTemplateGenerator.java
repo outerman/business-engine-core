@@ -37,27 +37,27 @@ public class DocTemplateGenerator {
     @Autowired
     private TemplateManager templateManager;
 
-    public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
-        if (receiptList != null) {
-            receiptList = receiptList.parallelStream().filter(item -> item != null).collect(Collectors.toList());
+    public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, List<AcmSortReceipt> voucherList, ITemplateProvider templateProvider) {
+        if (voucherList != null) {
+            voucherList = voucherList.parallelStream().filter(item -> item != null).collect(Collectors.toList());
         }
-        if (receiptList == null || receiptList.isEmpty()) {
+        if (voucherList == null || voucherList.isEmpty()) {
             throw ErrorCode.EXCEPTION_VOUCHER_EMPATY;
         }
         if (org == null || org.getId() == null || org.getId() == 0) {
             throw ErrorCode.EXCEPTION_ORG_EMPATY;
         }
 
-        List<FiDocDto> fiDocList = new ArrayList<>();
+        List<FiDocDto> docList = new ArrayList<>();
         SetCurrency currency = templateProvider.getBaseCurrency(org.getId());
         FiDocGenetateResultDto resultDto = new FiDocGenetateResultDto();
 
         Map<String, BusinessTemplate> templateMap = new HashMap<>();
         Set<String> accountCodeSet = new HashSet<>();
         List<AcmSortReceiptDetail> detailList = new ArrayList<>();
-        for (AcmSortReceipt receipt : receiptList) {
-            detailList.addAll(receipt.getAcmSortReceiptDetailList());
-            for (AcmSortReceiptDetail detail : receipt.getAcmSortReceiptDetailList()) {
+        for (AcmSortReceipt voucher : voucherList) {
+            detailList.addAll(voucher.getAcmSortReceiptDetailList());
+            for (AcmSortReceiptDetail detail : voucher.getAcmSortReceiptDetailList()) {
                 String businessCode = detail.getBusinessCode().toString();
                 if (templateMap.containsKey(businessCode)) {
                     continue;
@@ -70,20 +70,20 @@ public class DocTemplateGenerator {
         }
 
         Map<String, FiAccount> accountMap = templateProvider.getAccountCode(org.getId(), new ArrayList<String>(accountCodeSet), detailList);
-        for (AcmSortReceipt receipt : receiptList) {
-            FiDocHandler docHandler = new FiDocHandler(org, currency, receipt);
+        for (AcmSortReceipt voucher : voucherList) {
+            FiDocHandler docHandler = new FiDocHandler(org, currency, voucher);
             docHandler.setTemplateMap(templateMap);
             docHandler.setAccountMap(accountMap);
-            boolean result = convertReceipt(docHandler, resultDto);
+            boolean result = convertVoucher(docHandler, resultDto);
             if (!result) {
                 continue;
             }
 
             FiDocDto fiDocDto = docHandler.getFiDocDto();
-            fiDocList.add(fiDocDto);
+            docList.add(fiDocDto);
         }
 
-        fiDocList.forEach(docDto -> {
+        docList.forEach(docDto -> {
             if (docDto.getDocId() != null) {
                 resultDto.getToUpdateFiDocList().add(docDto);
             } else {
@@ -93,30 +93,27 @@ public class DocTemplateGenerator {
         return resultDto;
     }
 
-    private boolean convertReceipt(FiDocHandler docHandler, FiDocGenetateResultDto resultDto) {
-        AcmSortReceipt receipt = docHandler.getReceipt();
-        if (!validateReceipt(receipt, resultDto)) {
+    private boolean convertVoucher(FiDocHandler docHandler, FiDocGenetateResultDto resultDto) {
+        AcmSortReceipt voucher = docHandler.getReceipt();
+        if (!validateVoucher(voucher, resultDto)) {
             return false;
         }
 
-        List<AcmSortReceiptDetail> detailList = reorderReceiptDetailList(receipt.getAcmSortReceiptDetailList());
+        List<AcmSortReceiptDetail> detailList = reorderReceiptDetailList(voucher.getAcmSortReceiptDetailList());
         Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
         BusinessTemplate businessTemplate = null;
         for (AcmSortReceiptDetail detail : detailList) {
             String businessCode = detail.getBusinessCode().toString();
-            if (!templateMap.containsKey(businessCode)) {
-                continue;
-            }
             businessTemplate = templateMap.get(businessCode);
             List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(docHandler.getOrg(), detail);
             if (docTemplateList.isEmpty()) {
-                resultDto.addFailed(receipt, String.format("业务类型 %s 凭证模板数据没有找到", businessCode.toString()));
+                resultDto.addFailed(voucher, String.format("业务类型 %s 凭证模板数据没有找到", businessCode));
                 return false;
             }
             for (DocAccountTemplateItem docTemplate : docTemplateList) {
                 FiAccount account = docHandler.getAccount(docTemplate, detail);
                 if (account == null) {
-                    resultDto.addFailed(receipt, docTemplate.getAccountCode() + "科目没有查询到，请联系管理员！");
+                    resultDto.addFailed(voucher, docTemplate.getAccountCode() + "科目没有查询到，请联系管理员！");
                     return false;
                 }
                 docTemplate.setAccount(account);
@@ -128,11 +125,11 @@ public class DocTemplateGenerator {
         FiDocDto fiDocDto = docHandler.getFiDocDto();
         if (fiDocDto.getEntrys().isEmpty()) {
             // 所有流水账明细处理之后，凭证分录为空：获取到的金额字段都是 0
-            resultDto.addFailed(receipt, "凭证分录为空");
+            resultDto.addFailed(voucher, "凭证分录为空");
             return false;
         }
 
-        List<AcmSortReceiptSettlestyle> settleList = receipt.getAcmSortReceiptSettlestyleList();
+        List<AcmSortReceiptSettlestyle> settleList = voucher.getAcmSortReceiptSettlestyleList();
         if (settleList == null || settleList.isEmpty()) {
             return true;
         }
@@ -145,12 +142,12 @@ public class DocTemplateGenerator {
 
             PaymentTemplateItem payDocTemplate = businessTemplate.getPaymentTemplate().getTemplate(settle);
             if (payDocTemplate == null) {
-                resultDto.addFailed(receipt, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG);
+                resultDto.addFailed(voucher, ErrorCode.ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG);
                 return false;
             }
             FiAccount account = docHandler.getAccount(payDocTemplate, settle);
             if (account == null) {
-                resultDto.addFailed(receipt, payDocTemplate.getSubjectDefault() + "科目没有查询到，请联系管理员！");
+                resultDto.addFailed(voucher, payDocTemplate.getSubjectDefault() + "科目没有查询到，请联系管理员！");
                 return false;
             }
             payDocTemplate.setAccount(account);
@@ -160,13 +157,13 @@ public class DocTemplateGenerator {
         return true;
     }
 
-    private boolean validateReceipt(AcmSortReceipt receipt, FiDocGenetateResultDto resultDto) {
+    private boolean validateVoucher(AcmSortReceipt voucher, FiDocGenetateResultDto resultDto) {
         List<ReceiptResult> failList = resultDto.getFailedReceipt();
-        List<AcmSortReceiptDetail> detailList = receipt.getAcmSortReceiptDetailList();
+        List<AcmSortReceiptDetail> detailList = voucher.getAcmSortReceiptDetailList();
         if (detailList == null || detailList.isEmpty()) {
             String errorMessage = ErrorCode.ENGINE_DOC_GENETARE_EMPTY_DETAIL_ERROR_MSG;
             ReceiptResult fail = new ReceiptResult();
-            fail.setReceipt(receipt);
+            fail.setReceipt(voucher);
             fail.setMsg(errorMessage);
             failList.add(fail);
             return false;
