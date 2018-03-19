@@ -71,7 +71,7 @@ public class AcmDocAccountTemplate implements IValidatable {
             return resultList;
         }
         String businessCode = docTemplateDto.getBusinessCode();
-        if (!businessCode.equals(detail.getBusinessCode().toString())) {
+        if (!businessCode.equals(detail.getBusinessCode())) {
             return resultList;
         }
 

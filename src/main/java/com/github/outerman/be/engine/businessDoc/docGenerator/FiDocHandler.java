@@ -78,7 +78,7 @@ public class FiDocHandler {
         entrys.addAll(creditMainList);
         entrys.addAll(creditTaxList);
         // 动产清理收入（资产模块） 、不动产清理收入（资产模块）本表平分录放在最后，这两项业务是从资产管理模块过来的，只会有一条明细
-        String businessCode = receipt.getAcmSortReceiptDetailList().get(0).getBusinessCode().toString();
+        String businessCode = receipt.getAcmSortReceiptDetailList().get(0).getBusinessCode();
         if (businessCode.equals(BusinessCode.BUSINESS_1020001200) || businessCode.equals(BusinessCode.BUSINESS_1020001205)) {
             entrys.removeAll(ownSortList);
             entrys.addAll(ownSortList);
@@ -458,7 +458,7 @@ public class FiDocHandler {
     public FiAccount getAccount(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail) {
         FiAccount account;
         String accountCode = docTemplate.getAccountCode();
-        String businessCode = detail.getBusinessCode().toString();
+        String businessCode = detail.getBusinessCode();
         if ("1002".equals(accountCode)) {
             Long bankAccountId = detail.getBankAccountId();
             if (businessCode.equals(BusinessCode.BUSINESS_402000) && "accountInAttr".equals(docTemplate.getInfluence())

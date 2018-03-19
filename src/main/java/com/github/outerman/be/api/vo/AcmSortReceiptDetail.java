@@ -9,7 +9,7 @@ public class AcmSortReceiptDetail implements Serializable {
 
     private Long businessType;
 
-    private Long businessCode;
+    private String businessCode;
 
     /** 是否抵扣(0:否1：是)  */
     private Byte isDeduction;
@@ -215,11 +215,11 @@ public class AcmSortReceiptDetail implements Serializable {
         this.businessType = businessType;
     }
 
-    public Long getBusinessCode() {
+    public String getBusinessCode() {
         return businessCode;
     }
 
-    public void setBusinessCode(Long businessCode) {
+    public void setBusinessCode(String businessCode) {
         this.businessCode = businessCode;
     }
 

@@ -59,7 +59,7 @@ public class DocTemplateGenerator {
             }
             detailList.addAll(voucher.getAcmSortReceiptDetailList());
             for (AcmSortReceiptDetail detail : voucher.getAcmSortReceiptDetailList()) {
-                String businessCode = detail.getBusinessCode().toString();
+                String businessCode = detail.getBusinessCode();
                 if (templateMap.containsKey(businessCode)) {
                     continue;
                 }
@@ -136,7 +136,7 @@ public class DocTemplateGenerator {
         Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
         BusinessTemplate businessTemplate = null;
         for (AcmSortReceiptDetail detail : detailList) {
-            String businessCode = detail.getBusinessCode().toString();
+            String businessCode = detail.getBusinessCode();
             businessTemplate = templateMap.get(businessCode);
             List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(docHandler.getOrg(), detail);
             if (docTemplateList.isEmpty()) {
