@@ -37,8 +37,6 @@ public class DocAccountTemplateItem implements Serializable {
 
     private Integer accountingStandardsId;// 会计准则
 
-    private Boolean isSettlement;// 是否结算
-
     /** 摘要 */
     private String summary;
 
@@ -146,14 +144,6 @@ public class DocAccountTemplateItem implements Serializable {
 
     public void setVatTaxpayer(Long vatTaxpayer) {
         this.vatTaxpayer = vatTaxpayer;
-    }
-
-    public Boolean getIsSettlement() {
-        return isSettlement;
-    }
-
-    public void setIsSettlement(Boolean isSettlement) {
-        this.isSettlement = isSettlement;
     }
 
     /**

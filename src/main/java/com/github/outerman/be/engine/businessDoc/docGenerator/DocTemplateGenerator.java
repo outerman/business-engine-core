@@ -86,7 +86,7 @@ public class DocTemplateGenerator {
                 continue;
             }
 
-            FiDocDto fiDocDto = docHandler.getFiDocDto();
+            FiDocDto fiDocDto = docHandler.getDoc();
             docList.add(fiDocDto);
         }
 
@@ -152,7 +152,7 @@ public class DocTemplateGenerator {
     }
 
     private boolean convertVoucher(FiDocHandler docHandler, FiDocGenetateResultDto resultDto) {
-        AcmSortReceipt voucher = docHandler.getReceipt();
+        AcmSortReceipt voucher = docHandler.getVoucher();
         List<AcmSortReceiptDetail> detailList = reorderDetailList(voucher.getAcmSortReceiptDetailList());
         BusinessTemplate businessTemplate = null;
         Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
@@ -177,7 +177,7 @@ public class DocTemplateGenerator {
             }
         }
 
-        FiDocDto fiDocDto = docHandler.getFiDocDto();
+        FiDocDto fiDocDto = docHandler.getDoc();
         if (fiDocDto.getEntrys().isEmpty()) {
             // 所有明细处理之后，凭证分录为空：获取到的金额字段都是 0
             resultDto.addFailed(voucher, ErrorCode.ENTRY_EMPTY);

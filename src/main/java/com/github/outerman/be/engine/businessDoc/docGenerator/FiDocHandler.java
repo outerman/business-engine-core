@@ -30,13 +30,13 @@ public class FiDocHandler {
 
     private SetCurrency currency;
 
-    private AcmSortReceipt receipt;
+    private AcmSortReceipt voucher;
 
     private Map<String, BusinessTemplate> templateMap;
 
     private Map<String, FiAccount> accountMap;
 
-    private FiDocDto fiDocDto;
+    private FiDocDto doc;
 
     /** 借方主科目分录 */
     private List<FiDocEntryDto> debitMainList = new ArrayList<>();
@@ -46,26 +46,23 @@ public class FiDocHandler {
     private List<FiDocEntryDto> creditMainList = new ArrayList<>();
     /** 贷方税科目分录 */
     private List<FiDocEntryDto> creditTaxList = new ArrayList<>();
-    /** 凭证模板中本表自平分录 */
-    private List<FiDocEntryDto> ownSortList = new ArrayList<>();
 
     private Map<String, FiDocEntryDto> entryMap = new HashMap<>();;
 
     public FiDocHandler(SetOrg org, SetCurrency currency, AcmSortReceipt receipt) {
         this.org = org;
         this.currency = currency;
-        this.receipt = receipt;
-        this.fiDocDto = getDefaultDoc(receipt);
+        this.voucher = receipt;
+        this.doc = getDefaultDoc(receipt);
     }
 
-    public FiDocDto getFiDocDto() {
+    public FiDocDto getDoc() {
         List<FiDocEntryDto> entrys = new ArrayList<>();
-        entrys.addAll(ownSortList);
         entrys.addAll(debitMainList);
         entrys.addAll(debitTaxList);
         entrys.addAll(creditMainList);
         entrys.addAll(creditTaxList);
-        // 正负混录的流水账收支明细，分录合并之后分录金额可能为 0 ，需要去掉金额为 0 的分录
+        // 正负混录的业务明细，分录合并之后分录金额可能为 0 ，需要去掉金额为 0 的分录
         List<FiDocEntryDto> zeroAmountList = new ArrayList<>();
         for (FiDocEntryDto docEntry : entrys) {
             if (DoubleUtil.isNullOrZero(docEntry.getAmountDr()) && DoubleUtil.isNullOrZero(docEntry.getAmountCr())) {
@@ -75,13 +72,13 @@ public class FiDocHandler {
         if (!zeroAmountList.isEmpty()) {
             entrys.removeAll(zeroAmountList);
         }
-        fiDocDto.setEntrys(entrys);
-        return fiDocDto;
+        doc.setEntrys(entrys);
+        return doc;
     }
 
     /**
-     * 根据流水账信息获取默认的凭证 dto
-     * @param receipt 流水账信息
+     * 根据单据信息获取默认的凭证 dto
+     * @param receipt 单据信息
      */
     private FiDocDto getDefaultDoc(AcmSortReceipt receipt) {
         FiDocDto doc = new FiDocDto();
@@ -125,13 +122,7 @@ public class FiDocHandler {
             }
             existEntry.setPrice(DoubleUtil.div(amount, existEntry.getQuantity()));
         } else {
-            // 新增分录，按照排序规则放到指定位置
-            if (!docTemplate.getIsSettlement()) {
-                // 本表自评时
-                addSpecialEntry(entry, ownSortList, docTemplate);
-            } else {
-                addEntry(entry);
-            }
+            addEntry(entry);
             entryMap.put(key, entry);
         }
     }
@@ -144,11 +135,6 @@ public class FiDocHandler {
 
         FiAccount account = docTemplate.getAccount();
         StringBuilder key = new StringBuilder();
-        boolean isOwnSort = !docTemplate.getIsSettlement();
-        if (isOwnSort) {
-            key.append("_ownSort");
-        }
-
         FiDocEntryDto entry = new FiDocEntryDto();
         String summary;
         if (!StringUtil.isEmpty(docTemplate.getSummary())) {
@@ -166,7 +152,6 @@ public class FiDocHandler {
 
         key.append("_businessType").append(detail.getBusinessType());
         entry.setSourceBusinessTypeId(detail.getBusinessType());
-        // TODO notesNum invoiceType taxRate
         // 单价 看是否抵扣然后传递不同的单价
         Boolean isDeduction = detail.getIsDeduction() != null && detail.getIsDeduction() == 1;
         if (BusinessUtil.paymentDirection(detail.getBusinessCode()) == 1 || isDeduction) {
@@ -248,37 +233,6 @@ public class FiDocHandler {
         result.setFiDocEntryDto(entry);
         result.setKey(key.toString());
         return result;
-    }
-
-    private void addSpecialEntry(FiDocEntryDto entry, List<FiDocEntryDto> list, DocAccountTemplateItem docTemplate) {
-        if (list.size() == 0) {
-            list.add(entry);
-            return;
-        }
-
-        // 同时满足以下条件, 允许上移:
-        // 1)新插入金额在借方, 上一条金额在贷方
-        // 2)上下两条是同一个业务或分录摘要一致
-        boolean isDebit = !DoubleUtil.isNullOrZero(entry.getAmountDr());
-        if (!isDebit) {
-            list.add(entry);
-            return;
-        }
-
-        Long businessTypeId = entry.getSourceBusinessTypeId();
-        int index;
-        for (index = list.size(); index > 0; index--) {
-            FiDocEntryDto lastEntry = list.get(index - 1);
-            boolean lastIsDebit = !DoubleUtil.isNullOrZero(lastEntry.getAmountDr());
-            if (lastIsDebit) {
-                break;
-            }
-            Long lastBusinessTypeId = lastEntry.getSourceBusinessTypeId();
-            if (!businessTypeId.equals(lastBusinessTypeId) && !lastEntry.getSummary().equals(entry.getSummary())) {
-                break;
-            }
-        }
-        list.add(index, entry);
     }
 
     private void addEntry(FiDocEntryDto entry) {
@@ -375,7 +329,7 @@ public class FiDocHandler {
     /**
      * 获取结算情况明细对应的分录摘要
      * @param settle
-     * @param receipt
+     * @param voucher
      * @param payDocTemplate
      * @return
      */
@@ -384,10 +338,10 @@ public class FiDocHandler {
         if (!StringUtil.isEmpty(summary)) {
             return summary;
         }
-        if (receipt.getAcmSortReceiptSettlestyleList().size() != 1) {
+        if (voucher.getAcmSortReceiptSettlestyleList().size() != 1) {
             summary = payDocTemplate.getSubjectType();
         } else {
-            summary = receipt.getAcmSortReceiptDetailList().get(0).getMemo();
+            summary = voucher.getAcmSortReceiptDetailList().get(0).getMemo();
             if (StringUtil.isEmpty(summary)) {
                 summary = payDocTemplate.getSubjectType();
             }
@@ -516,12 +470,12 @@ public class FiDocHandler {
         this.currency = currency;
     }
 
-    public AcmSortReceipt getReceipt() {
-        return receipt;
+    public AcmSortReceipt getVoucher() {
+        return voucher;
     }
 
-    public void setReceipt(AcmSortReceipt receipt) {
-        this.receipt = receipt;
+    public void setVoucher(AcmSortReceipt receipt) {
+        this.voucher = receipt;
     }
 
     public Map<String, BusinessTemplate> getTemplateMap() {
