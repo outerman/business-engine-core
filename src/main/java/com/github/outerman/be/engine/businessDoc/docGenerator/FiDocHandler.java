@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.github.outerman.be.api.constant.BusinessCode;
 import com.github.outerman.be.api.vo.AcmSortReceipt;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.AcmSortReceiptSettlestyle;
@@ -203,10 +202,7 @@ public class FiDocHandler {
                 entry.setQuantity(detail.getCommodifyNum());
             }
             // 银行账号
-            if ("402000".equals(docTemplate.getBusinessCode().toString()) && "A".equals(docTemplate.getFlag())) {
-                key.append("_bankAccountId").append(detail.getInBankAccountId());
-                entry.setBankAccountId(detail.getInBankAccountId());
-            } else {
+            if (account.getIsAuxAccBankAccount() != null && account.getIsAuxAccBankAccount()) {
                 key.append("_bankAccountId").append(detail.getBankAccountId());
                 entry.setBankAccountId(detail.getBankAccountId());
             }
@@ -360,10 +356,6 @@ public class FiDocHandler {
         String businessCode = detail.getBusinessCode();
         if ("1002".equals(accountCode)) {
             Long bankAccountId = detail.getBankAccountId();
-            if (businessCode.equals(BusinessCode.BUSINESS_402000) && "accountInAttr".equals(docTemplate.getInfluence())
-                    || (businessCode.equals(BusinessCode.BUSINESS_401050) && detail.getInBankAccountId() != null)) {
-                bankAccountId = detail.getInBankAccountId();
-            }
             account = accountMap.get(accountCode + "_" + bankAccountId);
         } else {
             account = accountMap.get(accountCode);

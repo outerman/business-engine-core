@@ -56,9 +56,6 @@ public class AcmSortReceiptDetail implements Serializable {
     /** 银行账号ID  */
     private Long bankAccountId;
 
-    /** 流入银行账号ID  */
-    private Long inBankAccountId;
-
     /** 商品单价  */
     private Double price;
 
@@ -253,22 +250,6 @@ public class AcmSortReceiptDetail implements Serializable {
 
     public void setBankAccountId(Long bankAccountId) {
         this.bankAccountId = bankAccountId;
-    }
-
-    /**
-     * 获取流入银行账号ID
-     * @return 流入银行账号ID
-     */
-    public Long getInBankAccountId() {
-        return inBankAccountId;
-    }
-
-    /**
-     * 设置流入银行账号ID
-     * @param inBankAccountId 流入银行账号ID
-     */
-    public void setInBankAccountId(Long inBankAccountId) {
-        this.inBankAccountId = inBankAccountId;
     }
 
     public Double getPrice() {
