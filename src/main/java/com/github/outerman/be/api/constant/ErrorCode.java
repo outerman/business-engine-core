@@ -17,5 +17,8 @@ public class ErrorCode {
     /** 结算方式模板未找到，可能为账号保存异常 */
     public static final String ENGINE_DOC_GENETARE_EMPTY_PAY_ERROR_MSG = "结算方式模板未找到，可能为账号保存异常";
 
-    public static final String ENGINE_DOC_GENETARE_EMPTY_DETAIL_ERROR_MSG = "流水账明细数据为空";
+    public static final String VOUCHER_EMPTY = "第%s条单据信息为空";
+
+    public static final String VOUCHER_DETAIL_EMPTY = "第%s条单据明细数据为空";
+
 }

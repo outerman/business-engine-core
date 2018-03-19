@@ -53,6 +53,9 @@ public class AcmSortReceipt implements Serializable {
     /** 显示字段－摘要 */
     private String memo;
 
+    /** 单据信息是否合法 */
+    private Boolean valid = true;
+
     public String getCode() {
         return code;
     }
@@ -211,6 +214,21 @@ public class AcmSortReceipt implements Serializable {
      */
     public void setSourceVoucherCode(String sourceVoucherCode) {
         this.sourceVoucherCode = sourceVoucherCode;
+    }
+
+    /**
+     * @return 获取单据信息是否合法
+     */
+    public Boolean getValid() {
+        return valid;
+    }
+
+    /**
+     * 设置单据信息是否合法
+     * @param valid 单据信息是否合法
+     */
+    public void setValid(Boolean valid) {
+        this.valid = valid;
     }
 
 }

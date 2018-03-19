@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -38,9 +37,6 @@ public class DocTemplateGenerator {
     private TemplateManager templateManager;
 
     public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, List<AcmSortReceipt> voucherList, ITemplateProvider templateProvider) {
-        if (voucherList != null) {
-            voucherList = voucherList.parallelStream().filter(item -> item != null).collect(Collectors.toList());
-        }
         if (voucherList == null || voucherList.isEmpty()) {
             throw ErrorCode.EXCEPTION_VOUCHER_EMPATY;
         }
@@ -48,14 +44,22 @@ public class DocTemplateGenerator {
             throw ErrorCode.EXCEPTION_ORG_EMPATY;
         }
 
+        FiDocGenetateResultDto resultDto = new FiDocGenetateResultDto();
+        validateVoucher(voucherList, resultDto);
+        if (resultDto.getFailedReceipt().size() == voucherList.size()) {
+            return resultDto;
+        }
+
         List<FiDocDto> docList = new ArrayList<>();
         SetCurrency currency = templateProvider.getBaseCurrency(org.getId());
-        FiDocGenetateResultDto resultDto = new FiDocGenetateResultDto();
 
         Map<String, BusinessTemplate> templateMap = new HashMap<>();
         Set<String> accountCodeSet = new HashSet<>();
         List<AcmSortReceiptDetail> detailList = new ArrayList<>();
         for (AcmSortReceipt voucher : voucherList) {
+            if (!voucher.getValid()) {
+                continue;
+            }
             detailList.addAll(voucher.getAcmSortReceiptDetailList());
             for (AcmSortReceiptDetail detail : voucher.getAcmSortReceiptDetailList()) {
                 String businessCode = detail.getBusinessCode().toString();
@@ -71,6 +75,9 @@ public class DocTemplateGenerator {
 
         Map<String, FiAccount> accountMap = templateProvider.getAccountCode(org.getId(), new ArrayList<String>(accountCodeSet), detailList);
         for (AcmSortReceipt voucher : voucherList) {
+            if (!voucher.getValid()) {
+                continue;
+            }
             FiDocHandler docHandler = new FiDocHandler(org, currency, voucher);
             docHandler.setTemplateMap(templateMap);
             docHandler.setAccountMap(accountMap);
@@ -93,12 +100,39 @@ public class DocTemplateGenerator {
         return resultDto;
     }
 
+    /**
+     * 校验单据信息，并将校验失败信息写入 {@code resultDto}，同时单据 {@code valid} 字段赋值 {@code false}
+     * <p>单据 {@code valid} 字段赋值 {@code false}，用于之后判断单据信息的有效性，保留原始的 {@code voucherList} 内容以及顺序主要用于异常信息中的第%s条单据
+     * @param voucherList
+     * @param resultDto
+     */
+    private void validateVoucher(List<AcmSortReceipt> voucherList, FiDocGenetateResultDto resultDto) {
+        List<ReceiptResult> failList = resultDto.getFailedReceipt();
+        for (int index = 0, length = voucherList.size(); index < length; index++) {
+            AcmSortReceipt voucher = voucherList.get(index);
+            if (voucher == null) {
+                voucher = new AcmSortReceipt();
+                voucher.setValid(false);
+                ReceiptResult fail = new ReceiptResult();
+                fail.setReceipt(voucher);
+                fail.setMsg(String.format(ErrorCode.VOUCHER_EMPTY, Integer.toString(index + 1)));
+                failList.add(fail);
+                continue;
+            }
+            List<AcmSortReceiptDetail> detailList = voucher.getAcmSortReceiptDetailList();
+            if (detailList == null || detailList.isEmpty()) {
+                voucher.setValid(false);
+                ReceiptResult fail = new ReceiptResult();
+                fail.setReceipt(voucher);
+                fail.setMsg(String.format(ErrorCode.VOUCHER_DETAIL_EMPTY, Integer.toString(index + 1)));
+                failList.add(fail);
+                continue;
+            }
+        }
+    }
+
     private boolean convertVoucher(FiDocHandler docHandler, FiDocGenetateResultDto resultDto) {
         AcmSortReceipt voucher = docHandler.getReceipt();
-        if (!validateVoucher(voucher, resultDto)) {
-            return false;
-        }
-
         List<AcmSortReceiptDetail> detailList = reorderReceiptDetailList(voucher.getAcmSortReceiptDetailList());
         Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
         BusinessTemplate businessTemplate = null;
@@ -153,20 +187,6 @@ public class DocTemplateGenerator {
             payDocTemplate.setAccount(account);
 
             docHandler.addEntry(payDocTemplate, settle);
-        }
-        return true;
-    }
-
-    private boolean validateVoucher(AcmSortReceipt voucher, FiDocGenetateResultDto resultDto) {
-        List<ReceiptResult> failList = resultDto.getFailedReceipt();
-        List<AcmSortReceiptDetail> detailList = voucher.getAcmSortReceiptDetailList();
-        if (detailList == null || detailList.isEmpty()) {
-            String errorMessage = ErrorCode.ENGINE_DOC_GENETARE_EMPTY_DETAIL_ERROR_MSG;
-            ReceiptResult fail = new ReceiptResult();
-            fail.setReceipt(voucher);
-            fail.setMsg(errorMessage);
-            failList.add(fail);
-            return false;
         }
         return true;
     }
