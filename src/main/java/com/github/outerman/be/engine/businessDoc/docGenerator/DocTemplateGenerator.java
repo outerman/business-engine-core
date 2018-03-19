@@ -7,11 +7,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.constant.ErrorCode;
 import com.github.outerman.be.api.dto.FiDocGenetateResultDto;
 import com.github.outerman.be.api.dto.FiDocGenetateResultDto.ReceiptResult;
@@ -27,7 +27,6 @@ import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.BusinessTemplate;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.TemplateManager;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.engine.util.StringUtil;
 
 /**
  * Created by shenxy on 16/12/28. 生成凭证的工具类
@@ -39,8 +38,11 @@ public class DocTemplateGenerator {
     private TemplateManager templateManager;
 
     public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
+        if (receiptList != null) {
+            receiptList = receiptList.parallelStream().filter(item -> item != null).collect(Collectors.toList());
+        }
         if (receiptList == null || receiptList.isEmpty()) {
-            throw ErrorCode.EXCEPTION_RECEIPT_EMPATY;
+            throw ErrorCode.EXCEPTION_VOUCHER_EMPATY;
         }
         if (org == null || org.getId() == null || org.getId() == 0) {
             throw ErrorCode.EXCEPTION_ORG_EMPATY;
@@ -160,22 +162,9 @@ public class DocTemplateGenerator {
 
     private boolean validateReceipt(AcmSortReceipt receipt, FiDocGenetateResultDto resultDto) {
         List<ReceiptResult> failList = resultDto.getFailedReceipt();
-        String errorMessage = null;
-        if (receipt == null) {
-            errorMessage = ErrorCode.ENGINE_DOC_GENERATE_RECEIPT_EMPTY;
-        } else {
-            List<AcmSortReceiptDetail> detailList = receipt.getAcmSortReceiptDetailList();
-            if (detailList == null || detailList.isEmpty()) {
-                errorMessage = ErrorCode.ENGINE_DOC_GENETARE_EMPTY_DETAIL_ERROR_MSG;
-            }
-            Long paymenysType = receipt.getPaymentsType();
-            if (paymenysType != null && paymenysType == CommonConst.PAYMENTSTYPE_60) {
-                // 请会计处理分类业务类型的流水账不生成凭证，直接审核
-                errorMessage = ErrorCode.ENGINE_DOC_GENETARE_UNRESOVE_ERROR_MSG;
-                failList = resultDto.getUnResolvedReceipt();
-            }
-        }
-        if (!StringUtil.isEmpty(errorMessage)) {
+        List<AcmSortReceiptDetail> detailList = receipt.getAcmSortReceiptDetailList();
+        if (detailList == null || detailList.isEmpty()) {
+            String errorMessage = ErrorCode.ENGINE_DOC_GENETARE_EMPTY_DETAIL_ERROR_MSG;
             ReceiptResult fail = new ReceiptResult();
             fail.setReceipt(receipt);
             fail.setMsg(errorMessage);
