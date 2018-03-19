@@ -11,7 +11,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.github.outerman.be.api.constant.ErrorCode;
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
@@ -71,9 +70,6 @@ public class AcmDocAccountTemplate implements IValidatable {
      */
     public List<DocAccountTemplateItem> getDocTemplate(SetOrg org, AcmSortReceiptDetail detail) {
         List<DocAccountTemplateItem> resultList = new ArrayList<>();
-        if (detail == null) {
-            return resultList;
-        }
         String businessCode = docTemplateDto.getBusinessCode();
         if (!businessCode.equals(detail.getBusinessCode())) {
             return resultList;
@@ -140,9 +136,6 @@ public class AcmDocAccountTemplate implements IValidatable {
      * @return 凭证模板信息，以 flag（A,B,C...）为 key 的 map
      */
     public Map<String, List<DocAccountTemplateItem>> getDocTemplateMap(SetOrg org) {
-        if (org == null || org.getId() == null || org.getId() == 0) {
-            throw ErrorCode.EXCEPTION_ORG_EMPATY;
-        }
         Map<String, List<DocAccountTemplateItem>> resultMap = new TreeMap<>();
         if (!org.getId().equals(docTemplateDto.getOrg().getId())) {
             return resultMap;
