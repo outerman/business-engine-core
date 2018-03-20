@@ -1,7 +1,6 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -16,8 +15,6 @@ import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
-import com.github.outerman.be.engine.util.CommonUtil;
 import com.github.outerman.be.engine.util.StringUtil;
 
 /**
@@ -26,7 +23,7 @@ import com.github.outerman.be.engine.util.StringUtil;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class AcmDocAccountTemplate implements IValidatable {
+public class AcmDocAccountTemplate {
 
     public static final String INDUSTRY_ID = "industryId";
 
@@ -87,7 +84,8 @@ public class AcmDocAccountTemplate implements IValidatable {
         return resultList;
     }
 
-    private List<DocAccountTemplateItem> getDocTemplate(List<DocAccountTemplateItem> docTemplateListWithFlag, AcmSortReceiptDetail detail) {
+    private List<DocAccountTemplateItem> getDocTemplate(List<DocAccountTemplateItem> docTemplateListWithFlag,
+            AcmSortReceiptDetail detail) {
         List<DocAccountTemplateItem> resultList = new ArrayList<>();
         Map<String, String> detailInfluenceMap = detail.getInfluenceMap();
         DocAccountTemplateItem defaultDocTemplate = null; // 影响因素默认匹配规则，影响因素值为 0 的记录
@@ -158,62 +156,6 @@ public class AcmDocAccountTemplate implements IValidatable {
             docTemplateWithFlagList.add(docTemplate);
         }
         return resultMap;
-    }
-
-    @Override
-    public String validate() {
-        // 影响因素取值有数据时，影响因素必须要有值；影响因素有值时，对应的取值必须有数据；
-        // 同一分组纳税人、计税方式，纳税人、认证影响因素需要两条记录
-        String errorMessage = "业务类型 " + docTemplateDto.getBusinessCode() + " 凭证模板数据校验失败：";
-        Map<String, List<DocAccountTemplateItem>> docTemplateMap = docTemplateDto.getDocTemplateMap();
-        if (docTemplateMap.isEmpty()) {
-            return errorMessage + "缺少凭证模板数据；";
-        }
-
-        StringBuilder message = new StringBuilder();
-        for (Entry<String, List<DocAccountTemplateItem>> entry : docTemplateMap.entrySet()) {
-            StringBuilder industryMessage = new StringBuilder();
-            Map<String, Integer> influenceCountMap = new HashMap<>();
-            for (DocAccountTemplateItem docTemplate : entry.getValue()) {
-                String fundSource = docTemplate.getFundSource();
-                if (StringUtil.isEmpty(fundSource)) {
-                    industryMessage.append("分录" + docTemplate.getFlag() + "金额来源不能为空；");
-                    continue;
-                }
-                if (!AmountGetter.validateExpression(fundSource)) {
-                    industryMessage.append("分录" + docTemplate.getFlag() + "金额来源" + AmountGetter.fundsource2Chinese(fundSource) + "格式不正确；");
-                    continue;
-                }
-                String influence = docTemplate.getInfluence();
-                if ("vatTaxpayer,taxType".equals(influence)) { //  || "vatTaxpayer,qualification".equals(influence) 认证影响因素两条的校验去掉
-                    String countKey = influence + "_" + docTemplate.getFlag();
-                    Integer count = 1;
-                    if (influenceCountMap.containsKey(countKey)) {
-                        count += influenceCountMap.get(countKey);
-                    }
-                    influenceCountMap.put(countKey, count);
-                }
-            }
-            for (Entry<String, Integer> countEntry : influenceCountMap.entrySet()) {
-                if (countEntry.getValue() != 2) {
-                    String[] key = countEntry.getKey().split("_");
-                    String influence = key[0];
-                    String flag = key[1];
-                    industryMessage.append("分录" + flag + "影响因素" + CommonUtil.getInfluenceName(influence) + "必须有两条记录；");
-                }
-            }
-            if (industryMessage.length() != 0) {
-                String key = entry.getKey();
-                Long industry = getValue(key, INDUSTRY_ID);
-                Long accountingStandard = getValue(key, ACCOUNTING_STANDARDS_ID);
-                String industryErrorMessage = CommonUtil.getAccountingStandardName(accountingStandard) + CommonUtil.getIndustryName(industry) + "行业，";
-                message.append(industryErrorMessage + industryMessage.toString());
-            }
-        }
-        if (message.length() == 0) {
-            return "";
-        }
-        return errorMessage + message.toString();
     }
 
     public static String getKey(SetOrg org) {

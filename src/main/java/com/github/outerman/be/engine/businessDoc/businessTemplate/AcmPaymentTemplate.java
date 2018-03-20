@@ -14,7 +14,6 @@ import com.github.outerman.be.api.vo.AcmSortReceiptSettlestyle;
 import com.github.outerman.be.api.vo.PaymentTemplateItem;
 import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
 
 /**
  * Created by shenxy on 16/12/28.
@@ -22,7 +21,7 @@ import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class AcmPaymentTemplate implements IValidatable {
+public class AcmPaymentTemplate {
 
     private AcmPaymentTemplateDto paymentTemplateDto;
 
@@ -41,7 +40,8 @@ public class AcmPaymentTemplate implements IValidatable {
         List<PaymentTemplateItem> payTemp = templateProvider.getPayTemplate(org.getId(), businessCode);
         Map<String, PaymentTemplateItem> payMap = new HashMap<>();
         for (PaymentTemplateItem acmPayDocTemplate : payTemp) {
-            payMap.put(acmPayDocTemplate.getPaymentsType().toString() + acmPayDocTemplate.getAccountType(), acmPayDocTemplate);
+            payMap.put(acmPayDocTemplate.getPaymentsType().toString() + acmPayDocTemplate.getAccountType(),
+                    acmPayDocTemplate);
             if (!paymentTemplateDto.getCodeList().contains(acmPayDocTemplate.getSubjectDefault())) {
                 paymentTemplateDto.getCodeList().add(acmPayDocTemplate.getSubjectDefault());
             }
@@ -62,13 +62,8 @@ public class AcmPaymentTemplate implements IValidatable {
             return null;
         }
 
-        return paymentTemplateDto.getSettleTemplateMap().get(settle.getBusinessPropertyId() + "" + settle.getBankAccountAttr());
-    }
-
-    @Override
-    public String validate() {
-        // do nothing for now
-        return "";
+        return paymentTemplateDto.getSettleTemplateMap()
+                .get(settle.getBusinessPropertyId() + "" + settle.getBankAccountAttr());
     }
 
     public AcmPaymentTemplateDto getPaymentTemplateDto() {

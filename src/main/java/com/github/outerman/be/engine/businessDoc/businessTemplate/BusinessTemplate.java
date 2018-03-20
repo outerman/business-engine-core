@@ -1,7 +1,5 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -9,12 +7,8 @@ import org.springframework.stereotype.Component;
 
 import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.dto.BusinessTemplateDto;
-import com.github.outerman.be.api.dto.TemplateValidateResultDto;
 import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.engine.businessDoc.validator.IValidatable;
-import com.github.outerman.be.engine.businessDoc.validator.ValidatorManager;
-import com.github.outerman.be.engine.util.StringUtil;
 
 /**
  * Created by shenxy on 7/7/17.
@@ -22,16 +16,13 @@ import com.github.outerman.be.engine.util.StringUtil;
  */
 @Component(CommonConst.BUSINESS_TEMPLATE)
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class BusinessTemplate implements IValidatable {
+public class BusinessTemplate {
 
     @Autowired
     private AcmDocAccountTemplate docAccountTemplate;
 
     @Autowired
     private AcmPaymentTemplate paymentTemplate;
-
-    @Autowired
-    private ValidatorManager validatorManager;
 
     private BusinessTemplateDto businessTemplateDto;
 
@@ -51,24 +42,6 @@ public class BusinessTemplate implements IValidatable {
         businessTemplateDto.setBusinessCode(businessCode);
         businessTemplateDto.setDocAccountTemplate(docAccountTemplate.getDocTemplateDto());
         businessTemplateDto.setPaymentTemplate(paymentTemplate.getPaymentTemplateDto());
-    }
-
-    @Override
-    public String validate() {
-        TemplateValidateResultDto result = new TemplateValidateResultDto();
-
-        result.setDocTemplateMessage(docAccountTemplate.validate());
-        result.setPayDocTemplateMessage(paymentTemplate.validate());
-        if (!result.getResult()) {
-            return result.getErrorMessage();
-        }
-
-        String errorMessage = validatorManager.getTemplateValidators()
-                .parallelStream()
-                .map(validator -> validator.validate(businessTemplateDto))
-                .filter(message -> !StringUtil.isEmpty(message))
-                .collect(Collectors.joining("\n"));
-        return errorMessage;
     }
 
     public String getBusinessCode() {

@@ -20,14 +20,12 @@ public class BusinessEngineManager {
 
     private BusinessGenerateService businessGenerateService;
     private TemplateMaintainService templateMaintainService;
-    private TemplateValidateService templateValidateService;
 
     public BusinessEngineManager() {
         @SuppressWarnings("resource")
         ApplicationContext context = new ClassPathXmlApplicationContext("/META-INF/spring/be-spring-context.xml");
         businessGenerateService = context.getBean(BusinessGenerateService.class);
         templateMaintainService = context.getBean(TemplateMaintainService.class);
-        templateValidateService = context.getBean(TemplateValidateService.class);
     }
 
     public BusinessGenerateService getBusinessGenerateService() {
@@ -38,7 +36,4 @@ public class BusinessEngineManager {
         return templateMaintainService;
     }
 
-    public TemplateValidateService getTemplateValidateService() {
-        return templateValidateService;
-    }
 }
