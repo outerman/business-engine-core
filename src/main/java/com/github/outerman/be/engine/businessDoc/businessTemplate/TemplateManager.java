@@ -3,13 +3,8 @@ package com.github.outerman.be.engine.businessDoc.businessTemplate;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.engine.util.SpringContextHelper;
 
 /**
  * Created by shenxy on 19/7/17.
@@ -18,13 +13,22 @@ import com.github.outerman.be.engine.util.SpringContextHelper;
  * <p>模板数据会动态修改，在数据提供 {@code ITemplateProvider} 方进行缓存的处理
  * <p>模板管理只按照企业、业务类型编码，缓存 BusinessTemplate bean 对象
  */
-@Component
 public class TemplateManager {
 
     Map<String, BusinessTemplate> businessTemplateMap = new HashMap<>();
 
-    @Autowired
-    private SpringContextHelper contextHelper;
+    private static TemplateManager instance;
+
+    public static TemplateManager getInstance() {
+        if (instance == null) {
+            synchronized (TemplateManager.class) {
+                if (instance == null) {
+                    instance = new TemplateManager();
+                }
+            }
+        }
+        return instance;
+    }
 
     public BusinessTemplate fetchBusinessTemplate(SetOrg org, String businessCode, ITemplateProvider provider) {
         BusinessTemplate ret;
@@ -32,7 +36,7 @@ public class TemplateManager {
         if (businessTemplateMap.containsKey(key)) {
             ret = businessTemplateMap.get(key);
         } else {
-            ret = (BusinessTemplate) contextHelper.getBean(CommonConst.BUSINESS_TEMPLATE);
+            ret = new BusinessTemplate();
         }
         ret.init(org, businessCode, provider);
         return ret;

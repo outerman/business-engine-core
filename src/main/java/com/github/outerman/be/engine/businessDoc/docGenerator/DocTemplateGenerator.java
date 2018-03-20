@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.github.outerman.be.api.constant.ErrorCode;
 import com.github.outerman.be.api.dto.FiDocGenetateResultDto;
 import com.github.outerman.be.api.dto.FiDocGenetateResultDto.ReceiptResult;
@@ -31,11 +28,22 @@ import com.github.outerman.be.engine.util.StringUtil;
 /**
  * Created by shenxy on 16/12/28. 生成凭证的工具类
  */
-@Component
 public class DocTemplateGenerator {
 
-    @Autowired
-    private TemplateManager templateManager;
+    private TemplateManager templateManager = TemplateManager.getInstance();
+
+    private static DocTemplateGenerator instance;
+
+    public static DocTemplateGenerator getInstance() {
+        if (instance == null) {
+            synchronized (DocTemplateGenerator.class) {
+                if (instance == null) {
+                    instance = new DocTemplateGenerator();
+                }
+            }
+        }
+        return instance;
+    }
 
     public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, List<AcmSortReceipt> voucherList, ITemplateProvider templateProvider) {
         if (voucherList == null || voucherList.isEmpty()) {
@@ -66,7 +74,7 @@ public class DocTemplateGenerator {
                 }
                 BusinessTemplate businessTemplate = templateManager.fetchBusinessTemplate(org, businessCode, templateProvider);
                 templateMap.put(businessCode, businessTemplate);
-                accountCodeSet.addAll(businessTemplate.getDocAccountTemplate().getDocTemplateDto().getCodeList());
+                accountCodeSet.addAll(businessTemplate.getDocAccountTemplate().getAccountCodeList());
                 accountCodeSet.addAll(businessTemplate.getPaymentTemplate().getAccountCodeList());
             }
         }
@@ -134,7 +142,8 @@ public class DocTemplateGenerator {
                     voucher.setValid(false);
                     ReceiptResult fail = new ReceiptResult();
                     fail.setReceipt(voucher);
-                    fail.setMsg(String.format(ErrorCode.VOUCHER_DETAIL_NULL, Integer.toString(index + 1), Integer.toString(detailIndex + 1)));
+                    fail.setMsg(String.format(ErrorCode.VOUCHER_DETAIL_NULL, Integer.toString(index + 1),
+                            Integer.toString(detailIndex + 1)));
                     failList.add(fail);
                     break;
                 }
@@ -143,7 +152,8 @@ public class DocTemplateGenerator {
                     voucher.setValid(false);
                     ReceiptResult fail = new ReceiptResult();
                     fail.setReceipt(voucher);
-                    fail.setMsg(String.format(ErrorCode.BUSINESS_CODE_EMPTY, Integer.toString(index + 1), Integer.toString(detailIndex + 1)));
+                    fail.setMsg(String.format(ErrorCode.BUSINESS_CODE_EMPTY, Integer.toString(index + 1),
+                            Integer.toString(detailIndex + 1)));
                     failList.add(fail);
                     break;
                 }
@@ -160,7 +170,8 @@ public class DocTemplateGenerator {
         for (AcmSortReceiptDetail detail : detailList) {
             String businessCode = detail.getBusinessCode();
             businessTemplate = templateMap.get(businessCode);
-            List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate().getDocTemplate(docHandler.getOrg(), detail);
+            List<DocAccountTemplateItem> docTemplateList = businessTemplate.getDocAccountTemplate()
+                    .getDocTemplate(docHandler.getOrg(), detail);
             if (docTemplateList.isEmpty()) {
                 resultDto.addFailed(voucher, String.format(ErrorCode.DOC_TEMPLATE_EMPTY, businessCode));
                 return false;
@@ -168,7 +179,8 @@ public class DocTemplateGenerator {
             for (DocAccountTemplateItem docTemplate : docTemplateList) {
                 FiAccount account = docHandler.getAccount(docTemplate, detail);
                 if (account == null) {
-                    resultDto.addFailed(voucher, String.format(ErrorCode.ACCOUNT_CODE_INVALID, docTemplate.getAccountCode()));
+                    resultDto.addFailed(voucher,
+                            String.format(ErrorCode.ACCOUNT_CODE_INVALID, docTemplate.getAccountCode()));
                     return false;
                 }
                 docTemplate.setAccount(account);
@@ -202,7 +214,8 @@ public class DocTemplateGenerator {
             }
             FiAccount account = docHandler.getAccount(payDocTemplate, settle);
             if (account == null) {
-                resultDto.addFailed(voucher, String.format(ErrorCode.ACCOUNT_CODE_INVALID, payDocTemplate.getSubjectDefault()));
+                resultDto.addFailed(voucher,
+                        String.format(ErrorCode.ACCOUNT_CODE_INVALID, payDocTemplate.getSubjectDefault()));
                 return false;
             }
             payDocTemplate.setAccount(account);

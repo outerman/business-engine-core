@@ -1,12 +1,5 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import com.github.outerman.be.api.constant.CommonConst;
-import com.github.outerman.be.api.dto.BusinessTemplateDto;
 import com.github.outerman.be.api.vo.SetOrg;
 import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
 
@@ -14,17 +7,17 @@ import com.github.outerman.be.engine.businessDoc.dataProvider.ITemplateProvider;
  * Created by shenxy on 7/7/17.
  * 业务类型--主模板
  */
-@Component(CommonConst.BUSINESS_TEMPLATE)
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class BusinessTemplate {
 
-    @Autowired
-    private AcmDocAccountTemplate docAccountTemplate;
+    /** 企业信息 */
+    private SetOrg org;
 
-    @Autowired
-    private AcmPaymentTemplate paymentTemplate;
+    /** 业务编码 */
+    private String businessCode;
 
-    private BusinessTemplateDto businessTemplateDto;
+    private BusinessDocTemplate businessDocTemplate = new BusinessDocTemplate();
+
+    private BusinessSettleTemplate paymentTemplate = new BusinessSettleTemplate();
 
     /**
      * 初始化方法，按照企业、业务类型编码，获取凭证模板、结算模板
@@ -34,41 +27,57 @@ public class BusinessTemplate {
      * @param templateProvider
      */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
-        docAccountTemplate.init(org, businessCode, templateProvider);
+        this.org = org;
+        this.businessCode = businessCode;
+        businessDocTemplate.init(org, businessCode, templateProvider);
         paymentTemplate.init(org, businessCode, templateProvider);
-
-        businessTemplateDto = new BusinessTemplateDto();
-        businessTemplateDto.setOrg(org);
-        businessTemplateDto.setBusinessCode(businessCode);
-        businessTemplateDto.setDocAccountTemplate(docAccountTemplate.getDocTemplateDto());
-        businessTemplateDto.setPaymentTemplate(paymentTemplate.getPaymentTemplateDto());
     }
 
+    /**
+     * 获取企业信息
+     * @return 企业信息
+     */
+    public SetOrg getOrg() {
+        return org;
+    }
+
+    /**
+     * 设置企业信息
+     * @param org 企业信息
+     */
+    public void setOrg(SetOrg org) {
+        this.org = org;
+    }
+
+    /**
+     * 获取业务编码
+     * @return 业务编码
+     */
     public String getBusinessCode() {
-        return businessTemplateDto.getBusinessCode();
+        return businessCode;
     }
 
-    public BusinessTemplateDto getBusinessTemplateDto() {
-        return businessTemplateDto;
+    /**
+     * 设置业务编码
+     * @param businessCode 业务编码
+     */
+    public void setBusinessCode(String businessCode) {
+        this.businessCode = businessCode;
     }
 
-    public void setBusinessTemplateDto(BusinessTemplateDto businessTemplateDto) {
-        this.businessTemplateDto = businessTemplateDto;
+    public BusinessDocTemplate getDocAccountTemplate() {
+        return businessDocTemplate;
     }
 
-    public AcmDocAccountTemplate getDocAccountTemplate() {
-        return docAccountTemplate;
+    public void setDocAccountTemplate(BusinessDocTemplate docAccountTemplate) {
+        this.businessDocTemplate = docAccountTemplate;
     }
 
-    public void setDocAccountTemplate(AcmDocAccountTemplate docAccountTemplate) {
-        this.docAccountTemplate = docAccountTemplate;
-    }
-
-    public AcmPaymentTemplate getPaymentTemplate() {
+    public BusinessSettleTemplate getPaymentTemplate() {
         return paymentTemplate;
     }
 
-    public void setPaymentTemplate(AcmPaymentTemplate paymentTemplate) {
+    public void setPaymentTemplate(BusinessSettleTemplate paymentTemplate) {
         this.paymentTemplate = paymentTemplate;
     }
 

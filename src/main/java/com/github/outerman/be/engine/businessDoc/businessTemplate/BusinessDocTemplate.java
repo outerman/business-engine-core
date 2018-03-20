@@ -1,16 +1,12 @@
 package com.github.outerman.be.engine.businessDoc.businessTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.api.vo.AcmSortReceiptDetail;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 import com.github.outerman.be.api.vo.SetOrg;
@@ -21,9 +17,7 @@ import com.github.outerman.be.engine.util.StringUtil;
  * Created by shenxy on 16/12/28.
  * 流水账生成凭证的业务类 相关模板
  */
-@Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class AcmDocAccountTemplate {
+public class BusinessDocTemplate {
 
     public static final String INDUSTRY_ID = "industryId";
 
@@ -31,7 +25,17 @@ public class AcmDocAccountTemplate {
 
     public static final String VAT_TAXPAYER_ID = "vatTaxpayerId";
 
-    private AcmDocAccountTemplateDto docTemplateDto;
+    /** 企业信息 */
+    private SetOrg org;
+
+    /** 业务编码 */
+    private String businessCode;
+
+    /** 业务凭证模板信息 */
+    private Map<String, List<DocAccountTemplateItem>> docTemplateMap = new HashMap<>();
+
+    /** 业务凭证模板中使用到的科目编码信息 */
+    private List<String> accountCodeList = new ArrayList<>();
 
     /**
      * 初始化方法，按照企业、业务编码，获取业务凭证模板数据
@@ -41,19 +45,18 @@ public class AcmDocAccountTemplate {
      * @param templateProvider
      */
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
-        docTemplateDto = new AcmDocAccountTemplateDto();
-        docTemplateDto.setOrg(org);
-        docTemplateDto.setBusinessCode(businessCode);
+        this.org = org;
+        this.businessCode = businessCode;
 
         List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
         all.forEach(template -> {
             String key = getKey(org);
-            if (docTemplateDto.getDocTemplateMap().get(key) == null) {
-                docTemplateDto.getDocTemplateMap().put(key, new ArrayList<>());
+            if (docTemplateMap.get(key) == null) {
+                docTemplateMap.put(key, new ArrayList<>());
             }
-            docTemplateDto.getDocTemplateMap().get(key).add(template);
-            if (!docTemplateDto.getCodeList().contains(template.getAccountCode())) {
-                docTemplateDto.getCodeList().add(template.getAccountCode());
+            docTemplateMap.get(key).add(template);
+            if (!accountCodeList.contains(template.getAccountCode())) {
+                accountCodeList.add(template.getAccountCode());
             }
         });
 
@@ -67,7 +70,6 @@ public class AcmDocAccountTemplate {
      */
     public List<DocAccountTemplateItem> getDocTemplate(SetOrg org, AcmSortReceiptDetail detail) {
         List<DocAccountTemplateItem> resultList = new ArrayList<>();
-        String businessCode = docTemplateDto.getBusinessCode();
         if (!businessCode.equals(detail.getBusinessCode())) {
             return resultList;
         }
@@ -135,14 +137,13 @@ public class AcmDocAccountTemplate {
      */
     public Map<String, List<DocAccountTemplateItem>> getDocTemplateMap(SetOrg org) {
         Map<String, List<DocAccountTemplateItem>> resultMap = new TreeMap<>();
-        if (!org.getId().equals(docTemplateDto.getOrg().getId())) {
+        if (!org.getId().equals(this.org.getId())) {
             return resultMap;
         }
         List<DocAccountTemplateItem> docTemplateList = new ArrayList<>();
         String key = getKey(org);
-        Map<String, List<DocAccountTemplateItem>> map = docTemplateDto.getDocTemplateMap();
-        if (map.containsKey(key)) {
-            docTemplateList = map.get(key);
+        if (docTemplateMap.containsKey(key)) {
+            docTemplateList = docTemplateMap.get(key);
         }
         for (DocAccountTemplateItem docTemplate : docTemplateList) {
             String flag = docTemplate.getFlag();
@@ -178,12 +179,68 @@ public class AcmDocAccountTemplate {
         return null;
     }
 
-    public AcmDocAccountTemplateDto getDocTemplateDto() {
-        return docTemplateDto;
+    /**
+     * 获取企业信息
+     * @return 企业信息
+     */
+    public SetOrg getOrg() {
+        return org;
     }
 
-    public void setDocTemplateDto(AcmDocAccountTemplateDto docTemplateDto) {
-        this.docTemplateDto = docTemplateDto;
+    /**
+     * 设置企业信息
+     * @param org 企业信息
+     */
+    public void setOrg(SetOrg org) {
+        this.org = org;
+    }
+
+    /**
+     * 获取业务编码
+     * @return 业务编码
+     */
+    public String getBusinessCode() {
+        return businessCode;
+    }
+
+    /**
+     * 设置业务编码
+     * @param businessCode 业务编码
+     */
+    public void setBusinessCode(String businessCode) {
+        this.businessCode = businessCode;
+    }
+
+    /**
+     * 获取业务凭证模板信息
+     * @return 业务凭证模板信息
+     */
+    public Map<String, List<DocAccountTemplateItem>> getDocTemplateMap() {
+        return docTemplateMap;
+    }
+
+    /**
+     * 设置业务凭证模板信息
+     * @param docTemplateMap 业务凭证模板信息
+     */
+    public void setDocTemplateMap(Map<String, List<DocAccountTemplateItem>> docTemplateMap) {
+        this.docTemplateMap = docTemplateMap;
+    }
+
+    /**
+     * 获取业务凭证模板中使用到的科目编码信息
+     * @return 业务凭证模板中使用到的科目编码信息
+     */
+    public List<String> getAccountCodeList() {
+        return accountCodeList;
+    }
+
+    /**
+     * 设置业务凭证模板中使用到的科目编码信息
+     * @param codeList 业务凭证模板中使用到的科目编码信息
+     */
+    public void setAccountCodeList(List<String> accountCodeList) {
+        this.accountCodeList = accountCodeList;
     }
 
 }

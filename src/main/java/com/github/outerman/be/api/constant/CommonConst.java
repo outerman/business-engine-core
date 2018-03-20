@@ -12,8 +12,6 @@ public final class CommonConst {
      */
     public static final long BUSINESSPROPERTY_expenditure = 4000040002L;
 
-    public static final String BUSINESS_TEMPLATE = "BusinessTemplate";
-
     /** 部门 column id */
     public static final Long DEPARTMENT_COLUMN_ID = 4L;
 
