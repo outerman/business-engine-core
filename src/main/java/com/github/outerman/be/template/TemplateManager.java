@@ -3,18 +3,16 @@ package com.github.outerman.be.template;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.outerman.be.model.SetOrg;
+import com.github.outerman.be.model.Org;
 
 /**
  * Created by shenxy on 19/7/17.
  *
- * 管理模板, 主要处理缓存,避免重复初始化,浪费性能
+ * 管理模板
  * <p>模板数据会动态修改，在数据提供 {@code ITemplateProvider} 方进行缓存的处理
- * <p>模板管理只按照企业、业务类型编码，缓存 BusinessTemplate bean 对象
+ * <p>模板管理只按照企业、业务类型编码，缓存 BusinessTemplate 对象
  */
-public class TemplateManager {
-
-    Map<String, BusinessTemplate> businessTemplateMap = new HashMap<>();
+public final class TemplateManager {
 
     private static TemplateManager instance;
 
@@ -29,19 +27,25 @@ public class TemplateManager {
         return instance;
     }
 
-    public BusinessTemplate fetchBusinessTemplate(SetOrg org, String businessCode, ITemplateProvider provider) {
-        BusinessTemplate ret;
+    Map<String, BusinessTemplate> businessTemplateMap = new HashMap<>();
+
+    public BusinessTemplate fetch(Org org, String businessCode, ITemplateProvider provider) {
+        BusinessTemplate result;
         String key = getKey(org.getId(), businessCode);
         if (businessTemplateMap.containsKey(key)) {
-            ret = businessTemplateMap.get(key);
+            result = businessTemplateMap.get(key);
         } else {
-            ret = new BusinessTemplate();
+            result = new BusinessTemplate();
         }
-        ret.init(org, businessCode, provider);
-        return ret;
+        result.init(org, businessCode, provider);
+        return result;
     }
 
     private String getKey(Long orgId, String businessCode) {
         return orgId.toString() + "_" + businessCode;
+    }
+
+    private TemplateManager() {
+        // avoid instantiate
     }
 }

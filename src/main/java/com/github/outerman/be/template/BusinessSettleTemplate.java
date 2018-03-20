@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.github.outerman.be.model.AcmSortReceiptSettlestyle;
-import com.github.outerman.be.model.PaymentTemplateItem;
-import com.github.outerman.be.model.SetOrg;
+import com.github.outerman.be.model.BusinessVoucherSettle;
+import com.github.outerman.be.model.SettleTemplate;
+import com.github.outerman.be.model.Org;
 
 /**
  * Created by shenxy on 16/12/28.
@@ -16,13 +16,13 @@ import com.github.outerman.be.model.SetOrg;
 public class BusinessSettleTemplate {
 
     /** 企业信息 */
-    private SetOrg org;
+    private Org org;
 
     /** 业务编码 */
     private String businessCode;
 
     /** 结算凭证模板信息 */
-    private Map<String, PaymentTemplateItem> settleTemplateMap = new HashMap<>();
+    private Map<String, SettleTemplate> settleTemplateMap = new HashMap<>();
 
     /** 结算凭证模板中使用到的科目编码信息 */
     private List<String> accountCodeList = new ArrayList<>();
@@ -34,13 +34,13 @@ public class BusinessSettleTemplate {
      * @param businessCode 业务编码
      * @param templateProvider
      */
-    public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
+    public void init(Org org, String businessCode, ITemplateProvider templateProvider) {
         this.org = org;
         this.businessCode = businessCode;
 
-        List<PaymentTemplateItem> payTemp = templateProvider.getPayTemplate(org.getId(), businessCode);
+        List<SettleTemplate> payTemp = templateProvider.getPayTemplate(org.getId(), businessCode);
         settleTemplateMap = new HashMap<>();
-        for (PaymentTemplateItem acmPayDocTemplate : payTemp) {
+        for (SettleTemplate acmPayDocTemplate : payTemp) {
             settleTemplateMap.put(acmPayDocTemplate.getPaymentsType().toString() + acmPayDocTemplate.getAccountType(),
                     acmPayDocTemplate);
             if (!accountCodeList.contains(acmPayDocTemplate.getSubjectDefault())) {
@@ -49,7 +49,7 @@ public class BusinessSettleTemplate {
         }
     }
 
-    public PaymentTemplateItem getTemplate(AcmSortReceiptSettlestyle settle) {
+    public SettleTemplate getTemplate(BusinessVoucherSettle settle) {
         return settleTemplateMap.get(settle.getBusinessPropertyId() + "" + settle.getBankAccountAttr());
     }
 
@@ -57,7 +57,7 @@ public class BusinessSettleTemplate {
      * 获取企业信息
      * @return 企业信息
      */
-    public SetOrg getOrg() {
+    public Org getOrg() {
         return org;
     }
 
@@ -65,7 +65,7 @@ public class BusinessSettleTemplate {
      * 设置企业信息
      * @param org 企业信息
      */
-    public void setOrg(SetOrg org) {
+    public void setOrg(Org org) {
         this.org = org;
     }
 
@@ -89,7 +89,7 @@ public class BusinessSettleTemplate {
      * 获取结算凭证模板信息
      * @return 结算凭证模板信息
      */
-    public Map<String, PaymentTemplateItem> getSettleTemplateMap() {
+    public Map<String, SettleTemplate> getSettleTemplateMap() {
         return settleTemplateMap;
     }
 
@@ -97,7 +97,7 @@ public class BusinessSettleTemplate {
      * 设置结算凭证模板信息
      * @param settleTemplateMap 结算凭证模板信息
      */
-    public void setSettleTemplateMap(Map<String, PaymentTemplateItem> settleTemplateMap) {
+    public void setSettleTemplateMap(Map<String, SettleTemplate> settleTemplateMap) {
         this.settleTemplateMap = settleTemplateMap;
     }
 

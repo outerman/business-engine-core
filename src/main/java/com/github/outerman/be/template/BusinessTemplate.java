@@ -1,6 +1,6 @@
 package com.github.outerman.be.template;
 
-import com.github.outerman.be.model.SetOrg;
+import com.github.outerman.be.model.Org;
 
 /**
  * Created by shenxy on 7/7/17.
@@ -9,7 +9,7 @@ import com.github.outerman.be.model.SetOrg;
 public class BusinessTemplate {
 
     /** 企业信息 */
-    private SetOrg org;
+    private Org org;
 
     /** 业务编码 */
     private String businessCode;
@@ -25,7 +25,7 @@ public class BusinessTemplate {
      * @param businessCode 业务类型编码
      * @param templateProvider
      */
-    public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
+    public void init(Org org, String businessCode, ITemplateProvider templateProvider) {
         this.org = org;
         this.businessCode = businessCode;
         businessDocTemplate.init(org, businessCode, templateProvider);
@@ -36,7 +36,7 @@ public class BusinessTemplate {
      * 获取企业信息
      * @return 企业信息
      */
-    public SetOrg getOrg() {
+    public Org getOrg() {
         return org;
     }
 
@@ -44,7 +44,7 @@ public class BusinessTemplate {
      * 设置企业信息
      * @param org 企业信息
      */
-    public void setOrg(SetOrg org) {
+    public void setOrg(Org org) {
         this.org = org;
     }
 

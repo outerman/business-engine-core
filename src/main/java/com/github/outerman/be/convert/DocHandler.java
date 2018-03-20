@@ -7,16 +7,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.github.outerman.be.contant.CommonConst;
-import com.github.outerman.be.model.AcmSortReceipt;
-import com.github.outerman.be.model.AcmSortReceiptDetail;
-import com.github.outerman.be.model.AcmSortReceiptSettlestyle;
-import com.github.outerman.be.model.DocAccountTemplateItem;
-import com.github.outerman.be.model.FiAccount;
-import com.github.outerman.be.model.FiDocDto;
-import com.github.outerman.be.model.FiDocEntryDto;
-import com.github.outerman.be.model.PaymentTemplateItem;
-import com.github.outerman.be.model.SetCurrency;
-import com.github.outerman.be.model.SetOrg;
+import com.github.outerman.be.model.BusinessVoucher;
+import com.github.outerman.be.model.BusinessVoucherDetail;
+import com.github.outerman.be.model.BusinessVoucherSettle;
+import com.github.outerman.be.model.DocTemplate;
+import com.github.outerman.be.model.Account;
+import com.github.outerman.be.model.Doc;
+import com.github.outerman.be.model.DocEntry;
+import com.github.outerman.be.model.SettleTemplate;
+import com.github.outerman.be.model.Org;
 import com.github.outerman.be.template.BusinessTemplate;
 import com.github.outerman.be.util.AmountGetter;
 import com.github.outerman.be.util.DoubleUtil;
@@ -24,45 +23,42 @@ import com.github.outerman.be.util.StringUtil;
 
 public class DocHandler {
 
-    private SetOrg org;
+    private Org org;
 
-    private SetCurrency currency;
-
-    private AcmSortReceipt voucher;
+    private BusinessVoucher voucher;
 
     private Map<String, BusinessTemplate> templateMap;
 
-    private Map<String, FiAccount> accountMap;
+    private Map<String, Account> accountMap;
 
-    private FiDocDto doc;
+    private Doc doc;
 
     /** 借方主科目分录 */
-    private List<FiDocEntryDto> debitMainList = new ArrayList<>();
+    private List<DocEntry> debitMainList = new ArrayList<>();
     /** 借方税科目分录 */
-    private List<FiDocEntryDto> debitTaxList = new ArrayList<>();
+    private List<DocEntry> debitTaxList = new ArrayList<>();
     /** 贷方主科目分录 */
-    private List<FiDocEntryDto> creditMainList = new ArrayList<>();
+    private List<DocEntry> creditMainList = new ArrayList<>();
     /** 贷方税科目分录 */
-    private List<FiDocEntryDto> creditTaxList = new ArrayList<>();
+    private List<DocEntry> creditTaxList = new ArrayList<>();
 
-    private Map<String, FiDocEntryDto> entryMap = new HashMap<>();;
+    private Map<String, DocEntry> entryMap = new HashMap<>();;
 
-    public DocHandler(SetOrg org, SetCurrency currency, AcmSortReceipt receipt) {
+    public DocHandler(Org org, BusinessVoucher receipt) {
         this.org = org;
-        this.currency = currency;
         this.voucher = receipt;
         this.doc = getDefaultDoc(receipt);
     }
 
-    public FiDocDto getDoc() {
-        List<FiDocEntryDto> entrys = new ArrayList<>();
+    public Doc getDoc() {
+        List<DocEntry> entrys = new ArrayList<>();
         entrys.addAll(debitMainList);
         entrys.addAll(debitTaxList);
         entrys.addAll(creditMainList);
         entrys.addAll(creditTaxList);
         // 正负混录的业务明细，分录合并之后分录金额可能为 0 ，需要去掉金额为 0 的分录
-        List<FiDocEntryDto> zeroAmountList = new ArrayList<>();
-        for (FiDocEntryDto docEntry : entrys) {
+        List<DocEntry> zeroAmountList = new ArrayList<>();
+        for (DocEntry docEntry : entrys) {
             if (DoubleUtil.isNullOrZero(docEntry.getAmountDr()) && DoubleUtil.isNullOrZero(docEntry.getAmountCr())) {
                 zeroAmountList.add(docEntry);
             }
@@ -78,8 +74,8 @@ public class DocHandler {
      * 根据单据信息获取默认的凭证 dto
      * @param receipt 单据信息
      */
-    private FiDocDto getDefaultDoc(AcmSortReceipt receipt) {
-        FiDocDto doc = new FiDocDto();
+    private Doc getDefaultDoc(BusinessVoucher receipt) {
+        Doc doc = new Doc();
         doc.setSourceVoucherId(receipt.getSourceVoucherId());
         doc.setSourceVoucherCode(receipt.getSourceVoucherCode());
         doc.setDocSourceTypeId(receipt.getSourceVoucherTypeId());
@@ -94,7 +90,7 @@ public class DocHandler {
         return doc;
     }
 
-    public void addEntry(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail) {
+    public void addEntry(DocTemplate docTemplate, BusinessVoucherDetail detail) {
         boolean needMerge = true;
         InnerFiDocEntryDto innerEntry = getDocEntryDto(docTemplate, detail);
         if (innerEntry == null) {
@@ -102,11 +98,11 @@ public class DocHandler {
         }
 
         String key = innerEntry.getKey();
-        FiDocEntryDto entry = innerEntry.getFiDocEntryDto();
+        DocEntry entry = innerEntry.getFiDocEntryDto();
         if (needMerge && entryMap.containsKey(key)) {
             // 按照分录合并规则需要合并
             Double quantity = entry.getQuantity();
-            FiDocEntryDto existEntry = entryMap.get(key);
+            DocEntry existEntry = entryMap.get(key);
             if (quantity != null || existEntry.getQuantity() != null) {
                 existEntry.setQuantity(DoubleUtil.add(quantity, existEntry.getQuantity()));
             }
@@ -125,15 +121,15 @@ public class DocHandler {
         }
     }
 
-    private InnerFiDocEntryDto getDocEntryDto(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail) {
+    private InnerFiDocEntryDto getDocEntryDto(DocTemplate docTemplate, BusinessVoucherDetail detail) {
         Double amount = AmountGetter.getAmount(detail, docTemplate.getFundSource());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }
 
-        FiAccount account = docTemplate.getAccount();
+        Account account = docTemplate.getAccount();
         StringBuilder key = new StringBuilder();
-        FiDocEntryDto entry = new FiDocEntryDto();
+        DocEntry entry = new DocEntry();
         String summary;
         if (!StringUtil.isEmpty(docTemplate.getSummary())) {
             summary = docTemplate.getSummary();
@@ -207,8 +203,8 @@ public class DocHandler {
                 entry.setBankAccountId(detail.getBankAccountId());
             }
             if (account.getIsMultiCalc() != null && account.getIsMultiCalc()) { // 多币种
-                entry.setCurrencyId(currency.getId());
-                key.append("_currencyId").append(currency.getId());
+                entry.setCurrencyId(org.getBaseCurrencyId());
+                key.append("_currencyId").append(org.getBaseCurrencyId());
             }
             // 即征即退，影响合并
             if (account.getIsAuxAccLevyAndRetreat() != null && account.getIsAuxAccLevyAndRetreat()) {
@@ -230,10 +226,10 @@ public class DocHandler {
         return result;
     }
 
-    private void addEntry(FiDocEntryDto entry) {
+    private void addEntry(DocEntry entry) {
         boolean isDebit = !DoubleUtil.isNullOrZero(entry.getAmountDr());
         String accountCode = entry.getAccountCode();
-        List<FiDocEntryDto> entryList;
+        List<DocEntry> entryList;
         if (isDebit) {
             if (!accountCode.startsWith("2221")) {
                 entryList = debitMainList;
@@ -254,7 +250,7 @@ public class DocHandler {
         }
 
         int index = entryList.size();
-        for (FiDocEntryDto item : entryList) {
+        for (DocEntry item : entryList) {
             String code = item.getAccountCode();
             if (accountCode.compareTo(code) < 0) {
                 index = entryList.indexOf(item);
@@ -264,22 +260,22 @@ public class DocHandler {
         entryList.add(index, entry);
     }
 
-    public void addEntry(PaymentTemplateItem payDocTemplate, AcmSortReceiptSettlestyle settle) {
-        FiDocEntryDto entry = getDocEntryDto(payDocTemplate, settle);
+    public void addEntry(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
+        DocEntry entry = getDocEntryDto(payDocTemplate, settle);
         if (entry == null) {
             return;
         }
         addEntry(entry);
     }
 
-    private FiDocEntryDto getDocEntryDto(PaymentTemplateItem payDocTemplate, AcmSortReceiptSettlestyle settle) {
+    private DocEntry getDocEntryDto(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
         Double amount = AmountGetter.getAmount(settle, payDocTemplate.getFundSource());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }
 
-        FiAccount account = payDocTemplate.getAccount();
-        FiDocEntryDto entry = new FiDocEntryDto();
+        Account account = payDocTemplate.getAccount();
+        DocEntry entry = new DocEntry();
         if (account.getIsAuxAccCalc() != null && account.getIsAuxAccCalc()) {
             if (account.getIsAuxAccPerson() != null && account.getIsAuxAccPerson()) { // 人员
                 entry.setPersonId(settle.getEmployee());
@@ -294,7 +290,7 @@ public class DocHandler {
                 entry.setBankAccountId(settle.getBankAccountId());
             }
             if (account.getIsMultiCalc() != null && account.getIsMultiCalc()) { // 多币种
-                entry.setCurrencyId(currency.getId());
+                entry.setCurrencyId(org.getBaseCurrencyId());
             }
         }
 
@@ -328,15 +324,15 @@ public class DocHandler {
      * @param payDocTemplate
      * @return
      */
-    private String getSettleSummary(AcmSortReceiptSettlestyle settle, PaymentTemplateItem payDocTemplate) {
+    private String getSettleSummary(BusinessVoucherSettle settle, SettleTemplate payDocTemplate) {
         String summary = settle.getMemo();
         if (!StringUtil.isEmpty(summary)) {
             return summary;
         }
-        if (voucher.getAcmSortReceiptSettlestyleList().size() != 1) {
+        if (voucher.getSettles().size() != 1) {
             summary = payDocTemplate.getSubjectType();
         } else {
-            summary = voucher.getAcmSortReceiptDetailList().get(0).getMemo();
+            summary = voucher.getDetails().get(0).getMemo();
             if (StringUtil.isEmpty(summary)) {
                 summary = payDocTemplate.getSubjectType();
             }
@@ -350,8 +346,8 @@ public class DocHandler {
      * @param detail 流水账收支明细信息
      * @return 科目信息
      */
-    public FiAccount getAccount(DocAccountTemplateItem docTemplate, AcmSortReceiptDetail detail) {
-        FiAccount account;
+    public Account getAccount(DocTemplate docTemplate, BusinessVoucherDetail detail) {
+        Account account;
         String accountCode = docTemplate.getAccountCode();
         String businessCode = detail.getBusinessCode();
         if ("1002".equals(accountCode)) {
@@ -376,8 +372,8 @@ public class DocHandler {
      * @param accountMap 科目信息 map
      * @return 科目信息
      */
-    public FiAccount getAccount(PaymentTemplateItem payDocTemplate, AcmSortReceiptSettlestyle settle) {
-        FiAccount account;
+    public Account getAccount(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
+        Account account;
         String accountCode = payDocTemplate.getSubjectDefault();
         if ("1002".equals(accountCode)) {
             account = accountMap.get(accountCode + "_" + settle.getBankAccountId());
@@ -387,27 +383,19 @@ public class DocHandler {
         return account;
     }
 
-    public SetOrg getOrg() {
+    public Org getOrg() {
         return org;
     }
 
-    public void setOrg(SetOrg org) {
+    public void setOrg(Org org) {
         this.org = org;
     }
 
-    public SetCurrency getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(SetCurrency currency) {
-        this.currency = currency;
-    }
-
-    public AcmSortReceipt getVoucher() {
+    public BusinessVoucher getVoucher() {
         return voucher;
     }
 
-    public void setVoucher(AcmSortReceipt receipt) {
+    public void setVoucher(BusinessVoucher receipt) {
         this.voucher = receipt;
     }
 
@@ -419,25 +407,25 @@ public class DocHandler {
         this.templateMap = templateMap;
     }
 
-    public Map<String, FiAccount> getAccountMap() {
+    public Map<String, Account> getAccountMap() {
         return accountMap;
     }
 
-    public void setAccountMap(Map<String, FiAccount> accountMap) {
+    public void setAccountMap(Map<String, Account> accountMap) {
         this.accountMap = accountMap;
     }
 
     class InnerFiDocEntryDto {
 
-        private FiDocEntryDto fiDocEntryDto;
+        private DocEntry fiDocEntryDto;
 
         private String key;
 
-        public FiDocEntryDto getFiDocEntryDto() {
+        public DocEntry getFiDocEntryDto() {
             return fiDocEntryDto;
         }
 
-        public void setFiDocEntryDto(FiDocEntryDto fiDocEntryDto) {
+        public void setFiDocEntryDto(DocEntry fiDocEntryDto) {
             this.fiDocEntryDto = fiDocEntryDto;
         }
 

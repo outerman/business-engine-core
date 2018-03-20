@@ -3,7 +3,7 @@ package com.github.outerman.be.model;
 import java.io.Serializable;
 import java.sql.Timestamp;
 
-public class FiAccount implements Serializable {
+public class Account implements Serializable {
 
 	private static final long serialVersionUID = 4609809840118436585L;
 

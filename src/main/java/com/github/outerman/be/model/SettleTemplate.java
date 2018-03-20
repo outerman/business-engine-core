@@ -3,7 +3,7 @@ package com.github.outerman.be.model;
 import java.io.Serializable;
 
 /** 凭证结算模板 */
-public class PaymentTemplateItem implements Serializable {
+public class SettleTemplate implements Serializable {
 
     private static final long serialVersionUID = 4424620273857892825L;
 
@@ -28,7 +28,7 @@ public class PaymentTemplateItem implements Serializable {
     /** 是否颠倒 */
     private Boolean reversal;
 
-    private FiAccount account;
+    private Account account;
 
     public void setSubjectType(String subjectType) {
         this.subjectType = subjectType;
@@ -89,11 +89,11 @@ public class PaymentTemplateItem implements Serializable {
         this.accountType = accountType;
     }
 
-    public FiAccount getAccount() {
+    public Account getAccount() {
         return account;
     }
 
-    public void setAccount(FiAccount account) {
+    public void setAccount(Account account) {
         this.account = account;
     }
 }

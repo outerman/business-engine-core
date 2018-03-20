@@ -1,12 +1,9 @@
 package com.github.outerman.be.model;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-public class AcmSortReceipt implements Serializable {
-
-    private static final long serialVersionUID = 6813334363348077459L;
+public class BusinessVoucher {
 
     /** 理票单号  */
     private String code;
@@ -38,12 +35,6 @@ public class AcmSortReceipt implements Serializable {
     /** 来源单编码 */
     private String sourceVoucherCode;
 
-    /** 所属理票详单列表  */
-    private List<AcmSortReceiptDetail> acmSortReceiptDetailList;
-
-    /** 所属结算方式列表  */
-    private List<AcmSortReceiptSettlestyle> acmSortReceiptSettlestyleList;
-
     /** 显示字段－收支类型名称(1:收入2:支出)  */
     private String paymentsTypeName;
 
@@ -55,6 +46,12 @@ public class AcmSortReceipt implements Serializable {
 
     /** 单据信息是否合法 */
     private Boolean valid = true;
+
+    /** 业务明细信息 */
+    private List<BusinessVoucherDetail> details;
+
+    /** 结算明细信息 */
+    private List<BusinessVoucherSettle> settles;
 
     public String getCode() {
         return code;
@@ -136,22 +133,6 @@ public class AcmSortReceipt implements Serializable {
         this.invoiceNo = invoiceNo;
     }
 
-    public List<AcmSortReceiptDetail> getAcmSortReceiptDetailList() {
-        return acmSortReceiptDetailList;
-    }
-
-    public void setAcmSortReceiptDetailList(List<AcmSortReceiptDetail> acmSortReceiptDetailList) {
-        this.acmSortReceiptDetailList = acmSortReceiptDetailList;
-    }
-
-    public List<AcmSortReceiptSettlestyle> getAcmSortReceiptSettlestyleList() {
-        return acmSortReceiptSettlestyleList;
-    }
-
-    public void setAcmSortReceiptSettlestyleList(List<AcmSortReceiptSettlestyle> acmSortReceiptSettlestyleList) {
-        this.acmSortReceiptSettlestyleList = acmSortReceiptSettlestyleList;
-    }
-
     public int getAppendNum() {
         return appendNum;
     }
@@ -229,6 +210,38 @@ public class AcmSortReceipt implements Serializable {
      */
     public void setValid(Boolean valid) {
         this.valid = valid;
+    }
+
+    /**
+     * 获取业务明细信息
+     * @return 业务明细信息
+     */
+    public List<BusinessVoucherDetail> getDetails() {
+        return details;
+    }
+
+    /**
+     * 设置业务明细信息
+     * @param details 业务明细信息
+     */
+    public void setDetails(List<BusinessVoucherDetail> details) {
+        this.details = details;
+    }
+
+    /**
+     * 获取结算明细信息
+     * @return 结算明细信息
+     */
+    public List<BusinessVoucherSettle> getSettles() {
+        return settles;
+    }
+
+    /**
+     * 设置结算明细信息
+     * @param settles 结算明细信息
+     */
+    public void setSettles(List<BusinessVoucherSettle> settles) {
+        this.settles = settles;
     }
 
 }

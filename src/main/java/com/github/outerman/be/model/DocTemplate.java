@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * 业务凭证模板 
  */
-public class DocAccountTemplateItem implements Serializable {
+public class DocTemplate implements Serializable {
 
     private static final long serialVersionUID = -3818718679387513417L;
 
@@ -40,7 +40,7 @@ public class DocAccountTemplateItem implements Serializable {
     /** 摘要 */
     private String summary;
 
-    private FiAccount account;
+    private Account account;
 
     public Long getId() {
         return id;
@@ -173,11 +173,11 @@ public class DocAccountTemplateItem implements Serializable {
         this.sort = sort;
     }
 
-    public FiAccount getAccount() {
+    public Account getAccount() {
         return account;
     }
 
-    public void setAccount(FiAccount account) {
+    public void setAccount(Account account) {
         this.account = account;
     }
 

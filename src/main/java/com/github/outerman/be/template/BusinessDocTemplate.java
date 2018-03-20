@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import com.github.outerman.be.model.AcmSortReceiptDetail;
-import com.github.outerman.be.model.DocAccountTemplateItem;
-import com.github.outerman.be.model.SetOrg;
+import com.github.outerman.be.model.BusinessVoucherDetail;
+import com.github.outerman.be.model.DocTemplate;
+import com.github.outerman.be.model.Org;
 import com.github.outerman.be.util.StringUtil;
 
 /**
@@ -25,13 +25,13 @@ public class BusinessDocTemplate {
     public static final String VAT_TAXPAYER_ID = "vatTaxpayerId";
 
     /** 企业信息 */
-    private SetOrg org;
+    private Org org;
 
     /** 业务编码 */
     private String businessCode;
 
     /** 业务凭证模板信息 */
-    private Map<String, List<DocAccountTemplateItem>> docTemplateMap = new HashMap<>();
+    private Map<String, List<DocTemplate>> docTemplateMap = new HashMap<>();
 
     /** 业务凭证模板中使用到的科目编码信息 */
     private List<String> accountCodeList = new ArrayList<>();
@@ -43,11 +43,11 @@ public class BusinessDocTemplate {
      * @param businessCode 业务编码
      * @param templateProvider
      */
-    public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
+    public void init(Org org, String businessCode, ITemplateProvider templateProvider) {
         this.org = org;
         this.businessCode = businessCode;
 
-        List<DocAccountTemplateItem> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
+        List<DocTemplate> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
         all.forEach(template -> {
             String key = getKey(org);
             if (docTemplateMap.get(key) == null) {
@@ -67,30 +67,30 @@ public class BusinessDocTemplate {
      * @param detail 流水账收支明细
      * @return 凭证模板记录
      */
-    public List<DocAccountTemplateItem> getDocTemplate(SetOrg org, AcmSortReceiptDetail detail) {
-        List<DocAccountTemplateItem> resultList = new ArrayList<>();
+    public List<DocTemplate> getDocTemplate(Org org, BusinessVoucherDetail detail) {
+        List<DocTemplate> resultList = new ArrayList<>();
         if (!businessCode.equals(detail.getBusinessCode())) {
             return resultList;
         }
 
-        Map<String, List<DocAccountTemplateItem>> docTemplateMap = getDocTemplateMap(org);
+        Map<String, List<DocTemplate>> docTemplateMap = getDocTemplateMap(org);
         if (docTemplateMap.isEmpty()) {
             return resultList;
         }
 
         // 凭证模板按照分录标识获取匹配记录
-        for (List<DocAccountTemplateItem> docTemplateListWithFlag : docTemplateMap.values()) {
+        for (List<DocTemplate> docTemplateListWithFlag : docTemplateMap.values()) {
             resultList.addAll(getDocTemplate(docTemplateListWithFlag, detail));
         }
         return resultList;
     }
 
-    private List<DocAccountTemplateItem> getDocTemplate(List<DocAccountTemplateItem> docTemplateListWithFlag,
-            AcmSortReceiptDetail detail) {
-        List<DocAccountTemplateItem> resultList = new ArrayList<>();
+    private List<DocTemplate> getDocTemplate(List<DocTemplate> docTemplateListWithFlag,
+            BusinessVoucherDetail detail) {
+        List<DocTemplate> resultList = new ArrayList<>();
         Map<String, String> detailInfluenceMap = detail.getInfluenceMap();
-        DocAccountTemplateItem defaultDocTemplate = null; // 影响因素默认匹配规则，影响因素值为 0 的记录
-        for (DocAccountTemplateItem docTemplate : docTemplateListWithFlag) {
+        DocTemplate defaultDocTemplate = null; // 影响因素默认匹配规则，影响因素值为 0 的记录
+        for (DocTemplate docTemplate : docTemplateListWithFlag) {
             String influence = docTemplate.getInfluence();
             if (StringUtil.isEmpty(influence)) { // 没有影响因素
                 resultList.add(docTemplate);
@@ -134,19 +134,19 @@ public class BusinessDocTemplate {
      * @param org 组织信息
      * @return 凭证模板信息，以 flag（A,B,C...）为 key 的 map
      */
-    public Map<String, List<DocAccountTemplateItem>> getDocTemplateMap(SetOrg org) {
-        Map<String, List<DocAccountTemplateItem>> resultMap = new TreeMap<>();
+    public Map<String, List<DocTemplate>> getDocTemplateMap(Org org) {
+        Map<String, List<DocTemplate>> resultMap = new TreeMap<>();
         if (!org.getId().equals(this.org.getId())) {
             return resultMap;
         }
-        List<DocAccountTemplateItem> docTemplateList = new ArrayList<>();
+        List<DocTemplate> docTemplateList = new ArrayList<>();
         String key = getKey(org);
         if (docTemplateMap.containsKey(key)) {
             docTemplateList = docTemplateMap.get(key);
         }
-        for (DocAccountTemplateItem docTemplate : docTemplateList) {
+        for (DocTemplate docTemplate : docTemplateList) {
             String flag = docTemplate.getFlag();
-            List<DocAccountTemplateItem> docTemplateWithFlagList;
+            List<DocTemplate> docTemplateWithFlagList;
             if (resultMap.containsKey(flag)) {
                 docTemplateWithFlagList = resultMap.get(flag);
             } else {
@@ -158,7 +158,7 @@ public class BusinessDocTemplate {
         return resultMap;
     }
 
-    public static String getKey(SetOrg org) {
+    public static String getKey(Org org) {
         StringBuilder key = new StringBuilder();
         key.append(INDUSTRY_ID).append(":").append(org.getIndustry()).append(";");
         key.append(ACCOUNTING_STANDARDS_ID).append(":").append(org.getAccountingStandards()).append(";");
@@ -182,7 +182,7 @@ public class BusinessDocTemplate {
      * 获取企业信息
      * @return 企业信息
      */
-    public SetOrg getOrg() {
+    public Org getOrg() {
         return org;
     }
 
@@ -190,7 +190,7 @@ public class BusinessDocTemplate {
      * 设置企业信息
      * @param org 企业信息
      */
-    public void setOrg(SetOrg org) {
+    public void setOrg(Org org) {
         this.org = org;
     }
 
@@ -214,7 +214,7 @@ public class BusinessDocTemplate {
      * 获取业务凭证模板信息
      * @return 业务凭证模板信息
      */
-    public Map<String, List<DocAccountTemplateItem>> getDocTemplateMap() {
+    public Map<String, List<DocTemplate>> getDocTemplateMap() {
         return docTemplateMap;
     }
 
@@ -222,7 +222,7 @@ public class BusinessDocTemplate {
      * 设置业务凭证模板信息
      * @param docTemplateMap 业务凭证模板信息
      */
-    public void setDocTemplateMap(Map<String, List<DocAccountTemplateItem>> docTemplateMap) {
+    public void setDocTemplateMap(Map<String, List<DocTemplate>> docTemplateMap) {
         this.docTemplateMap = docTemplateMap;
     }
 

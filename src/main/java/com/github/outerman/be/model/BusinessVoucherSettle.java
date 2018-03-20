@@ -1,10 +1,6 @@
 package com.github.outerman.be.model;
 
-import java.io.Serializable;
-
-public class AcmSortReceiptSettlestyle implements Serializable {
-
-    private static final long serialVersionUID = -4813159299386061246L;
+public class BusinessVoucherSettle {
 
     /** 业务属性：收入或者支出 */
     private Long businessPropertyId;

@@ -3,9 +3,9 @@ package com.github.outerman.be;
 import java.util.List;
 
 import com.github.outerman.be.convert.DocConvertor;
-import com.github.outerman.be.model.AcmSortReceipt;
-import com.github.outerman.be.model.FiDocGenetateResultDto;
-import com.github.outerman.be.model.SetOrg;
+import com.github.outerman.be.model.BusinessVoucher;
+import com.github.outerman.be.model.ConvertResult;
+import com.github.outerman.be.model.Org;
 import com.github.outerman.be.template.ITemplateProvider;
 
 /**
@@ -13,12 +13,15 @@ import com.github.outerman.be.template.ITemplateProvider;
  *
  * 业务凭证引擎
  */
-public class BusinessDocEngine {
+public final class BusinessDocEngine {
 
     private static DocConvertor convertor = DocConvertor.getInstance();
 
-    public static FiDocGenetateResultDto convertVoucher(SetOrg setOrg, Long userId, String userName, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
-        return convertor.convert(setOrg, receiptList, templateProvider);
+    public static ConvertResult convertVoucher(Org org, List<BusinessVoucher> vouchers, ITemplateProvider provider) {
+        return convertor.convert(org, vouchers, provider);
     }
 
+    private BusinessDocEngine() {
+        // avoid instantiate
+    }
 }

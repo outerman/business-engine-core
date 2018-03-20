@@ -1,11 +1,8 @@
 package com.github.outerman.be.model;
 
-import java.io.Serializable;
 import java.util.Map;
 
-public class AcmSortReceiptDetail implements Serializable {
-
-    private static final long serialVersionUID = -3366840538566698521L;
+public class BusinessVoucherDetail {
 
     private Long businessType;
 
