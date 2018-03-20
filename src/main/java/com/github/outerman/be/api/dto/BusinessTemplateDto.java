@@ -16,7 +16,6 @@ public class BusinessTemplateDto {
 
     private AcmDocAccountTemplateDto docAccountTemplate;
     private AcmPaymentTemplateDto paymentTemplate;
-    private AcmUITemplateDto uiTemplate;
 
     /**
      * 获取组织信息
@@ -66,11 +65,4 @@ public class BusinessTemplateDto {
         this.paymentTemplate = paymentTemplate;
     }
 
-    public AcmUITemplateDto getUiTemplate() {
-        return uiTemplate;
-    }
-
-    public void setUiTemplate(AcmUITemplateDto uiTemplate) {
-        this.uiTemplate = uiTemplate;
-    }
 }

@@ -3,7 +3,7 @@ package com.github.outerman.be.engine.businessDoc.validator;
 import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.dto.AcmDocAccountTemplateDto;
 import com.github.outerman.be.api.dto.AcmPaymentTemplateDto;
-import com.github.outerman.be.api.dto.AcmUITemplateDto;
+import com.github.outerman.be.api.dto.BusinessTemplateDto;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 import com.github.outerman.be.api.vo.SetColumnsTacticsDto;
 import com.github.outerman.be.engine.businessDoc.businessTemplate.AcmDocAccountTemplate;
@@ -29,7 +29,7 @@ public class TemplateSettleValidator implements ITemplateValidatable {
     }
 
     @Override
-    public String validate(AcmDocAccountTemplateDto docAccountTemplateDto, AcmPaymentTemplateDto paymentTemplateDto, AcmUITemplateDto uiTemplateDto) {
+    public String validate(BusinessTemplateDto businessTemplate) {
         return "";
         // 元数据模板银行账号（结算方式）显示（现在显示即必填）时，凭证模板对方科目来源必须存在结算方式
 //        if (docAccountTemplateDto.getBusinessCode().toString().startsWith("40")) {

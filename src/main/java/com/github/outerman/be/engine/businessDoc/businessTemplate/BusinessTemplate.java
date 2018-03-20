@@ -31,15 +31,12 @@ public class BusinessTemplate implements IValidatable {
     private AcmPaymentTemplate paymentTemplate;
 
     @Autowired
-    private AcmUITemplate uiTemplate;
-
-    @Autowired
     private ValidatorManager validatorManager;
 
     private BusinessTemplateDto businessTemplateDto;
 
     /**
-     * 初始化方法，按照企业、业务类型编码，获取凭证模板、结算模板、元数据模板数据
+     * 初始化方法，按照企业、业务类型编码，获取凭证模板、结算模板
      * <p>企业 id 为 0 时获取系统预置数据
      * @param org 企业信息
      * @param businessCode 业务类型编码
@@ -48,14 +45,12 @@ public class BusinessTemplate implements IValidatable {
     public void init(SetOrg org, String businessCode, ITemplateProvider templateProvider) {
         docAccountTemplate.init(org, businessCode, templateProvider);
         paymentTemplate.init(org, businessCode, templateProvider);
-        uiTemplate.init(org, businessCode, templateProvider);
 
         businessTemplateDto = new BusinessTemplateDto();
         businessTemplateDto.setOrg(org);
         businessTemplateDto.setBusinessCode(businessCode);
         businessTemplateDto.setDocAccountTemplate(docAccountTemplate.getDocTemplateDto());
         businessTemplateDto.setPaymentTemplate(paymentTemplate.getPaymentTemplateDto());
-        businessTemplateDto.setUiTemplate(uiTemplate.getUiTemplateDto());
     }
 
     @Override
@@ -64,16 +59,13 @@ public class BusinessTemplate implements IValidatable {
 
         result.setDocTemplateMessage(docAccountTemplate.validate());
         result.setPayDocTemplateMessage(paymentTemplate.validate());
-        result.setUiTemplateMessage(uiTemplate.validate());
         if (!result.getResult()) {
             return result.getErrorMessage();
         }
 
         String errorMessage = validatorManager.getTemplateValidators()
                 .parallelStream()
-                .map(validator -> validator.validate(docAccountTemplate.getDocTemplateDto(),
-                        paymentTemplate.getPaymentTemplateDto(),
-                        uiTemplate.getUiTemplateDto()))
+                .map(validator -> validator.validate(businessTemplateDto))
                 .filter(message -> !StringUtil.isEmpty(message))
                 .collect(Collectors.joining("\n"));
         return errorMessage;
@@ -105,14 +97,6 @@ public class BusinessTemplate implements IValidatable {
 
     public void setPaymentTemplate(AcmPaymentTemplate paymentTemplate) {
         this.paymentTemplate = paymentTemplate;
-    }
-
-    public AcmUITemplate getUiTemplate() {
-        return uiTemplate;
-    }
-
-    public void setUiTemplate(AcmUITemplate uiTemplate) {
-        this.uiTemplate = uiTemplate;
     }
 
 }

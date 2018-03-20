@@ -23,16 +23,12 @@ public class TemplateValidateResultDto implements Serializable {
     /** 结算模板校验结果 */
     private String payDocTemplateMessage;
 
-    /** 元数据模板校验结果 */
-    private String uiTemplateMessage;
-
     /** 校验器校验结果 */
     private List<String> validatorMessage;
 
     private void resetResult() {
         result = StringUtil.isEmpty(docTemplateMessage)
                 && StringUtil.isEmpty(payDocTemplateMessage)
-                && StringUtil.isEmpty(uiTemplateMessage)
                 && (validatorMessage == null || validatorMessage.isEmpty());
     }
 
@@ -46,9 +42,6 @@ public class TemplateValidateResultDto implements Serializable {
         }
         if (!StringUtil.isEmpty(payDocTemplateMessage)) {
             message.append(payDocTemplateMessage);
-        }
-        if (!StringUtil.isEmpty(uiTemplateMessage)) {
-            message.append(uiTemplateMessage);
         }
         if (validatorMessage != null && !validatorMessage.isEmpty()) {
             message.append(validatorMessage);
@@ -103,23 +96,6 @@ public class TemplateValidateResultDto implements Serializable {
      */
     public void setPayDocTemplateMessage(String payDocTemplateMessage) {
         this.payDocTemplateMessage = payDocTemplateMessage;
-        resetResult();
-    }
-
-    /**
-     * 获取元数据模板校验结果
-     * @return 元数据模板校验结果
-     */
-    public String getUiTemplateMessage() {
-        return uiTemplateMessage;
-    }
-
-    /**
-     * 设置元数据模板校验结果
-     * @param uiTemplateMessage 元数据模板校验结果
-     */
-    public void setUiTemplateMessage(String uiTemplateMessage) {
-        this.uiTemplateMessage = uiTemplateMessage;
         resetResult();
     }
 

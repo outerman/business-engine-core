@@ -5,7 +5,7 @@ import com.github.outerman.be.engine.businessDoc.businessTemplate.AcmDocAccountT
 import com.github.outerman.be.engine.util.CommonUtil;
 import com.github.outerman.be.api.constant.CommonConst;
 import com.github.outerman.be.api.dto.AcmPaymentTemplateDto;
-import com.github.outerman.be.api.dto.AcmUITemplateDto;
+import com.github.outerman.be.api.dto.BusinessTemplateDto;
 import com.github.outerman.be.api.vo.DocAccountTemplateItem;
 import com.github.outerman.be.api.vo.SetColumnsTacticsDto;
 
@@ -29,7 +29,7 @@ public class TemplateIndustryValidator implements ITemplateValidatable {
     }
 
     @Override
-    public String validate(AcmDocAccountTemplateDto docAccountTemplateDto, AcmPaymentTemplateDto paymentTemplateDto, AcmUITemplateDto uiTemplateDto) {
+    public String validate(BusinessTemplateDto businessTemplate) {
         StringBuilder errorMessage = new StringBuilder();
 
 //        // 行业_会计准则为 key，业务类型凭证模板信息
