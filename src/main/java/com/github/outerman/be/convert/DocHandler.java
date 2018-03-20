@@ -1,4 +1,4 @@
-package com.github.outerman.be.businessDoc.generator;
+package com.github.outerman.be.convert;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.github.outerman.be.businessDoc.template.BusinessTemplate;
 import com.github.outerman.be.contant.CommonConst;
 import com.github.outerman.be.model.AcmSortReceipt;
 import com.github.outerman.be.model.AcmSortReceiptDetail;
@@ -18,11 +17,12 @@ import com.github.outerman.be.model.FiDocEntryDto;
 import com.github.outerman.be.model.PaymentTemplateItem;
 import com.github.outerman.be.model.SetCurrency;
 import com.github.outerman.be.model.SetOrg;
+import com.github.outerman.be.template.BusinessTemplate;
 import com.github.outerman.be.util.AmountGetter;
 import com.github.outerman.be.util.DoubleUtil;
 import com.github.outerman.be.util.StringUtil;
 
-public class FiDocHandler {
+public class DocHandler {
 
     private SetOrg org;
 
@@ -47,7 +47,7 @@ public class FiDocHandler {
 
     private Map<String, FiDocEntryDto> entryMap = new HashMap<>();;
 
-    public FiDocHandler(SetOrg org, SetCurrency currency, AcmSortReceipt receipt) {
+    public DocHandler(SetOrg org, SetCurrency currency, AcmSortReceipt receipt) {
         this.org = org;
         this.currency = currency;
         this.voucher = receipt;

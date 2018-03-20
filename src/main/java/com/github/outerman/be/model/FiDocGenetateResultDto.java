@@ -1,11 +1,8 @@
-package com.github.outerman.be;
+package com.github.outerman.be.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.github.outerman.be.model.AcmSortReceipt;
-import com.github.outerman.be.model.FiDocDto;
 
 /**
  * Created by shenxy on 20/7/17.

@@ -1,4 +1,4 @@
-package com.github.outerman.be.businessDoc.template;
+package com.github.outerman.be.template;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import com.github.outerman.be.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.model.AcmSortReceiptDetail;
 import com.github.outerman.be.model.DocAccountTemplateItem;
 import com.github.outerman.be.model.SetOrg;

@@ -1,4 +1,4 @@
-package com.github.outerman.be.businessDoc.generator;
+package com.github.outerman.be.convert;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,11 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.github.outerman.be.FiDocGenetateResultDto;
-import com.github.outerman.be.FiDocGenetateResultDto.ReceiptResult;
-import com.github.outerman.be.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.businessDoc.template.BusinessTemplate;
-import com.github.outerman.be.businessDoc.template.TemplateManager;
 import com.github.outerman.be.contant.ErrorCode;
 import com.github.outerman.be.model.AcmSortReceipt;
 import com.github.outerman.be.model.AcmSortReceiptDetail;
@@ -20,32 +15,37 @@ import com.github.outerman.be.model.AcmSortReceiptSettlestyle;
 import com.github.outerman.be.model.DocAccountTemplateItem;
 import com.github.outerman.be.model.FiAccount;
 import com.github.outerman.be.model.FiDocDto;
+import com.github.outerman.be.model.FiDocGenetateResultDto;
 import com.github.outerman.be.model.PaymentTemplateItem;
 import com.github.outerman.be.model.SetCurrency;
 import com.github.outerman.be.model.SetOrg;
+import com.github.outerman.be.model.FiDocGenetateResultDto.ReceiptResult;
+import com.github.outerman.be.template.BusinessTemplate;
+import com.github.outerman.be.template.ITemplateProvider;
+import com.github.outerman.be.template.TemplateManager;
 import com.github.outerman.be.util.StringUtil;
 
 /**
  * Created by shenxy on 16/12/28. 生成凭证的工具类
  */
-public class DocTemplateGenerator {
+public class DocConvertor {
 
     private TemplateManager templateManager = TemplateManager.getInstance();
 
-    private static DocTemplateGenerator instance;
+    private static DocConvertor instance;
 
-    public static DocTemplateGenerator getInstance() {
+    public static DocConvertor getInstance() {
         if (instance == null) {
-            synchronized (DocTemplateGenerator.class) {
+            synchronized (DocConvertor.class) {
                 if (instance == null) {
-                    instance = new DocTemplateGenerator();
+                    instance = new DocConvertor();
                 }
             }
         }
         return instance;
     }
 
-    public FiDocGenetateResultDto sortConvertVoucher(SetOrg org, List<AcmSortReceipt> voucherList, ITemplateProvider templateProvider) {
+    public FiDocGenetateResultDto convert(SetOrg org, List<AcmSortReceipt> voucherList, ITemplateProvider templateProvider) {
         if (voucherList == null || voucherList.isEmpty()) {
             throw ErrorCode.EXCEPTION_VOUCHER_EMPATY;
         }
@@ -86,7 +86,7 @@ public class DocTemplateGenerator {
             if (!voucher.getValid()) {
                 continue;
             }
-            FiDocHandler docHandler = new FiDocHandler(org, currency, voucher);
+            DocHandler docHandler = new DocHandler(org, currency, voucher);
             docHandler.setTemplateMap(templateMap);
             docHandler.setAccountMap(accountMap);
             boolean result = convertVoucher(docHandler, resultDto);
@@ -161,7 +161,7 @@ public class DocTemplateGenerator {
         }
     }
 
-    private boolean convertVoucher(FiDocHandler docHandler, FiDocGenetateResultDto resultDto) {
+    private boolean convertVoucher(DocHandler docHandler, FiDocGenetateResultDto resultDto) {
         AcmSortReceipt voucher = docHandler.getVoucher();
         List<AcmSortReceiptDetail> detailList = reorderDetailList(voucher.getAcmSortReceiptDetailList());
         BusinessTemplate businessTemplate = null;

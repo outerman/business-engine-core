@@ -1,6 +1,5 @@
-package com.github.outerman.be.businessDoc.template;
+package com.github.outerman.be.template;
 
-import com.github.outerman.be.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.model.SetOrg;
 
 /**

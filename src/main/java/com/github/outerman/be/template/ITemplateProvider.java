@@ -1,4 +1,4 @@
-package com.github.outerman.be.businessDoc.dataProvider;
+package com.github.outerman.be.template;
 
 import java.util.List;
 import java.util.Map;

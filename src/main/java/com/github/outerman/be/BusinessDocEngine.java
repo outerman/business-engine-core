@@ -2,22 +2,23 @@ package com.github.outerman.be;
 
 import java.util.List;
 
-import com.github.outerman.be.businessDoc.dataProvider.ITemplateProvider;
-import com.github.outerman.be.businessDoc.generator.DocTemplateGenerator;
+import com.github.outerman.be.convert.DocConvertor;
 import com.github.outerman.be.model.AcmSortReceipt;
+import com.github.outerman.be.model.FiDocGenetateResultDto;
 import com.github.outerman.be.model.SetOrg;
+import com.github.outerman.be.template.ITemplateProvider;
 
 /**
  * Created by shenxy on 19/7/17.
  *
- * 根据模板, 生成凭证的服务
+ * 业务凭证引擎
  */
 public class BusinessDocEngine {
 
-    private static DocTemplateGenerator generator = DocTemplateGenerator.getInstance();
+    private static DocConvertor convertor = DocConvertor.getInstance();
 
     public static FiDocGenetateResultDto convertVoucher(SetOrg setOrg, Long userId, String userName, List<AcmSortReceipt> receiptList, ITemplateProvider templateProvider) {
-        return generator.sortConvertVoucher(setOrg, receiptList, templateProvider);
+        return convertor.convert(setOrg, receiptList, templateProvider);
     }
 
 }

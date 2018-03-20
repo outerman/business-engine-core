@@ -1,11 +1,10 @@
-package com.github.outerman.be.businessDoc.template;
+package com.github.outerman.be.template;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.github.outerman.be.businessDoc.dataProvider.ITemplateProvider;
 import com.github.outerman.be.model.AcmSortReceiptSettlestyle;
 import com.github.outerman.be.model.PaymentTemplateItem;
 import com.github.outerman.be.model.SetOrg;
