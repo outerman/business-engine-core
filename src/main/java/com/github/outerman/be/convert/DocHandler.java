@@ -44,10 +44,26 @@ public class DocHandler {
 
     private Map<String, DocEntry> entryMap = new HashMap<>();;
 
-    public DocHandler(Org org, BusinessVoucher receipt) {
+    public DocHandler(Org org, BusinessVoucher voucher) {
         this.org = org;
-        this.voucher = receipt;
-        this.doc = getDefaultDoc(receipt);
+        this.voucher = voucher;
+        this.doc = getDefaultDoc(voucher);
+    }
+
+    /**
+     * 根据单据信息获取默认的凭证 dto
+     * @param voucher 单据信息
+     */
+    private Doc getDefaultDoc(BusinessVoucher voucher) {
+        Doc doc = new Doc();
+        doc.setSourceVoucherId(voucher.getSourceVoucherId());
+        doc.setSourceVoucherCode(voucher.getSourceVoucherCode());
+        doc.setSourceVoucherTypeId(voucher.getSourceVoucherTypeId());
+        doc.setAttachedVoucherNum(voucher.getAppendNum());
+        doc.setVoucherDate(voucher.getVoucherDate());
+        doc.setDocId(voucher.getDocId());
+        doc.setCode(voucher.getDocCode());
+        return doc;
     }
 
     public Doc getDoc() {
@@ -67,26 +83,6 @@ public class DocHandler {
             entrys.removeAll(zeroAmountList);
         }
         doc.setEntrys(entrys);
-        return doc;
-    }
-
-    /**
-     * 根据单据信息获取默认的凭证 dto
-     * @param receipt 单据信息
-     */
-    private Doc getDefaultDoc(BusinessVoucher receipt) {
-        Doc doc = new Doc();
-        doc.setSourceVoucherId(receipt.getSourceVoucherId());
-        doc.setSourceVoucherCode(receipt.getSourceVoucherCode());
-        doc.setDocSourceTypeId(receipt.getSourceVoucherTypeId());
-        doc.setAttachedVoucherNum(receipt.getAppendNum());
-        String dateStr = StringUtil.format(receipt.getInAccountDate());
-        doc.setVoucherDate(dateStr);
-        // 如果曾经生成过,保留凭证号
-        if (!StringUtil.isEmpty(receipt.getDocCodeBak())) {
-            doc.setCode(receipt.getDocCodeBak());
-        }
-        doc.setDocId(receipt.getDocId());
         return doc;
     }
 
@@ -122,7 +118,7 @@ public class DocHandler {
     }
 
     private InnerFiDocEntryDto getDocEntryDto(DocTemplate docTemplate, BusinessVoucherDetail detail) {
-        Double amount = AmountGetter.getAmount(detail, docTemplate.getFundSource());
+        Double amount = AmountGetter.getAmount(detail, docTemplate.getAmountSource());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }
@@ -154,9 +150,9 @@ public class DocHandler {
             entry.setPrice(detail.getTaxInclusivePrice());
         }
         // 0 借 1 贷，流水账不区分币种，本币原币金额一样
-        Boolean direction = docTemplate.getDirection();
+        Integer direction = docTemplate.getBalanceDirection();
         key.append("_direction").append(direction);
-        if (direction) {
+        if (direction != null && direction.equals(1)) {
             entry.setAmountCr(amount);
             entry.setOrigAmountCr(amount);
         } else {
@@ -269,7 +265,7 @@ public class DocHandler {
     }
 
     private DocEntry getDocEntryDto(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
-        Double amount = AmountGetter.getAmount(settle, payDocTemplate.getFundSource());
+        Double amount = AmountGetter.getAmount(settle, payDocTemplate.getAmountSource());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }
@@ -278,13 +274,13 @@ public class DocHandler {
         DocEntry entry = new DocEntry();
         if (account.getIsAuxAccCalc() != null && account.getIsAuxAccCalc()) {
             if (account.getIsAuxAccPerson() != null && account.getIsAuxAccPerson()) { // 人员
-                entry.setPersonId(settle.getEmployee());
+                entry.setPersonId(settle.getPersonId());
             }
             if (account.getIsAuxAccCustomer() != null && account.getIsAuxAccCustomer()) { // 客户
-                entry.setCustomerId(settle.getConsumer());
+                entry.setCustomerId(settle.getCustomerId());
             }
             if (account.getIsAuxAccSupplier() != null && account.getIsAuxAccSupplier()) { // 供应商
-                entry.setSupplierId(settle.getVendor());
+                entry.setSupplierId(settle.getSupplierId());
             }
             if (account.getIsAuxAccBankAccount() != null && account.getIsAuxAccBankAccount()) { // 银行账号
                 entry.setBankAccountId(settle.getBankAccountId());
@@ -300,13 +296,17 @@ public class DocHandler {
         entry.setAccountCode(account.getCode());
 
         // 0 借 1 贷，流水账不区分币种，本币原币金额一样
-        Boolean direction = payDocTemplate.getDirection();
+        Integer direction = payDocTemplate.getBalanceDirection();
+        if (direction == null) {
+            direction = 0;
+        }
+        boolean isCr = direction != null && direction.equals(1);
         // 处理分录借贷方向、正负金额是否需要颠倒
         if (payDocTemplate.getReversal() && amount < 0) {
-            direction = !direction;
+            isCr = !isCr;
             amount*= -1;
         }
-        if (direction) {
+        if (isCr) {
             entry.setAmountCr(amount);
             entry.setOrigAmountCr(amount);
         } else {
@@ -325,16 +325,16 @@ public class DocHandler {
      * @return
      */
     private String getSettleSummary(BusinessVoucherSettle settle, SettleTemplate payDocTemplate) {
-        String summary = settle.getMemo();
+        String summary = settle.getRemark();
         if (!StringUtil.isEmpty(summary)) {
             return summary;
         }
         if (voucher.getSettles().size() != 1) {
-            summary = payDocTemplate.getSubjectType();
+            summary = payDocTemplate.getSummary();
         } else {
             summary = voucher.getDetails().get(0).getMemo();
             if (StringUtil.isEmpty(summary)) {
-                summary = payDocTemplate.getSubjectType();
+                summary = payDocTemplate.getSummary();
             }
         }
         return summary;
@@ -374,7 +374,7 @@ public class DocHandler {
      */
     public Account getAccount(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
         Account account;
-        String accountCode = payDocTemplate.getSubjectDefault();
+        String accountCode = payDocTemplate.getAccountCode();
         if ("1002".equals(accountCode)) {
             account = accountMap.get(accountCode + "_" + settle.getBankAccountId());
         } else {

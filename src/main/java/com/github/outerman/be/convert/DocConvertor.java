@@ -95,6 +95,7 @@ public final class DocConvertor {
             Doc fiDocDto = docHandler.getDoc();
             docList.add(fiDocDto);
         }
+        result.setDocList(docList);
 
         return result;
     }
@@ -202,7 +203,7 @@ public final class DocConvertor {
             }
             Account account = docHandler.getAccount(payDocTemplate, settle);
             if (account == null) {
-                result.addFailed(voucher, String.format(ErrorCode.ACCOUNT_CODE_INVALID, payDocTemplate.getSubjectDefault()));
+                result.addFailed(voucher, String.format(ErrorCode.ACCOUNT_CODE_INVALID, payDocTemplate.getAccountCode()));
                 return false;
             }
             payDocTemplate.setAccount(account);

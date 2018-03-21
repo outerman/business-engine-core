@@ -47,7 +47,7 @@ public class BusinessDocTemplate {
         this.org = org;
         this.businessCode = businessCode;
 
-        List<DocTemplate> all = templateProvider.getBusinessTemplateByCode(org.getId(), businessCode);
+        List<DocTemplate> all = templateProvider.getDocTemplate(org.getId(), businessCode);
         all.forEach(template -> {
             String key = getKey(org);
             if (docTemplateMap.get(key) == null) {

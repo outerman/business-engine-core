@@ -32,25 +32,26 @@ public class BusinessSettleTemplate {
      * <p>企业 id 为 0 时获取系统预置数据
      * @param org 企业信息
      * @param businessCode 业务编码
-     * @param templateProvider
+     * @param provider
      */
-    public void init(Org org, String businessCode, ITemplateProvider templateProvider) {
+    public void init(Org org, String businessCode, ITemplateProvider provider) {
         this.org = org;
         this.businessCode = businessCode;
 
-        List<SettleTemplate> payTemp = templateProvider.getPayTemplate(org.getId(), businessCode);
+        List<SettleTemplate> templateList = provider.getSettleTemplate(org.getId(), businessCode);
         settleTemplateMap = new HashMap<>();
-        for (SettleTemplate acmPayDocTemplate : payTemp) {
-            settleTemplateMap.put(acmPayDocTemplate.getPaymentsType().toString() + acmPayDocTemplate.getAccountType(),
-                    acmPayDocTemplate);
-            if (!accountCodeList.contains(acmPayDocTemplate.getSubjectDefault())) {
-                accountCodeList.add(acmPayDocTemplate.getSubjectDefault());
+        for (SettleTemplate template : templateList) {
+            String key = "" + template.getBusinessPropertyId() + template.getBankAccountTypeId();
+            settleTemplateMap.put(key, template);
+            if (!accountCodeList.contains(template.getAccountCode())) {
+                accountCodeList.add(template.getAccountCode());
             }
         }
     }
 
     public SettleTemplate getTemplate(BusinessVoucherSettle settle) {
-        return settleTemplateMap.get(settle.getBusinessPropertyId() + "" + settle.getBankAccountAttr());
+        String key = "" + settle.getBusinessPropertyId() + settle.getBankAccountTypeId();
+        return settleTemplateMap.get(key);
     }
 
     /**

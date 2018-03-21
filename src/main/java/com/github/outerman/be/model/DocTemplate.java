@@ -10,68 +10,107 @@ public class DocTemplate implements Serializable {
 
     private static final long serialVersionUID = -3818718679387513417L;
 
-    private Long id;// id
+    /** 业务编码 */
+    private String businessCode;
 
-    private Long industry;// 行业编码
+    /** 凭证分录标识 */
+    private String flag;
 
-    private Long businessCode;// 业务编码
+    /** 影响因素 */
+    private String influence;
 
-    private String flag;// 标识取值
-
-    private String influence;// 影响因素
+    /** 影响因素取值 */
+    private String influenceValue;
 
     /** 影响因素取值 map */
     private Map<String, String> influenceMap;
 
-    private Long vatTaxpayer;// 纳税人性质
-
-    private Long departmentAttr;// 部门属性
-
-    private Integer sort;// 排序字段
-
-    private Boolean direction;// 借贷方向(0借1贷)
-
-    private String fundSource;// 金额来源
-
-    private String accountCode;// 科目编码
-
-    private Integer accountingStandardsId;// 会计准则
-
     /** 摘要 */
     private String summary;
 
+    /** 余额方向：0借 1贷 */
+    private Integer balanceDirection;
+
+    /** 科目编码 */
+    private String accountCode;
+
+    /** 金额来源表达式 */
+    private String amountSource;
+
+    /** 行业，枚举 industry */
+    private Long industryId;
+
+    /** 会计准则，枚举 accountingStandards */
+    private Long accountingStandardsId;
+
+    /** 纳税人身份，枚举 vatTaxpayer */
+    private Long vatTaxpayerId;
+
+    /** 科目信息 */
     private Account account;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getBusinessCode() {
+    /**
+     * 获取业务编码
+     * @return 业务编码
+     */
+    public String getBusinessCode() {
         return businessCode;
     }
 
-    public void setBusinessCode(Long businessCode) {
+    /**
+     * 设置业务编码
+     * @param businessCode 业务编码
+     */
+    public void setBusinessCode(String businessCode) {
         this.businessCode = businessCode;
     }
 
+    /**
+     * 获取凭证分录标识
+     * @return 凭证分录标识
+     */
     public String getFlag() {
         return flag;
     }
 
+    /**
+     * 设置凭证分录标识
+     * @param flag 凭证分录标识
+     */
     public void setFlag(String flag) {
         this.flag = flag;
     }
 
+    /**
+     * 获取影响因素
+     * @return 影响因素
+     */
     public String getInfluence() {
         return influence;
     }
 
+    /**
+     * 设置影响因素
+     * @param influence 影响因素
+     */
     public void setInfluence(String influence) {
         this.influence = influence;
+    }
+
+    /**
+     * 获取影响因素取值
+     * @return 影响因素取值
+     */
+    public String getInfluenceValue() {
+        return influenceValue;
+    }
+
+    /**
+     * 设置影响因素取值
+     * @param influenceValue 影响因素取值
+     */
+    public void setInfluenceValue(String influenceValue) {
+        this.influenceValue = influenceValue;
     }
 
     /**
@@ -90,65 +129,8 @@ public class DocTemplate implements Serializable {
         this.influenceMap = influenceMap;
     }
 
-    public Long getDepartmentAttr() {
-        return departmentAttr;
-    }
-
-    public void setDepartmentAttr(Long departmentAttr) {
-        this.departmentAttr = departmentAttr;
-    }
-
-    public Boolean getDirection() {
-        return direction;
-    }
-
-    public void setDirection(Boolean direction) {
-        this.direction = direction;
-    }
-
-    public String getFundSource() {
-        return fundSource;
-    }
-
-    public void setFundSource(String fundSource) {
-        this.fundSource = fundSource;
-    }
-
-    public String getAccountCode() {
-        return accountCode;
-    }
-
-    public void setAccountCode(String accountCode) {
-        this.accountCode = accountCode;
-    }
-
-    public Integer getAccountingStandardsId() {
-        return accountingStandardsId;
-    }
-
-    public void setAccountingStandardsId(Integer accountingStandardsId) {
-        this.accountingStandardsId = accountingStandardsId;
-    }
-
-    public Long getIndustry() {
-        return industry;
-    }
-
-    public void setIndustry(Long industry) {
-        this.industry = industry;
-    }
-
-    public Long getVatTaxpayer() {
-        return vatTaxpayer;
-    }
-
-    public void setVatTaxpayer(Long vatTaxpayer) {
-        this.vatTaxpayer = vatTaxpayer;
-    }
-
     /**
      * 获取摘要
-     * 
      * @return 摘要
      */
     public String getSummary() {
@@ -157,26 +139,120 @@ public class DocTemplate implements Serializable {
 
     /**
      * 设置摘要
-     * 
-     * @param summary
-     *            摘要
+     * @param summary 摘要
      */
     public void setSummary(String summary) {
         this.summary = summary;
     }
 
-    public Integer getSort() {
-        return sort;
+    /**
+     * 获取余额方向：0借 1贷
+     * @return 余额方向：0借 1贷
+     */
+    public Integer getBalanceDirection() {
+        return balanceDirection;
     }
 
-    public void setSort(Integer sort) {
-        this.sort = sort;
+    /**
+     * 设置余额方向：0借 1贷
+     * @param balanceDirection 余额方向：0借 1贷
+     */
+    public void setBalanceDirection(Integer balanceDirection) {
+        this.balanceDirection = balanceDirection;
     }
 
+    /**
+     * 获取科目编码
+     * @return 科目编码
+     */
+    public String getAccountCode() {
+        return accountCode;
+    }
+
+    /**
+     * 设置科目编码
+     * @param accountCode 科目编码
+     */
+    public void setAccountCode(String accountCode) {
+        this.accountCode = accountCode;
+    }
+
+    /**
+     * 获取金额来源表达式
+     * @return 金额来源表达式
+     */
+    public String getAmountSource() {
+        return amountSource;
+    }
+
+    /**
+     * 设置金额来源表达式
+     * @param amountSource 金额来源表达式
+     */
+    public void setAmountSource(String amountSource) {
+        this.amountSource = amountSource;
+    }
+
+    /**
+     * 获取行业，枚举 industry
+     * @return 行业，枚举 industry
+     */
+    public Long getIndustryId() {
+        return industryId;
+    }
+
+    /**
+     * 设置行业，枚举 industry
+     * @param industryId 行业，枚举 industry
+     */
+    public void setIndustryId(Long industryId) {
+        this.industryId = industryId;
+    }
+
+    /**
+     * 获取会计准则，枚举 accountingStandards
+     * @return 会计准则，枚举 accountingStandards
+     */
+    public Long getAccountingStandardsId() {
+        return accountingStandardsId;
+    }
+
+    /**
+     * 设置会计准则，枚举 accountingStandards
+     * @param accountingStandardsId 会计准则，枚举 accountingStandards
+     */
+    public void setAccountingStandardsId(Long accountingStandardsId) {
+        this.accountingStandardsId = accountingStandardsId;
+    }
+
+    /**
+     * 获取纳税人身份，枚举 vatTaxpayer
+     * @return 纳税人身份，枚举 vatTaxpayer
+     */
+    public Long getVatTaxpayerId() {
+        return vatTaxpayerId;
+    }
+
+    /**
+     * 设置纳税人身份，枚举 vatTaxpayer
+     * @param vatTaxpayerId 纳税人身份，枚举 vatTaxpayer
+     */
+    public void setVatTaxpayerId(Long vatTaxpayerId) {
+        this.vatTaxpayerId = vatTaxpayerId;
+    }
+
+    /**
+     * 获取科目信息 
+     * @return 科目信息 
+     */
     public Account getAccount() {
         return account;
     }
 
+    /**
+     * 设置科目信息 
+     * @param account 科目信息 
+     */
     public void setAccount(Account account) {
         this.account = account;
     }

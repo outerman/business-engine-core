@@ -11,17 +11,14 @@ public class BusinessVoucher {
     /** 收支类型  */
     private Long paymentsType;
 
-    /** 入账日期  */
-    private Date inAccountDate;
+    /** 单据日期  */
+    private Date voucherDate;
 
     /** 凭证id（将来生成的凭证的id，可以获取凭证号，财务人员等信息）  */
     private Long docId;
 
     /** 凭证号  */
     private String docCode;
-
-    /** 凭证号备份，用于流水账驳回之后再审核生成凭照使用 */
-    private String docCodeBak;
 
     /** 附件数 */
     private int appendNum;
@@ -53,98 +50,128 @@ public class BusinessVoucher {
     /** 结算明细信息 */
     private List<BusinessVoucherSettle> settles;
 
+    /**
+     * @return the code
+     */
     public String getCode() {
         return code;
     }
 
+    /**
+     * @param code the code to set
+     */
     public void setCode(String code) {
         this.code = code;
     }
 
+    /**
+     * @return the paymentsType
+     */
     public Long getPaymentsType() {
         return paymentsType;
     }
 
+    /**
+     * @param paymentsType the paymentsType to set
+     */
     public void setPaymentsType(Long paymentsType) {
         this.paymentsType = paymentsType;
     }
 
-    public Date getInAccountDate() {
-        return inAccountDate;
+    /**
+     * @return the voucherDate
+     */
+    public Date getVoucherDate() {
+        return voucherDate;
     }
 
-    public void setInAccountDate(Date inAccountDate) {
-        this.inAccountDate = inAccountDate;
+    /**
+     * @param voucherDate the voucherDate to set
+     */
+    public void setVoucherDate(Date voucherDate) {
+        this.voucherDate = voucherDate;
     }
 
+    /**
+     * @return the docId
+     */
     public Long getDocId() {
         return docId;
     }
 
+    /**
+     * @param docId the docId to set
+     */
     public void setDocId(Long docId) {
         this.docId = docId;
     }
 
+    /**
+     * @return the docCode
+     */
     public String getDocCode() {
         return docCode;
     }
 
+    /**
+     * @param docCode the docCode to set
+     */
     public void setDocCode(String docCode) {
         this.docCode = docCode;
     }
 
     /**
-     * 获取凭证号备份，用于流水账驳回之后再审核生成凭照使用
-     * @return 凭证号备份
+     * @return the appendNum
      */
-    public String getDocCodeBak() {
-        return docCodeBak;
+    public int getAppendNum() {
+        return appendNum;
     }
 
     /**
-     * 设置凭证号备份，用于流水账驳回之后再审核生成凭照使用
-     * @param docCodeBak 凭证号备份
+     * @param appendNum the appendNum to set
      */
-    public void setDocCodeBak(String docCodeBak) {
-        this.docCodeBak = docCodeBak;
+    public void setAppendNum(int appendNum) {
+        this.appendNum = appendNum;
     }
 
+    /**
+     * @return the paymentsTypeName
+     */
     public String getPaymentsTypeName() {
         return paymentsTypeName;
     }
 
+    /**
+     * @param paymentsTypeName the paymentsTypeName to set
+     */
     public void setPaymentsTypeName(String paymentsTypeName) {
         this.paymentsTypeName = paymentsTypeName;
     }
 
     /**
-     * 获取显示字段-票据编码
-     * @return 显示字段-票据编码
+     * @return the invoiceNo
      */
     public String getInvoiceNo() {
         return invoiceNo;
     }
 
     /**
-     * 设置显示字段-票据编码
-     * @param invoiceNo 显示字段-票据编码
+     * @param invoiceNo the invoiceNo to set
      */
     public void setInvoiceNo(String invoiceNo) {
         this.invoiceNo = invoiceNo;
     }
 
-    public int getAppendNum() {
-        return appendNum;
-    }
-
-    public void setAppendNum(int appendNum) {
-        this.appendNum = appendNum;
-    }
-
+    /**
+     * @return the memo
+     */
     public String getMemo() {
         return memo;
     }
 
+    /**
+     * @param memo the memo to set
+     */
     public void setMemo(String memo) {
         this.memo = memo;
     }

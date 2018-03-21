@@ -15,9 +15,9 @@ import com.github.outerman.be.model.SettleTemplate;
  */
 public interface ITemplateProvider {
 
-    List<DocTemplate> getBusinessTemplateByCode(Long orgId, String businessCode);
+    List<DocTemplate> getDocTemplate(Long orgId, String businessCode);
 
-    List<SettleTemplate> getPayTemplate(Long orgId, String businessCode);
+    List<SettleTemplate> getSettleTemplate(Long orgId, String businessCode);
 
     Map<String, Account> getAccountCode(Long orgId, List<String> codeList, List<BusinessVoucherDetail> detailList);
 

@@ -2,103 +2,156 @@ package com.github.outerman.be.model;
 
 public class BusinessVoucherSettle {
 
+    /** 账户 */
+    private Long bankAccountId;
+
+    /** 账户类型 */
+    private Long bankAccountTypeId;
+
+    /** 金额 */
+    private Double taxInclusiveAmount;
+
+    /** 供应商  */
+    private Long supplierId;
+
+    /** 客户 */
+    private Long customerId;
+
+    /** 员工 */
+    private Long personId;
+
     /** 业务属性：收入或者支出 */
     private Long businessPropertyId;
 
-    /** 金额  */
-    private Double taxInclusiveAmount;
-
-    /** 银行账号ID  */
-    private Long bankAccountId;
-
-    /** 银行账号属性  */
-    private String bankAccountAttr;
-
-    /** 供应商  */
-    private Long vendor;
-
-    /** 客户 */
-    private Long consumer;
-
-    /** 员工  */
-    private Long employee;
-
-    /** 摘要  */
-    private String memo;
+    /** 备注 */
+    private String remark;
 
     /**
-     * 获取业务属性：收入或者支出
-     * @return 业务属性：收入或者支出
+     * 获取bankAccountId
+     * @return bankAccountId
+     */
+    public Long getBankAccountId() {
+        return bankAccountId;
+    }
+
+    /**
+     * 设置bankAccountId
+     * @param bankAccountId bankAccountId
+     */
+    public void setBankAccountId(Long bankAccountId) {
+        this.bankAccountId = bankAccountId;
+    }
+
+    /**
+     * 获取bankAccountTypeId
+     * @return bankAccountTypeId
+     */
+    public Long getBankAccountTypeId() {
+        return bankAccountTypeId;
+    }
+
+    /**
+     * 设置bankAccountTypeId
+     * @param bankAccountTypeId bankAccountTypeId
+     */
+    public void setBankAccountTypeId(Long bankAccountTypeId) {
+        this.bankAccountTypeId = bankAccountTypeId;
+    }
+
+    /**
+     * 获取taxInclusiveAmount
+     * @return taxInclusiveAmount
+     */
+    public Double getTaxInclusiveAmount() {
+        return taxInclusiveAmount;
+    }
+
+    /**
+     * 设置taxInclusiveAmount
+     * @param taxInclusiveAmount taxInclusiveAmount
+     */
+    public void setTaxInclusiveAmount(Double taxInclusiveAmount) {
+        this.taxInclusiveAmount = taxInclusiveAmount;
+    }
+
+    /**
+     * 获取supplierId
+     * @return supplierId
+     */
+    public Long getSupplierId() {
+        return supplierId;
+    }
+
+    /**
+     * 设置supplierId
+     * @param supplierId supplierId
+     */
+    public void setSupplierId(Long supplierId) {
+        this.supplierId = supplierId;
+    }
+
+    /**
+     * 获取customerId
+     * @return customerId
+     */
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    /**
+     * 设置customerId
+     * @param customerId customerId
+     */
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
+
+    /**
+     * 获取personId
+     * @return personId
+     */
+    public Long getPersonId() {
+        return personId;
+    }
+
+    /**
+     * 设置personId
+     * @param personId personId
+     */
+    public void setPersonId(Long personId) {
+        this.personId = personId;
+    }
+
+    /**
+     * 获取businessPropertyId
+     * @return businessPropertyId
      */
     public Long getBusinessPropertyId() {
         return businessPropertyId;
     }
 
     /**
-     * 设置业务属性：收入或者支出
-     * @param businessPropertyId 业务属性：收入或者支出
+     * 设置businessPropertyId
+     * @param businessPropertyId businessPropertyId
      */
     public void setBusinessPropertyId(Long businessPropertyId) {
         this.businessPropertyId = businessPropertyId;
     }
 
-    public void setTaxInclusiveAmount(Double taxInclusiveAmount) {
-        this.taxInclusiveAmount = taxInclusiveAmount;
+    /**
+     * 获取remark
+     * @return remark
+     */
+    public String getRemark() {
+        return remark;
     }
 
-    /** 金额  */
-    public Double getTaxInclusiveAmount() {
-        return taxInclusiveAmount;
-    }
-
-    public Long getBankAccountId() {
-        return bankAccountId;
-    }
-
-    public void setBankAccountId(Long bankAccountId) {
-        this.bankAccountId = bankAccountId;
-    }
-
-    public void setVendor(Long vendor) {
-        this.vendor = vendor;
-    }
-
-    /** 供应商  */
-    public Long getVendor() {
-        return vendor;
-    }
-
-    public void setEmployee(Long employee) {
-        this.employee = employee;
-    }
-
-    /** 员工  */
-    public Long getEmployee() {
-        return employee;
-    }
-
-    public Long getConsumer() {
-        return consumer;
-    }
-
-    public void setConsumer(Long consumer) {
-        this.consumer = consumer;
-    }
-
-    public String getBankAccountAttr() {
-        return bankAccountAttr;
-    }
-
-    public void setBankAccountAttr(String bankAccountAttr) {
-        this.bankAccountAttr = bankAccountAttr;
-    }
-
-    public String getMemo() {
-        return memo;
-    }
-
-    public void setMemo(String memo) {
-        this.memo = memo;
+    /**
+     * 设置remark
+     * @param remark remark
+     */
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 
 }

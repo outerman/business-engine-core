@@ -7,93 +7,156 @@ public class SettleTemplate implements Serializable {
 
     private static final long serialVersionUID = 4424620273857892825L;
 
-    /** 收支类型 */
-    private Long paymentsType;
+    /** 账户类型，枚举 bankAccountType */
+    private Long bankAccountTypeId;
 
-    /** 账户属性 */
-    private Long accountType;
+    /** 业务属性，枚举 businessProperty */
+    private Long businessPropertyId;
 
-    /** 科目类型 */
-    private String subjectType;
+    /** 科目编码 */
+    private String accountCode;
 
-    /** 默认科目类型 */
-    private String subjectDefault;
+    /** 余额方向：0借 1贷 */
+    private Integer balanceDirection;
 
-    /** 方向：0：借，1:贷 */
-    private Boolean direction;
+    /** 金额来源表达式 */
+    private String amountSource;
 
-    /** 金额来源 */
-    private String fundSource;
-
-    /** 是否颠倒 */
+    /** 金额为负时是否颠倒余额方向 */
     private Boolean reversal;
 
+    /** 摘要 */
+    private String summary;
+
+    /** 科目信息 */
     private Account account;
 
-    public void setSubjectType(String subjectType) {
-        this.subjectType = subjectType;
+    /**
+     * 获取账户类型，枚举 bankAccountType
+     * @return 账户类型，枚举 bankAccountType
+     */
+    public Long getBankAccountTypeId() {
+        return bankAccountTypeId;
     }
 
-    /** 科目类型 */
-    public String getSubjectType() {
-        return subjectType;
+    /**
+     * 设置账户类型，枚举 bankAccountType
+     * @param bankAccountTypeId 账户类型，枚举 bankAccountType
+     */
+    public void setBankAccountTypeId(Long bankAccountTypeId) {
+        this.bankAccountTypeId = bankAccountTypeId;
     }
 
-    public void setDirection(Boolean direction) {
-        this.direction = direction;
+    /**
+     * 获取业务属性，枚举 businessProperty
+     * @return 业务属性，枚举 businessProperty
+     */
+    public Long getBusinessPropertyId() {
+        return businessPropertyId;
     }
 
-    /** 方向：0：借，1:贷 */
-    public Boolean getDirection() {
-        return direction;
+    /**
+     * 设置业务属性，枚举 businessProperty
+     * @param businessPropertyId 业务属性，枚举 businessProperty
+     */
+    public void setBusinessPropertyId(Long businessPropertyId) {
+        this.businessPropertyId = businessPropertyId;
     }
 
-    public void setFundSource(String fundSource) {
-        this.fundSource = fundSource;
+    /**
+     * 获取科目编码
+     * @return 科目编码
+     */
+    public String getAccountCode() {
+        return accountCode;
     }
 
-    /** 金额来源 */
-    public String getFundSource() {
-        return fundSource;
+    /**
+     * 设置科目编码
+     * @param accountCode 科目编码
+     */
+    public void setAccountCode(String accountCode) {
+        this.accountCode = accountCode;
     }
 
+    /**
+     * 获取余额方向：0借 1贷
+     * @return 余额方向：0借 1贷
+     */
+    public Integer getBalanceDirection() {
+        return balanceDirection;
+    }
+
+    /**
+     * 设置余额方向：0借 1贷
+     * @param balanceDirection 余额方向：0借 1贷
+     */
+    public void setBalanceDirection(Integer balanceDirection) {
+        this.balanceDirection = balanceDirection;
+    }
+
+    /**
+     * 获取金额来源表达式
+     * @return 金额来源表达式
+     */
+    public String getAmountSource() {
+        return amountSource;
+    }
+
+    /**
+     * 设置金额来源表达式
+     * @param amountSource 金额来源表达式
+     */
+    public void setAmountSource(String amountSource) {
+        this.amountSource = amountSource;
+    }
+
+    /**
+     * 获取金额为负时是否颠倒余额方向
+     * @return 金额为负时是否颠倒余额方向
+     */
     public Boolean getReversal() {
         return reversal;
     }
 
+    /**
+     * 设置金额为负时是否颠倒余额方向
+     * @param reversal 金额为负时是否颠倒余额方向
+     */
     public void setReversal(Boolean reversal) {
         this.reversal = reversal;
     }
 
-    public Long getPaymentsType() {
-        return paymentsType;
+    /**
+     * 获取摘要
+     * @return 摘要
+     */
+    public String getSummary() {
+        return summary;
     }
 
-    public void setPaymentsType(Long paymentsType) {
-        this.paymentsType = paymentsType;
+    /**
+     * 设置摘要
+     * @param summary 摘要
+     */
+    public void setSummary(String summary) {
+        this.summary = summary;
     }
 
-    public String getSubjectDefault() {
-        return subjectDefault;
-    }
-
-    public void setSubjectDefault(String subjectDefault) {
-        this.subjectDefault = subjectDefault;
-    }
-
-    public Long getAccountType() {
-        return accountType;
-    }
-
-    public void setAccountType(Long accountType) {
-        this.accountType = accountType;
-    }
-
+    /**
+     * 获取科目信息 
+     * @return 科目信息 
+     */
     public Account getAccount() {
         return account;
     }
 
+    /**
+     * 设置科目信息 
+     * @param account 科目信息 
+     */
     public void setAccount(Account account) {
         this.account = account;
     }
+
 }
