@@ -116,6 +116,9 @@ public class BusinessVoucherDetail {
     /** 影响因素取值 map */
     private Map<String, String> influenceMap;
 
+    /** 金额取值 map */
+    private Map<String, Object> amountMap;
+
     public Long getUnitId() {
         return unitId;
     }
@@ -530,6 +533,22 @@ public class BusinessVoucherDetail {
      */
     public void setInfluenceMap(Map<String, String> influenceMap) {
         this.influenceMap = influenceMap;
+    }
+
+    /**
+     * 获取金额取值 map
+     * @return 金额取值 map
+     */
+    public Map<String, Object> getAmountMap() {
+        return amountMap;
+    }
+
+    /**
+     * 设置金额取值 map
+     * @param amountMap 金额取值 map
+     */
+    public void setAmountMap(Map<String, Object> amountMap) {
+        this.amountMap = amountMap;
     }
 
 }

@@ -118,7 +118,7 @@ public class DocHandler {
     }
 
     private InnerFiDocEntryDto getDocEntryDto(DocTemplate docTemplate, BusinessVoucherDetail detail) {
-        Double amount = AmountGetter.getAmount(detail, docTemplate.getAmountSource());
+        Double amount = AmountGetter.getAmount(detail, docTemplate.getAmountSource(), detail.getAmountMap());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }
@@ -265,7 +265,7 @@ public class DocHandler {
     }
 
     private DocEntry getDocEntryDto(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
-        Double amount = AmountGetter.getAmount(settle, payDocTemplate.getAmountSource());
+        Double amount = AmountGetter.getAmount(settle, payDocTemplate.getAmountSource(), settle.getAmountMap());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }
@@ -349,15 +349,14 @@ public class DocHandler {
     public Account getAccount(DocTemplate docTemplate, BusinessVoucherDetail detail) {
         Account account;
         String accountCode = docTemplate.getAccountCode();
-        String businessCode = detail.getBusinessCode();
-        if ("1002".equals(accountCode)) {
-            Long bankAccountId = detail.getBankAccountId();
-            account = accountMap.get(accountCode + "_" + bankAccountId);
+        String key = accountCode + "_" + detail.getBankAccountId();
+        if (accountMap.containsKey(key)) {
+            account = accountMap.get(key);
         } else {
             account = accountMap.get(accountCode);
         }
         if (account != null) {
-            String key = account.getCode() + "_" + businessCode;
+            key = account.getCode() + "_" + detail.getBusinessCode();
             if (accountMap.containsKey(key)) {
                 account = accountMap.get(key);
             }
@@ -375,8 +374,9 @@ public class DocHandler {
     public Account getAccount(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
         Account account;
         String accountCode = payDocTemplate.getAccountCode();
-        if ("1002".equals(accountCode)) {
-            account = accountMap.get(accountCode + "_" + settle.getBankAccountId());
+        String key = accountCode + "_" + settle.getBankAccountId();
+        if (accountMap.containsKey(key)) {
+            account = accountMap.get(key);
         } else {
             account = accountMap.get(accountCode);
         }
