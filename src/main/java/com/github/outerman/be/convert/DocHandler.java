@@ -240,20 +240,7 @@ public class DocHandler {
             }
         }
 
-        if (entryList.isEmpty()) {
-            entryList.add(entry);
-            return;
-        }
-
-        int index = entryList.size();
-        for (DocEntry item : entryList) {
-            String code = item.getAccountCode();
-            if (accountCode.compareTo(code) < 0) {
-                index = entryList.indexOf(item);
-                break;
-            }
-        }
-        entryList.add(index, entry);
+        entryList.add(entry);
     }
 
     public void addEntry(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
