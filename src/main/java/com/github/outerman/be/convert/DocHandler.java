@@ -4,18 +4,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.github.outerman.be.contant.CommonConst;
+import com.github.outerman.be.model.Account;
 import com.github.outerman.be.model.BusinessVoucher;
 import com.github.outerman.be.model.BusinessVoucherDetail;
 import com.github.outerman.be.model.BusinessVoucherSettle;
-import com.github.outerman.be.model.DocTemplate;
-import com.github.outerman.be.model.Account;
 import com.github.outerman.be.model.Doc;
 import com.github.outerman.be.model.DocEntry;
-import com.github.outerman.be.model.SettleTemplate;
+import com.github.outerman.be.model.DocTemplate;
 import com.github.outerman.be.model.Org;
+import com.github.outerman.be.model.SettleTemplate;
 import com.github.outerman.be.template.BusinessTemplate;
 import com.github.outerman.be.util.AmountGetter;
 import com.github.outerman.be.util.DoubleUtil;
@@ -206,13 +205,6 @@ public class DocHandler {
             if (account.getIsAuxAccLevyAndRetreat() != null && account.getIsAuxAccLevyAndRetreat()) {
                 entry.setLevyAndRetreatId(detail.getDrawbackPolicy());
                 key.append("_levyAndRetreatId").append(detail.getDrawbackPolicy());
-            }
-        }
-
-        Map<String, String> influenceMap = docTemplate.getInfluenceMap();
-        if (influenceMap != null) {
-            for (Entry<String, String> influence : influenceMap.entrySet()) {
-                key.append("_" + influence.getKey()).append(influence.getValue());
             }
         }
 
