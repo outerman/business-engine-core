@@ -243,14 +243,10 @@ public final class DocConvertor {
         if (disabled.isEmpty() && deleted.isEmpty()) {
             return result;
         }
-        List<String> message = new ArrayList<>();
-        if (!disabled.isEmpty()) {
-            message.add(StringUtils.join(disabled, "、") + "已经停用");
-        }
-        if (!deleted.isEmpty()) {
-            message.add(StringUtils.join(deleted, "、") + "已经删除");
-        }
-        result = String.format(ErrorCode.ACCOUNT_CODE_INVALID, StringUtils.join(message, "，"));
+        List<String> code = new ArrayList<>();
+        code.addAll(disabled);
+        code.addAll(deleted);
+        result = String.format(ErrorCode.ACCOUNT_CODE_INVALID, StringUtils.join(code, "、") + "已经停用或删除");
         return result;
     }
 
