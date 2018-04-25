@@ -24,7 +24,7 @@ public class ErrorCode {
 
     public static final String DOC_TEMPLATE_EMPTY = "业务编码%s没有找到匹配的凭证模板数据";
 
-    public static final String ACCOUNT_CODE_INVALID = "编码%s没有找到对应的科目信息";
+    public static final String ACCOUNT_CODE_INVALID = "生成凭证的对应科目%s，请在科目设置中进行修改确认";
 
     public static final String ENTRY_EMPTY = "所有分录取到的金额为 0";
 

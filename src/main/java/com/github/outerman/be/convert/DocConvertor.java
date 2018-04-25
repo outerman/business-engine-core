@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.github.outerman.be.contant.ErrorCode;
 import com.github.outerman.be.model.BusinessVoucher;
 import com.github.outerman.be.model.BusinessVoucherDetail;
@@ -158,6 +160,8 @@ public final class DocConvertor {
         List<BusinessVoucherDetail> details = reorderDetailList(voucher.getDetails());
         BusinessTemplate businessTemplate = null;
         Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
+        List<String> disabled = new ArrayList<>();
+        List<String> deleted = new ArrayList<>();
         // 业务明细转换凭证分录
         for (BusinessVoucherDetail detail : details) {
             String businessCode = detail.getBusinessCode();
@@ -170,8 +174,11 @@ public final class DocConvertor {
             for (DocTemplate docTemplate : docTemplateList) {
                 Account account = docHandler.getAccount(docTemplate, detail);
                 if (account == null) {
-                    result.addFailed(voucher, String.format(ErrorCode.ACCOUNT_CODE_INVALID, docTemplate.getAccountCode()));
-                    return false;
+                    deleted.add(docTemplate.getAccountCode());
+                    continue;
+                } else if (!account.getIsEnable()) {
+                    disabled.add(docTemplate.getAccountCode());
+                    continue;
                 }
                 docTemplate.setAccount(account);
                 docHandler.addEntry(docTemplate, detail);
@@ -180,14 +187,24 @@ public final class DocConvertor {
 
         Doc fiDocDto = docHandler.getDoc();
         if (fiDocDto.getEntrys().isEmpty()) {
-            // 所有明细处理之后，凭证分录为空：获取到的金额字段都是 0
-            result.addFailed(voucher, ErrorCode.ENTRY_EMPTY);
+            String message = validateAccount(disabled, deleted);
+            if (!StringUtil.isEmpty(message)) {
+                result.addFailed(voucher, message);
+            } else {
+                // 所有明细处理之后，凭证分录为空：获取到的金额字段都是 0
+                result.addFailed(voucher, ErrorCode.ENTRY_EMPTY);
+            }
             return false;
         }
 
         List<BusinessVoucherSettle> settleList = voucher.getSettles();
         if (settleList == null || settleList.isEmpty()) {
-            return true;
+            String message = validateAccount(disabled, deleted);
+            if (StringUtil.isEmpty(message)) {
+                return true;
+            }
+            result.addFailed(voucher, message);
+            return false;
         }
 
         // 结算明细转换凭证分录
@@ -203,14 +220,38 @@ public final class DocConvertor {
             }
             Account account = docHandler.getAccount(payDocTemplate, settle);
             if (account == null) {
-                result.addFailed(voucher, String.format(ErrorCode.ACCOUNT_CODE_INVALID, payDocTemplate.getAccountCode()));
-                return false;
+                deleted.add(payDocTemplate.getAccountCode());
+                continue;
+            } else if (!account.getIsEnable()) {
+                disabled.add(payDocTemplate.getAccountCode());
+                continue;
             }
             payDocTemplate.setAccount(account);
 
             docHandler.addEntry(payDocTemplate, settle);
         }
-        return true;
+        String message = validateAccount(disabled, deleted);
+        if (StringUtil.isEmpty(message)) {
+            return true;
+        }
+        result.addFailed(voucher, message);
+        return false;
+    }
+
+    private String validateAccount(List<String> disabled, List<String> deleted) {
+        String result = null;
+        if (disabled.isEmpty() && deleted.isEmpty()) {
+            return result;
+        }
+        List<String> message = new ArrayList<>();
+        if (!disabled.isEmpty()) {
+            message.add(StringUtils.join(disabled, "、") + "已经停用");
+        }
+        if (!deleted.isEmpty()) {
+            message.add(StringUtils.join(deleted, "、") + "已经删除");
+        }
+        result = String.format(ErrorCode.ACCOUNT_CODE_INVALID, StringUtils.join(message, "，"));
+        return result;
     }
 
     /**

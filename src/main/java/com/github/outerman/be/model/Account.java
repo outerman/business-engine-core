@@ -109,6 +109,9 @@ public class Account implements Serializable {
     /** 投资人ID */
     private Long investorId;
 
+    /** 是否启用  */
+    private Boolean isEnable;
+
     /** 组织机构id */
     public Long getOrgId() {
         return orgId;
@@ -408,6 +411,22 @@ public class Account implements Serializable {
 
     public void setIsAuxAccInputTax(Boolean isAuxAccInputTax) {
         this.isAuxAccInputTax = isAuxAccInputTax;
+    }
+
+    /**
+     * 获取是否启用
+     * @return 是否启用
+     */
+    public Boolean getIsEnable() {
+        return isEnable;
+    }
+
+    /**
+     * 设置是否启用
+     * @param isEnable 是否启用
+     */
+    public void setIsEnable(Boolean isEnable) {
+        this.isEnable = isEnable;
     }
 
 }
