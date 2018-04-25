@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -11,6 +12,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.outerman.be.contant.ErrorCode;
+import com.github.outerman.be.model.Account;
 import com.github.outerman.be.model.BusinessVoucher;
 import com.github.outerman.be.model.BusinessVoucherDetail;
 import com.github.outerman.be.model.BusinessVoucherSettle;
@@ -18,7 +20,6 @@ import com.github.outerman.be.model.ConvertResult;
 import com.github.outerman.be.model.ConvertResult.FailDetail;
 import com.github.outerman.be.model.Doc;
 import com.github.outerman.be.model.DocTemplate;
-import com.github.outerman.be.model.Account;
 import com.github.outerman.be.model.Org;
 import com.github.outerman.be.model.SettleTemplate;
 import com.github.outerman.be.template.BusinessTemplate;
@@ -160,8 +161,8 @@ public final class DocConvertor {
         List<BusinessVoucherDetail> details = reorderDetailList(voucher.getDetails());
         BusinessTemplate businessTemplate = null;
         Map<String, BusinessTemplate> templateMap = docHandler.getTemplateMap();
-        List<String> disabled = new ArrayList<>();
-        List<String> deleted = new ArrayList<>();
+        Set<String> disabled = new LinkedHashSet<>();
+        Set<String> deleted = new LinkedHashSet<>();
         // 业务明细转换凭证分录
         for (BusinessVoucherDetail detail : details) {
             String businessCode = detail.getBusinessCode();
@@ -238,7 +239,7 @@ public final class DocConvertor {
         return false;
     }
 
-    private String validateAccount(List<String> disabled, List<String> deleted) {
+    private String validateAccount(Set<String> disabled, Set<String> deleted) {
         String result = null;
         if (disabled.isEmpty() && deleted.isEmpty()) {
             return result;
