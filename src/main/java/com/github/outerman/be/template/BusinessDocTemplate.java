@@ -103,13 +103,12 @@ public class BusinessDocTemplate {
                 for (Entry<String, String> entry : influenceMap.entrySet()) {
                     influence = entry.getKey();
                     String value = entry.getValue();
+                    if (value.equals("默认")) {
+                        defaultDocTemplate = docTemplate;
+                    }
                     if (detailInfluenceMap == null || !detailInfluenceMap.containsKey(influence)) {
                         match = false;
-                        if (value.equals("默认")) {
-                            defaultDocTemplate = docTemplate;
-                        } else {
-                            break;
-                        }
+                        break;
                     } else {
                         String detailValue = detailInfluenceMap.get(influence);
                         if (!value.equals(detailValue)) {
