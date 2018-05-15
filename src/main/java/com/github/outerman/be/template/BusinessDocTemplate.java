@@ -113,6 +113,9 @@ public class BusinessDocTemplate {
                         String detailValue = detailInfluenceMap.get(influence);
                         if (!value.equals(detailValue)) {
                             match = false;
+                            if (defaultDocTemplate == docTemplate) {
+                                defaultDocTemplate = null;
+                            }
                             break;
                         }
                     }
