@@ -150,6 +150,14 @@ public class DocHandler {
         }
         // 0 借 1 贷，流水账不区分币种，本币原币金额一样
         Integer direction = docTemplate.getBalanceDirection();
+        if (direction == null) {
+            direction = 0;
+        }
+        // 处理分录借贷方向、正负金额是否需要颠倒
+        if (detail.getReversal() && amount < 0) {
+            direction = 1 - direction;
+            amount*= -1;
+        }
         key.append("_direction").append(direction);
         if (direction != null && direction.equals(1)) {
             entry.setAmountCr(amount);

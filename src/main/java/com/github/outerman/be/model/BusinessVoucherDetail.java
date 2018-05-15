@@ -119,6 +119,9 @@ public class BusinessVoucherDetail {
     /** 金额取值 map */
     private Map<String, Object> amountMap;
 
+    /** 金额为负数时是否颠倒借贷方向 */
+    private Boolean reversal = false;
+
     public Long getUnitId() {
         return unitId;
     }
@@ -549,6 +552,22 @@ public class BusinessVoucherDetail {
      */
     public void setAmountMap(Map<String, Object> amountMap) {
         this.amountMap = amountMap;
+    }
+
+    /**
+     * 获取金额为负数时是否颠倒借贷方向
+     * @return 金额为负数时是否颠倒借贷方向
+     */
+    public Boolean getReversal() {
+        return reversal;
+    }
+
+    /**
+     * 设置金额为负数时是否颠倒借贷方向
+     * @param reversal 金额为负数时是否颠倒借贷方向
+     */
+    public void setReversal(Boolean reversal) {
+        this.reversal = reversal;
     }
 
 }
