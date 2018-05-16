@@ -105,6 +105,20 @@ public class DocHandler {
             existEntry.setOrigAmountCr(DoubleUtil.add(existEntry.getOrigAmountCr(), entry.getOrigAmountCr()));
             existEntry.setAmountDr(DoubleUtil.add(existEntry.getAmountDr(), entry.getAmountDr()));
             existEntry.setOrigAmountDr(DoubleUtil.add(existEntry.getOrigAmountDr(), entry.getOrigAmountDr()));
+            if (!DoubleUtil.isNullOrZero(existEntry.getAmountCr()) && !DoubleUtil.isNullOrZero(existEntry.getAmountDr())) {
+                Double amountCr = DoubleUtil.add(existEntry.getAmountCr(), -existEntry.getAmountDr());
+                if (amountCr >= 0) {
+                    existEntry.setAmountCr(amountCr);
+                    existEntry.setOrigAmountCr(DoubleUtil.add(existEntry.getOrigAmountCr(), -existEntry.getOrigAmountDr()));
+                    existEntry.setAmountDr(null);
+                    existEntry.setOrigAmountDr(null);
+                } else {
+                    existEntry.setAmountDr(-amountCr);
+                    existEntry.setOrigAmountDr(DoubleUtil.add(existEntry.getOrigAmountDr(), -existEntry.getOrigAmountCr()));
+                    existEntry.setAmountCr(null);
+                    existEntry.setOrigAmountCr(null);
+                }
+            }
             Double amount = entry.getAmountCr();
             if (DoubleUtil.isNullOrZero(amount)) {
                 amount = entry.getAmountDr();
@@ -158,7 +172,6 @@ public class DocHandler {
             direction = 1 - direction;
             amount*= -1;
         }
-        key.append("_direction").append(direction);
         if (direction != null && direction.equals(1)) {
             entry.setAmountCr(amount);
             entry.setOrigAmountCr(amount);
