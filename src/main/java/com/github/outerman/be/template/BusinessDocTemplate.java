@@ -10,7 +10,6 @@ import java.util.TreeMap;
 import com.github.outerman.be.model.BusinessVoucherDetail;
 import com.github.outerman.be.model.DocTemplate;
 import com.github.outerman.be.model.Org;
-import com.github.outerman.be.util.StringUtil;
 
 /**
  * Created by shenxy on 16/12/28.
@@ -89,40 +88,42 @@ public class BusinessDocTemplate {
             BusinessVoucherDetail detail) {
         List<DocTemplate> resultList = new ArrayList<>();
         Map<String, String> detailInfluenceMap = detail.getInfluenceMap();
-        DocTemplate defaultDocTemplate = null; // 影响因素默认匹配规则，影响因素值为 0 的记录
+        DocTemplate defaultDocTemplate = null; // 影响因素默认匹配模板，影响因素值为默认的记录
         for (DocTemplate docTemplate : docTemplateListWithFlag) {
-            String influence = docTemplate.getInfluence();
-            if (StringUtil.isEmpty(influence)) { // 没有影响因素
+            Map<String, String> influenceMap = docTemplate.getInfluenceMap();
+            if (influenceMap == null || influenceMap.isEmpty()) { // 没有影响因素
                 resultList.add(docTemplate);
                 continue;
             }
 
-            Map<String, String> influenceMap = docTemplate.getInfluenceMap();
-            if (influenceMap != null) {
-                boolean match = true;
-                for (Entry<String, String> entry : influenceMap.entrySet()) {
-                    influence = entry.getKey();
-                    String value = entry.getValue();
-                    if (value.equals("默认")) {
-                        defaultDocTemplate = docTemplate;
-                    }
-                    if (detailInfluenceMap == null || !detailInfluenceMap.containsKey(influence)) {
-                        match = false;
-                        break;
-                    } else {
-                        String detailValue = detailInfluenceMap.get(influence);
-                        if (!value.equals(detailValue)) {
-                            match = false;
-                            if (defaultDocTemplate == docTemplate) {
-                                defaultDocTemplate = null;
-                            }
-                            break;
+            boolean match = false;
+            for (Entry<String, String> entry : influenceMap.entrySet()) {
+                match = false;
+                String value = entry.getValue();
+                if (value.equals("默认")) { // 影响因素取值为默认，设置为默认匹配模板
+                    defaultDocTemplate = docTemplate;
+                    continue;
+                }
+                String influence = entry.getKey();
+                if (detailInfluenceMap != null && detailInfluenceMap.containsKey(influence)) {
+                    String detailValue = detailInfluenceMap.get(influence);
+                    if (value.equals(detailValue)) {
+                        if (docTemplate != defaultDocTemplate) {
+                            match = true;
+                        } else { // 默认匹配模板单独处理，不算匹配到
+                            continue;
                         }
                     }
                 }
-                if (match) {
-                    resultList.add(docTemplate);
+                if (!match) { // 存在影响因素不匹配模板时不再继续匹配
+                    if (defaultDocTemplate == docTemplate) { // 不匹配时，如果之前设置为了默认匹配模板，清空
+                        defaultDocTemplate = null;
+                    }
+                    break;
                 }
+            }
+            if (match) {
+                resultList.add(docTemplate);
             }
         }
         if (resultList.isEmpty() && defaultDocTemplate != null) {
