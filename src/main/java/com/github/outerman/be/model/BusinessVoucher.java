@@ -32,6 +32,9 @@ public class BusinessVoucher {
     /** 来源单编码 */
     private String sourceVoucherCode;
 
+    /** 来源单列表 */
+    private List<SourceVoucher> sourceVouchers;
+
     /** 显示字段－收支类型名称(1:收入2:支出)  */
     private String paymentsTypeName;
 
@@ -222,6 +225,22 @@ public class BusinessVoucher {
      */
     public void setSourceVoucherCode(String sourceVoucherCode) {
         this.sourceVoucherCode = sourceVoucherCode;
+    }
+
+    /**
+     * 获取来源单列表
+     * @return 来源单列表
+     */
+    public List<SourceVoucher> getSourceVouchers() {
+        return sourceVouchers;
+    }
+
+    /**
+     * 设置来源单列表
+     * @param sourceVouchers 来源单列表
+     */
+    public void setSourcecVouchers(List<SourceVoucher> sourceVouchers) {
+        this.sourceVouchers = sourceVouchers;
     }
 
     /**

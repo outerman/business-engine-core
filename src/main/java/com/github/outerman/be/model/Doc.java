@@ -27,6 +27,9 @@ public class Doc implements Serializable {
     /** 来源单据编码 */
     private String sourceVoucherCode;
 
+    /** 凭证来源单据列表 */
+    private List<SourceVoucher> sourceVouchers;
+
     /** 所附单据个数  */
     private Integer attachedVoucherNum;
 
@@ -127,6 +130,22 @@ public class Doc implements Serializable {
      */
     public void setSourceVoucherCode(String sourceVoucherCode) {
         this.sourceVoucherCode = sourceVoucherCode;
+    }
+
+    /**
+     * 获取凭证来源单据列表
+     * @return 凭证来源单据列表
+     */
+    public List<SourceVoucher> getSourceVouchers() {
+        return sourceVouchers;
+    }
+
+    /**
+     * 设置凭证来源单据列表
+     * @param sourceVouchers 凭证来源单据列表
+     */
+    public void setSourceVouchers(List<SourceVoucher> sourceVouchers) {
+        this.sourceVouchers = sourceVouchers;
     }
 
     /**

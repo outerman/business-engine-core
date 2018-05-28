@@ -58,6 +58,7 @@ public class DocHandler {
         doc.setSourceVoucherId(voucher.getSourceVoucherId());
         doc.setSourceVoucherCode(voucher.getSourceVoucherCode());
         doc.setSourceVoucherTypeId(voucher.getSourceVoucherTypeId());
+        doc.setSourceVouchers(voucher.getSourceVouchers());
         doc.setAttachedVoucherNum(voucher.getAppendNum());
         doc.setVoucherDate(voucher.getVoucherDate());
         doc.setDocId(voucher.getDocId());
