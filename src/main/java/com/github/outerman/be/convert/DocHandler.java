@@ -126,7 +126,7 @@ public class DocHandler {
             }
             existEntry.setPrice(DoubleUtil.div(amount, existEntry.getQuantity()));
         } else {
-            addEntry(entry);
+            addEntry(entry, false);
             entryMap.put(key, entry);
         }
     }
@@ -181,53 +181,51 @@ public class DocHandler {
             entry.setOrigAmountDr(amount);
         }
 
-        if (account.getIsAuxAccCalc() != null && account.getIsAuxAccCalc()) {
-            if (account.getIsAuxAccDepartment() != null && account.getIsAuxAccDepartment()) { // 部门
-                entry.setDepartmentId(detail.getDepartment());
-                key.append("_departmentId").append(detail.getDepartment());
+        if (account.getIsAuxAccDepartment() != null && account.getIsAuxAccDepartment()) { // 部门
+            entry.setDepartmentId(detail.getDepartment());
+            key.append("_departmentId").append(detail.getDepartment());
+        }
+        if (account.getIsAuxAccPerson() != null && account.getIsAuxAccPerson()) { // 人员
+            entry.setPersonId(detail.getEmployee());
+            key.append("_personId").append(detail.getEmployee());
+        }
+        if (account.getIsAuxAccCustomer() != null && account.getIsAuxAccCustomer()) { // 客户
+            entry.setCustomerId(detail.getConsumer());
+            key.append("_customerId").append(detail.getConsumer());
+        }
+        if (account.getIsAuxAccSupplier() != null && account.getIsAuxAccSupplier()) { // 供应商
+            entry.setSupplierId(detail.getVendor());
+            key.append("_supplierId").append(detail.getVendor());
+        }
+        if (account.getIsAuxAccInventory() != null && account.getIsAuxAccInventory()) { // 存货
+            if (detail.getAssetId() != null) {
+                entry.setInventoryId(detail.getAssetId());
+                key.append("_inventoryId").append(detail.getAssetId());
+            } else {
+                entry.setInventoryId(detail.getInventory());
+                key.append("_inventoryId").append(detail.getInventory());
             }
-            if (account.getIsAuxAccPerson() != null && account.getIsAuxAccPerson()) { // 人员
-                entry.setPersonId(detail.getEmployee());
-                key.append("_personId").append(detail.getEmployee());
-            }
-            if (account.getIsAuxAccCustomer() != null && account.getIsAuxAccCustomer()) { // 客户
-                entry.setCustomerId(detail.getConsumer());
-                key.append("_customerId").append(detail.getConsumer());
-            }
-            if (account.getIsAuxAccSupplier() != null && account.getIsAuxAccSupplier()) { // 供应商
-                entry.setSupplierId(detail.getVendor());
-                key.append("_supplierId").append(detail.getVendor());
-            }
-            if (account.getIsAuxAccInventory() != null && account.getIsAuxAccInventory()) { // 存货
-                if (detail.getAssetId() != null) {
-                    entry.setInventoryId(detail.getAssetId());
-                    key.append("_inventoryId").append(detail.getAssetId());
-                } else {
-                    entry.setInventoryId(detail.getInventory());
-                    key.append("_inventoryId").append(detail.getInventory());
-                }
-            }
-            if (account.getIsAuxAccProject() != null && account.getIsAuxAccProject()) { // 项目
-                entry.setProjectId(detail.getProject());
-                key.append("_projectId").append(detail.getProject());
-            }
-            if(account.getIsQuantityCalc() != null && account.getIsQuantityCalc()){ // 数量辅助核算时，值传给凭证，不作为分组的依据
-                entry.setQuantity(detail.getCommodifyNum());
-            }
-            // 银行账号
-            if (account.getIsAuxAccBankAccount() != null && account.getIsAuxAccBankAccount()) {
-                key.append("_bankAccountId").append(detail.getBankAccountId());
-                entry.setBankAccountId(detail.getBankAccountId());
-            }
-            if (account.getIsMultiCalc() != null && account.getIsMultiCalc()) { // 多币种
-                entry.setCurrencyId(org.getBaseCurrencyId());
-                key.append("_currencyId").append(org.getBaseCurrencyId());
-            }
-            // 即征即退，影响合并
-            if (account.getIsAuxAccLevyAndRetreat() != null && account.getIsAuxAccLevyAndRetreat()) {
-                entry.setLevyAndRetreatId(detail.getDrawbackPolicy());
-                key.append("_levyAndRetreatId").append(detail.getDrawbackPolicy());
-            }
+        }
+        if (account.getIsAuxAccProject() != null && account.getIsAuxAccProject()) { // 项目
+            entry.setProjectId(detail.getProject());
+            key.append("_projectId").append(detail.getProject());
+        }
+        if(account.getIsQuantityCalc() != null && account.getIsQuantityCalc()){ // 数量辅助核算时，值传给凭证，不作为分组的依据
+            entry.setQuantity(detail.getCommodifyNum());
+        }
+        // 银行账号
+        if (account.getIsAuxAccBankAccount() != null && account.getIsAuxAccBankAccount()) {
+            key.append("_bankAccountId").append(detail.getBankAccountId());
+            entry.setBankAccountId(detail.getBankAccountId());
+        }
+        if (account.getIsMultiCalc() != null && account.getIsMultiCalc()) { // 多币种
+            entry.setCurrencyId(org.getBaseCurrencyId());
+            key.append("_currencyId").append(org.getBaseCurrencyId());
+        }
+        // 即征即退，影响合并
+        if (account.getIsAuxAccLevyAndRetreat() != null && account.getIsAuxAccLevyAndRetreat()) {
+            entry.setLevyAndRetreatId(detail.getDrawbackPolicy());
+            key.append("_levyAndRetreatId").append(detail.getDrawbackPolicy());
         }
 
         InnerFiDocEntryDto result = new InnerFiDocEntryDto();
@@ -236,7 +234,7 @@ public class DocHandler {
         return result;
     }
 
-    private void addEntry(DocEntry entry) {
+    private void addEntry(DocEntry entry, boolean isSettle) {
         boolean isDebit = !DoubleUtil.isNullOrZero(entry.getAmountDr());
         String accountCode = entry.getAccountCode();
         List<DocEntry> entryList;
@@ -253,8 +251,12 @@ public class DocHandler {
                 entryList = creditTaxList;
             }
         }
-
-        entryList.add(entry);
+        // 结算科目颠倒借贷方向：到贷方，放到最前边；到借方，放到最后边
+        if (isSettle && entry.isReversal() && !isDebit) {
+            entryList.add(0, entry);
+        } else {
+            entryList.add(entry);
+        }
     }
 
     public void addEntry(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
@@ -262,7 +264,7 @@ public class DocHandler {
         if (entry == null) {
             return;
         }
-        addEntry(entry);
+        addEntry(entry, true);
     }
 
     private DocEntry getDocEntryDto(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
@@ -306,6 +308,7 @@ public class DocHandler {
         if (payDocTemplate.getReversal() && amount < 0) {
             isCr = !isCr;
             amount*= -1;
+            entry.setReversal(true);
         }
         if (isCr) {
             entry.setAmountCr(amount);

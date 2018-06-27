@@ -74,6 +74,9 @@ public class DocEntry implements Serializable {
     /** 方向：0：借，1:贷  */
     private byte direction;
 
+    /** 是否颠倒了借贷方向 */
+    private boolean reversal = false;
+
     /** 摘要[set_Summary]  */
     public String getSummary() {
         return summary;
@@ -259,6 +262,22 @@ public class DocEntry implements Serializable {
 
     public void setDirection(byte direction) {
         this.direction = direction;
+    }
+
+    /**
+     * 获取是否颠倒了借贷方向
+     * @return 是否颠倒了借贷方向
+     */
+    public boolean isReversal() {
+        return reversal;
+    }
+
+    /**
+     * 设置是否颠倒了借贷方向
+     * @param reversal 是否颠倒了借贷方向
+     */
+    public void setReversal(boolean reversal) {
+        this.reversal = reversal;
     }
 
     public Long getSourceBusinessTypeId() {
