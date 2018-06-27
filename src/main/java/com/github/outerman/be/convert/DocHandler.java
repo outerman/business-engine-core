@@ -120,9 +120,9 @@ public class DocHandler {
                     existEntry.setOrigAmountCr(null);
                 }
             }
-            Double amount = entry.getAmountCr();
+            Double amount = existEntry.getAmountCr();
             if (DoubleUtil.isNullOrZero(amount)) {
-                amount = entry.getAmountDr();
+                amount = existEntry.getAmountDr();
             }
             existEntry.setPrice(DoubleUtil.div(amount, existEntry.getQuantity()));
         } else {
