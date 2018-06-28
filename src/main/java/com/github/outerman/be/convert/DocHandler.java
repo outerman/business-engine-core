@@ -253,7 +253,14 @@ public class DocHandler {
         }
         // 结算科目颠倒借贷方向：到贷方，放到最前边；到借方，放到最后边
         if (isSettle && entry.isReversal() && !isDebit) {
-            entryList.add(0, entry);
+            int index = 0;
+            for (int size = entryList.size(); index < size; index++) {
+                DocEntry item = entryList.get(index);
+                if (!item.isReversal()) {
+                    break;
+                }
+            }
+            entryList.add(index, entry);
         } else {
             entryList.add(entry);
         }
