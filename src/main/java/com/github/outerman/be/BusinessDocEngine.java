@@ -15,6 +15,15 @@ import com.github.outerman.be.template.ITemplateProvider;
  */
 public final class BusinessDocEngine {
 
+    /** 数量小数位精度，默认 6 */
+    public static int QUANTITY_DECIMAL_SCALE = 6;
+
+    /** 单价小数位精度，默认 6 */
+    public static int PRICE_DECIMAL_SCALE = 6;
+
+    /** 金额小数位精度，默认 2 */
+    public static int AMOUNT_DECIMAL_SCALE = 2;
+
     private static DocConvertor convertor = DocConvertor.getInstance();
 
     public static ConvertResult convertVoucher(Org org, List<BusinessVoucher> vouchers, ITemplateProvider provider) {

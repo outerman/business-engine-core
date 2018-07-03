@@ -3,6 +3,8 @@ package com.github.outerman.be.util;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import com.github.outerman.be.BusinessDocEngine;
+
 /**
  * 数值工具类
  * @author gaoxue
@@ -51,6 +53,33 @@ public final class DoubleUtil {
         return formatDoubleScale2(result.doubleValue());
     }
 
+    private static Double doAdd(int scale, Double summand, Double... augends) {
+        int length = augends.length;
+        if (summand == null) {
+            summand = 0.0;
+        }
+        if (length == 0) {
+            return formatDouble(summand, true, scale);
+        }
+        BigDecimal result = BigDecimal.valueOf(summand.doubleValue());
+        for (int index = 0; index < length; index++) {
+            if (augends[index] == null) {
+                continue;
+            }
+            BigDecimal temp = BigDecimal.valueOf(augends[index].doubleValue());
+            result = result.add(temp);
+        }
+        return formatDouble(result.doubleValue(), true, scale);
+    }
+
+    public static Double addQuantity(Double summand, Double... augends) {
+        return doAdd(BusinessDocEngine.QUANTITY_DECIMAL_SCALE, summand, augends);
+    }
+
+    public static Double addAmount(Double summand, Double... augends) {
+        return doAdd(BusinessDocEngine.AMOUNT_DECIMAL_SCALE, summand, augends);
+    }
+
     /**
      * Double 类型除法，当除数为空时直接返回被除数，被除数为 null 返回 null，除数存在 null 或者 0.0 返回 null，使用
      * {@link BigDecimal} 进行计算，精度保留两位小数
@@ -79,6 +108,30 @@ public final class DoubleUtil {
             result = result.divide(temp, 2, RoundingMode.HALF_UP);
         }
         return formatDoubleScale2(result.doubleValue());
+    }
+
+    private static Double doDiv(int scale, Double dividend, Double... divisors) {
+        int length = divisors.length;
+        if (dividend == null) {
+            return null;
+        }
+        if (length == 0) {
+            return formatDouble(dividend, true, scale);
+        }
+
+        BigDecimal result = BigDecimal.valueOf(dividend.doubleValue());
+        for (int index = 0; index < length; index++) {
+            if (isNullOrZero(divisors[index])) {
+                return null;
+            }
+            BigDecimal temp = BigDecimal.valueOf(divisors[index]);
+            result = result.divide(temp, scale, RoundingMode.HALF_UP);
+        }
+        return formatDouble(result.doubleValue(), true, scale);
+    }
+
+    public static Double divPrice(Double amount, Double quantity) {
+        return doDiv(BusinessDocEngine.PRICE_DECIMAL_SCALE, amount, quantity);
     }
 
     /**

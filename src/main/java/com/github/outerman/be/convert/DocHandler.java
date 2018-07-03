@@ -100,22 +100,22 @@ public class DocHandler {
             Double quantity = entry.getQuantity();
             DocEntry existEntry = entryMap.get(key);
             if (quantity != null || existEntry.getQuantity() != null) {
-                existEntry.setQuantity(DoubleUtil.add(quantity, existEntry.getQuantity()));
+                existEntry.setQuantity(DoubleUtil.addQuantity(quantity, existEntry.getQuantity()));
             }
-            existEntry.setAmountCr(DoubleUtil.add(existEntry.getAmountCr(), entry.getAmountCr()));
-            existEntry.setOrigAmountCr(DoubleUtil.add(existEntry.getOrigAmountCr(), entry.getOrigAmountCr()));
-            existEntry.setAmountDr(DoubleUtil.add(existEntry.getAmountDr(), entry.getAmountDr()));
-            existEntry.setOrigAmountDr(DoubleUtil.add(existEntry.getOrigAmountDr(), entry.getOrigAmountDr()));
+            existEntry.setAmountCr(DoubleUtil.addAmount(existEntry.getAmountCr(), entry.getAmountCr()));
+            existEntry.setOrigAmountCr(DoubleUtil.addAmount(existEntry.getOrigAmountCr(), entry.getOrigAmountCr()));
+            existEntry.setAmountDr(DoubleUtil.addAmount(existEntry.getAmountDr(), entry.getAmountDr()));
+            existEntry.setOrigAmountDr(DoubleUtil.addAmount(existEntry.getOrigAmountDr(), entry.getOrigAmountDr()));
             if (!DoubleUtil.isNullOrZero(existEntry.getAmountCr()) && !DoubleUtil.isNullOrZero(existEntry.getAmountDr())) {
-                Double amountCr = DoubleUtil.add(existEntry.getAmountCr(), -existEntry.getAmountDr());
+                Double amountCr = DoubleUtil.addAmount(existEntry.getAmountCr(), -existEntry.getAmountDr());
                 if (amountCr >= 0) {
                     existEntry.setAmountCr(amountCr);
-                    existEntry.setOrigAmountCr(DoubleUtil.add(existEntry.getOrigAmountCr(), -existEntry.getOrigAmountDr()));
+                    existEntry.setOrigAmountCr(DoubleUtil.addAmount(existEntry.getOrigAmountCr(), -existEntry.getOrigAmountDr()));
                     existEntry.setAmountDr(null);
                     existEntry.setOrigAmountDr(null);
                 } else {
                     existEntry.setAmountDr(-amountCr);
-                    existEntry.setOrigAmountDr(DoubleUtil.add(existEntry.getOrigAmountDr(), -existEntry.getOrigAmountCr()));
+                    existEntry.setOrigAmountDr(DoubleUtil.addAmount(existEntry.getOrigAmountDr(), -existEntry.getOrigAmountCr()));
                     existEntry.setAmountCr(null);
                     existEntry.setOrigAmountCr(null);
                 }
@@ -124,7 +124,7 @@ public class DocHandler {
             if (DoubleUtil.isNullOrZero(amount)) {
                 amount = existEntry.getAmountDr();
             }
-            existEntry.setPrice(DoubleUtil.div(amount, existEntry.getQuantity()));
+            existEntry.setPrice(DoubleUtil.divPrice(amount, existEntry.getQuantity()));
         } else {
             addEntry(entry, false);
             entryMap.put(key, entry);
