@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.beanutils.BeanMap;
 
 import com.github.outerman.be.contant.CommonConst;
 import com.github.outerman.be.model.Account;
@@ -132,7 +135,18 @@ public class DocHandler {
     }
 
     private InnerFiDocEntryDto getDocEntryDto(DocTemplate docTemplate, BusinessVoucherDetail detail) {
-        Double amount = AmountGetter.getAmount(detail, docTemplate.getAmountSource(), detail.getAmountMap());
+        Map<String, Object> params = new HashMap<>();
+        if (detail.getAmountMap() != null) {
+            params.putAll(detail.getAmountMap());
+        }
+        if (detail.getInfluenceMap() != null) {
+            params.putAll(detail.getInfluenceMap());
+        }
+        BeanMap map = new org.apache.commons.beanutils.BeanMap(org);
+        for (Entry<Object, Object> entry : map.entrySet()) {
+            params.put(entry.getKey().toString(), entry.getValue());
+        }
+        Double amount = AmountGetter.getAmount(detail, docTemplate.getAmountSource(), params);
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
         }

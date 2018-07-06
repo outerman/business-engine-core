@@ -7,7 +7,7 @@
 
     <artifactId>business-engine-core</artifactId>
     <groupId>com.github.outerman.be</groupId>
-    <version>1.1.4-SNAPSHOT</version>
+    <version>1.1.5-SNAPSHOT</version>
 
     <name>business engine</name>
     <url>https://github.com/outerman/business-engine-core</url>
@@ -56,6 +56,12 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.3</version>
+        </dependency>
+
 
     </dependencies>
 

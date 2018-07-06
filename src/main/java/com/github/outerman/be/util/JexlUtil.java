@@ -8,12 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
 import org.apache.commons.jexl3.JexlException;
 import org.apache.commons.jexl3.JexlExpression;
-import org.apache.commons.jexl3.ObjectContext;
+import org.apache.commons.jexl3.MapContext;
 import org.apache.commons.jexl3.internal.Debugger;
 import org.apache.commons.jexl3.parser.ASTIdentifier;
 import org.apache.commons.jexl3.parser.ASTJexlScript;
@@ -40,7 +42,11 @@ public final class JexlUtil {
     }
 
     private static <T> JexlContext getContext(T data) {
-        JexlContext context = new ObjectContext<T>(jexl, data);
+        JexlContext context = new MapContext();
+        BeanMap map = new org.apache.commons.beanutils.BeanMap(data);
+        for (Entry<Object, Object> entry : map.entrySet()) {
+            context.set(entry.getKey().toString(), entry.getValue());
+        }
         return context;
     }
 
