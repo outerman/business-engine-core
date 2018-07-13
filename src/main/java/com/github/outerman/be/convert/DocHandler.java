@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.apache.commons.beanutils.BeanMap;
 
-import com.github.outerman.be.contant.CommonConst;
 import com.github.outerman.be.model.Account;
 import com.github.outerman.be.model.BusinessVoucher;
 import com.github.outerman.be.model.BusinessVoucherDetail;
@@ -44,7 +44,11 @@ public class DocHandler {
     /** 贷方税科目分录 */
     private List<DocEntry> creditTaxList = new ArrayList<>();
 
+    /** 以合并标识为 key 的凭证分录 map */
     private Map<String, DocEntry> entryMap = new HashMap<>();;
+
+    /** 排序的凭证分录 map */
+    private Map<String, DocEntry> orderedEntryMap = new TreeMap<>();
 
     public DocHandler(Org org, BusinessVoucher voucher) {
         this.org = org;
@@ -71,10 +75,15 @@ public class DocHandler {
 
     public Doc getDoc() {
         List<DocEntry> entrys = new ArrayList<>();
-        entrys.addAll(debitMainList);
-        entrys.addAll(debitTaxList);
-        entrys.addAll(creditMainList);
-        entrys.addAll(creditTaxList);
+        Boolean orderByFlag = voucher.getOrderByFlag();
+        if (orderByFlag != null && orderByFlag) {
+            entrys.addAll(orderedEntryMap.values());
+        } else {
+            entrys.addAll(debitMainList);
+            entrys.addAll(debitTaxList);
+            entrys.addAll(creditMainList);
+            entrys.addAll(creditTaxList);
+        }
         // 正负混录的业务明细，分录合并之后分录金额可能为 0 ，需要去掉金额为 0 的分录
         List<DocEntry> zeroAmountList = new ArrayList<>();
         for (DocEntry docEntry : entrys) {
@@ -129,8 +138,12 @@ public class DocHandler {
             }
             existEntry.setPrice(DoubleUtil.divPrice(amount, existEntry.getQuantity()));
         } else {
-            addEntry(entry, false);
+            addEntry(entry, detail, null);
             entryMap.put(key, entry);
+        }
+        Boolean orderByFlag = voucher.getOrderByFlag();
+        if (orderByFlag != null && orderByFlag) {
+            orderedEntryMap.put(key, entryMap.get(key));
         }
     }
 
@@ -152,8 +165,14 @@ public class DocHandler {
         }
 
         Account account = docTemplate.getAccount();
-        StringBuilder key = new StringBuilder();
+        StringBuilder key = new StringBuilder(); // key 作为分录合并依据，同时单独排序时作为排序字段
         DocEntry entry = new DocEntry();
+        Boolean mergeWithFlag = detail.getMergeWithFlag();
+        Boolean orderByFlag = voucher.getOrderByFlag();
+        if ((mergeWithFlag != null && mergeWithFlag) || (orderByFlag != null && orderByFlag)) {
+            key.append("_flag" + docTemplate.getFlag());
+        }
+        entry.setSourceFlag(docTemplate.getFlag());
         String summary;
         if (!StringUtil.isEmpty(docTemplate.getSummary())) {
             summary = docTemplate.getSummary();
@@ -166,17 +185,9 @@ public class DocHandler {
         entry.setAccountId(account.getId());
         entry.setAccountCode(account.getCode());
         key.append("_accountCode").append(account.getCode());
-        entry.setSourceFlag(docTemplate.getFlag());
 
         key.append("_businessType").append(detail.getBusinessType());
         entry.setSourceBusinessTypeId(detail.getBusinessType());
-        // 单价 看是否抵扣然后传递不同的单价
-        Boolean isDeduction = detail.getIsDeduction() != null && detail.getIsDeduction() == 1;
-        if (detail.getBusinessPropertyId() != null && detail.getBusinessPropertyId() == CommonConst.BUSINESSPROPERTY_income || isDeduction) {
-            entry.setPrice(detail.getPrice());
-        } else {
-            entry.setPrice(detail.getTaxInclusivePrice());
-        }
         // 0 借 1 贷，流水账不区分币种，本币原币金额一样
         Integer direction = docTemplate.getBalanceDirection();
         if (direction == null) {
@@ -226,6 +237,11 @@ public class DocHandler {
         }
         if(account.getIsQuantityCalc() != null && account.getIsQuantityCalc()){ // 数量辅助核算时，值传给凭证，不作为分组的依据
             entry.setQuantity(detail.getCommodifyNum());
+            if (amount.equals(detail.getTaxInclusiveAmount())) {
+                entry.setPrice(detail.getTaxInclusivePrice());
+            } else {
+                entry.setPrice(detail.getPrice());
+            }
         }
         // 银行账号
         if (account.getIsAuxAccBankAccount() != null && account.getIsAuxAccBankAccount()) {
@@ -248,7 +264,7 @@ public class DocHandler {
         return result;
     }
 
-    private void addEntry(DocEntry entry, boolean isSettle) {
+    private void addEntry(DocEntry entry, BusinessVoucherDetail detail, BusinessVoucherSettle settle) {
         boolean isDebit = !DoubleUtil.isNullOrZero(entry.getAmountDr());
         String accountCode = entry.getAccountCode();
         List<DocEntry> entryList;
@@ -266,7 +282,7 @@ public class DocHandler {
             }
         }
         // 结算科目颠倒借贷方向：到贷方，放到最前边；到借方，放到最后边
-        if (isSettle && entry.isReversal() && !isDebit) {
+        if (settle != null && entry.isReversal() && !isDebit) {
             int index = 0;
             for (int size = entryList.size(); index < size; index++) {
                 DocEntry item = entryList.get(index);
@@ -285,7 +301,7 @@ public class DocHandler {
         if (entry == null) {
             return;
         }
-        addEntry(entry, true);
+        addEntry(entry, null, settle);
     }
 
     private DocEntry getDocEntryDto(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
@@ -339,6 +355,12 @@ public class DocHandler {
             entry.setOrigAmountDr(amount);
         }
 
+        StringBuilder key = new StringBuilder(); // key 作为分录合并依据，同时单独排序时作为排序字段
+        Boolean orderByFlag = voucher.getOrderByFlag();
+        if (orderByFlag != null && orderByFlag) {
+            key.append("_flag" + settle.getFlag()).append(orderedEntryMap.size());
+        }
+        orderedEntryMap.put(key.toString(), entry);
         return entry;
     }
 

@@ -122,6 +122,9 @@ public class BusinessVoucherDetail {
     /** 金额为负数时是否颠倒借贷方向 */
     private Boolean reversal = false;
 
+    /** 分录合并规则是否带分录标识 */
+    private Boolean mergeWithFlag = false;
+
     public Long getUnitId() {
         return unitId;
     }
@@ -568,6 +571,22 @@ public class BusinessVoucherDetail {
      */
     public void setReversal(Boolean reversal) {
         this.reversal = reversal;
+    }
+
+    /**
+     * 获取分录合并规则是否带分录标识
+     * @return 分录合并规则是否带分录标识
+     */
+    public Boolean getMergeWithFlag() {
+        return mergeWithFlag;
+    }
+
+    /**
+     * 设置分录合并规则是否带分录标识
+     * @param mergeWithFlag 分录合并规则是否带分录标识
+     */
+    public void setMergeWithFlag(Boolean mergeWithFlag) {
+        this.mergeWithFlag = mergeWithFlag;
     }
 
 }

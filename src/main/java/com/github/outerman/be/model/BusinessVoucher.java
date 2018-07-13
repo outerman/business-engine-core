@@ -47,6 +47,9 @@ public class BusinessVoucher {
     /** 单据信息是否合法 */
     private Boolean valid = true;
 
+    /** 分录排序是否完全按照分录标识 */
+    private Boolean orderByFlag = false;
+
     /** 业务明细信息 */
     private List<BusinessVoucherDetail> details;
 
@@ -256,6 +259,22 @@ public class BusinessVoucher {
      */
     public void setValid(Boolean valid) {
         this.valid = valid;
+    }
+
+    /**
+     * 获取分录排序是否完全按照分录标识
+     * @return 分录排序是否完全按照分录标识
+     */
+    public Boolean getOrderByFlag() {
+        return orderByFlag;
+    }
+
+    /**
+     * 设置分录排序是否完全按照分录标识
+     * @param orderByFlag 分录排序是否完全按照分录标识
+     */
+    public void setOrderByFlag(Boolean orderByFlag) {
+        this.orderByFlag = orderByFlag;
     }
 
     /**

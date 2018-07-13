@@ -28,6 +28,9 @@ public class BusinessVoucherSettle {
     /** 备注 */
     private String remark;
 
+    /** 分录标识 */
+    private String flag;
+
     /** 金额取值 map */
     private Map<String, Object> amountMap;
 
@@ -141,6 +144,22 @@ public class BusinessVoucherSettle {
      */
     public void setBusinessPropertyId(Long businessPropertyId) {
         this.businessPropertyId = businessPropertyId;
+    }
+
+    /**
+     * 获取分录标识
+     * @return 分录标识
+     */
+    public String getFlag() {
+        return flag;
+    }
+
+    /**
+     * 设置分录标识
+     * @param flag 分录标识
+     */
+    public void setFlag(String flag) {
+        this.flag = flag;
     }
 
     /**
