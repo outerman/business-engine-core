@@ -31,6 +31,9 @@ public class BusinessVoucherSettle {
     /** 分录标识 */
     private String flag;
 
+    /** 结算分录是否合并 */
+    private boolean merge = false;
+
     /** 金额取值 map */
     private Map<String, Object> amountMap;
 
@@ -147,6 +150,22 @@ public class BusinessVoucherSettle {
     }
 
     /**
+     * 获取remark
+     * @return remark
+     */
+    public String getRemark() {
+        return remark;
+    }
+
+    /**
+     * 设置remark
+     * @param remark remark
+     */
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    /**
      * 获取分录标识
      * @return 分录标识
      */
@@ -163,19 +182,19 @@ public class BusinessVoucherSettle {
     }
 
     /**
-     * 获取remark
-     * @return remark
+     * 获取结算分录是否合并
+     * @return 结算分录是否合并
      */
-    public String getRemark() {
-        return remark;
+    public boolean getMerge() {
+        return merge;
     }
 
     /**
-     * 设置remark
-     * @param remark remark
+     * 设置结算分录是否合并
+     * @param merge 结算分录是否合并
      */
-    public void setRemark(String remark) {
-        this.remark = remark;
+    public void setMerge(boolean merge) {
+        this.merge = merge;
     }
 
     /**

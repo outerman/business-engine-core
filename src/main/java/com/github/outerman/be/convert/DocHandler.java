@@ -99,7 +99,6 @@ public class DocHandler {
     }
 
     public void addEntry(DocTemplate docTemplate, BusinessVoucherDetail detail) {
-        boolean needMerge = true;
         InnerFiDocEntryDto innerEntry = getDocEntryDto(docTemplate, detail);
         if (innerEntry == null) {
             return;
@@ -107,36 +106,8 @@ public class DocHandler {
 
         String key = innerEntry.getKey();
         DocEntry entry = innerEntry.getFiDocEntryDto();
-        if (needMerge && entryMap.containsKey(key)) {
-            // 按照分录合并规则需要合并
-            Double quantity = entry.getQuantity();
-            DocEntry existEntry = entryMap.get(key);
-            if (quantity != null || existEntry.getQuantity() != null) {
-                existEntry.setQuantity(DoubleUtil.addQuantity(quantity, existEntry.getQuantity()));
-            }
-            existEntry.setAmountCr(DoubleUtil.addAmount(existEntry.getAmountCr(), entry.getAmountCr()));
-            existEntry.setOrigAmountCr(DoubleUtil.addAmount(existEntry.getOrigAmountCr(), entry.getOrigAmountCr()));
-            existEntry.setAmountDr(DoubleUtil.addAmount(existEntry.getAmountDr(), entry.getAmountDr()));
-            existEntry.setOrigAmountDr(DoubleUtil.addAmount(existEntry.getOrigAmountDr(), entry.getOrigAmountDr()));
-            if (!DoubleUtil.isNullOrZero(existEntry.getAmountCr()) && !DoubleUtil.isNullOrZero(existEntry.getAmountDr())) {
-                Double amountCr = DoubleUtil.addAmount(existEntry.getAmountCr(), -existEntry.getAmountDr());
-                if (amountCr >= 0) {
-                    existEntry.setAmountCr(amountCr);
-                    existEntry.setOrigAmountCr(DoubleUtil.addAmount(existEntry.getOrigAmountCr(), -existEntry.getOrigAmountDr()));
-                    existEntry.setAmountDr(null);
-                    existEntry.setOrigAmountDr(null);
-                } else {
-                    existEntry.setAmountDr(-amountCr);
-                    existEntry.setOrigAmountDr(DoubleUtil.addAmount(existEntry.getOrigAmountDr(), -existEntry.getOrigAmountCr()));
-                    existEntry.setAmountCr(null);
-                    existEntry.setOrigAmountCr(null);
-                }
-            }
-            Double amount = existEntry.getAmountCr();
-            if (DoubleUtil.isNullOrZero(amount)) {
-                amount = existEntry.getAmountDr();
-            }
-            existEntry.setPrice(DoubleUtil.divPrice(amount, existEntry.getQuantity()));
+        if (entryMap.containsKey(key)) {
+            handleMerge(entry, key);
         } else {
             addEntry(entry, detail, null);
             entryMap.put(key, entry);
@@ -145,6 +116,41 @@ public class DocHandler {
         if (orderByFlag != null && orderByFlag) {
             orderedEntryMap.put(key, entryMap.get(key));
         }
+    }
+
+    private void handleMerge(DocEntry entry, String key) {
+        if (!entryMap.containsKey(key)) {
+            return;
+        }
+        // 按照分录合并规则需要合并
+        Double quantity = entry.getQuantity();
+        DocEntry existEntry = entryMap.get(key);
+        if (quantity != null || existEntry.getQuantity() != null) {
+            existEntry.setQuantity(DoubleUtil.addQuantity(quantity, existEntry.getQuantity()));
+        }
+        existEntry.setAmountCr(DoubleUtil.addAmount(existEntry.getAmountCr(), entry.getAmountCr()));
+        existEntry.setOrigAmountCr(DoubleUtil.addAmount(existEntry.getOrigAmountCr(), entry.getOrigAmountCr()));
+        existEntry.setAmountDr(DoubleUtil.addAmount(existEntry.getAmountDr(), entry.getAmountDr()));
+        existEntry.setOrigAmountDr(DoubleUtil.addAmount(existEntry.getOrigAmountDr(), entry.getOrigAmountDr()));
+        if (!DoubleUtil.isNullOrZero(existEntry.getAmountCr()) && !DoubleUtil.isNullOrZero(existEntry.getAmountDr())) {
+            Double amountCr = DoubleUtil.addAmount(existEntry.getAmountCr(), -existEntry.getAmountDr());
+            if (amountCr >= 0) {
+                existEntry.setAmountCr(amountCr);
+                existEntry.setOrigAmountCr(DoubleUtil.addAmount(existEntry.getOrigAmountCr(), -existEntry.getOrigAmountDr()));
+                existEntry.setAmountDr(null);
+                existEntry.setOrigAmountDr(null);
+            } else {
+                existEntry.setAmountDr(-amountCr);
+                existEntry.setOrigAmountDr(DoubleUtil.addAmount(existEntry.getOrigAmountDr(), -existEntry.getOrigAmountCr()));
+                existEntry.setAmountCr(null);
+                existEntry.setOrigAmountCr(null);
+            }
+        }
+        Double amount = existEntry.getAmountCr();
+        if (DoubleUtil.isNullOrZero(amount)) {
+            amount = existEntry.getAmountDr();
+        }
+        existEntry.setPrice(DoubleUtil.divPrice(amount, existEntry.getQuantity()));
     }
 
     private InnerFiDocEntryDto getDocEntryDto(DocTemplate docTemplate, BusinessVoucherDetail detail) {
@@ -297,14 +303,24 @@ public class DocHandler {
     }
 
     public void addEntry(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
-        DocEntry entry = getDocEntryDto(payDocTemplate, settle);
-        if (entry == null) {
+        InnerFiDocEntryDto innerEntry = getDocEntryDto(payDocTemplate, settle);
+        if (innerEntry == null) {
             return;
         }
-        addEntry(entry, null, settle);
+
+        String key = innerEntry.getKey();
+        DocEntry entry = innerEntry.getFiDocEntryDto();
+        if (settle.getMerge() && entryMap.containsKey(key)) {
+            handleMerge(entry, key);
+        } else {
+            addEntry(entry, null, settle);
+            if (settle.getMerge()) {
+                entryMap.put(key, entry);
+            }
+        }
     }
 
-    private DocEntry getDocEntryDto(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
+    private InnerFiDocEntryDto getDocEntryDto(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
         Double amount = AmountGetter.getAmount(settle, payDocTemplate.getAmountSource(), settle.getAmountMap());
         if (DoubleUtil.isNullOrZero(amount)) {
             return null;
@@ -312,22 +328,32 @@ public class DocHandler {
 
         Account account = payDocTemplate.getAccount();
         DocEntry entry = new DocEntry();
-        if (account.getIsAuxAccCalc() != null && account.getIsAuxAccCalc()) {
-            if (account.getIsAuxAccPerson() != null && account.getIsAuxAccPerson()) { // 人员
-                entry.setPersonId(settle.getPersonId());
-            }
-            if (account.getIsAuxAccCustomer() != null && account.getIsAuxAccCustomer()) { // 客户
-                entry.setCustomerId(settle.getCustomerId());
-            }
-            if (account.getIsAuxAccSupplier() != null && account.getIsAuxAccSupplier()) { // 供应商
-                entry.setSupplierId(settle.getSupplierId());
-            }
-            if (account.getIsAuxAccBankAccount() != null && account.getIsAuxAccBankAccount()) { // 银行账号
-                entry.setBankAccountId(settle.getBankAccountId());
-            }
-            if (account.getIsMultiCalc() != null && account.getIsMultiCalc()) { // 多币种
-                entry.setCurrencyId(org.getBaseCurrencyId());
-            }
+        StringBuilder key = new StringBuilder(); // key 作为分录合并依据，同时单独排序时作为排序字段
+        Boolean orderByFlag = voucher.getOrderByFlag();
+        if (orderByFlag != null && orderByFlag) {
+            key.append("_flag" + settle.getFlag()).append(orderedEntryMap.size());
+            orderedEntryMap.put(key.toString(), entry);
+        }
+        key.append("_accountCode").append(account.getCode());
+        if (account.getIsAuxAccPerson() != null && account.getIsAuxAccPerson()) { // 人员
+            entry.setPersonId(settle.getPersonId());
+            key.append("_personId").append(settle.getPersonId());
+        }
+        if (account.getIsAuxAccCustomer() != null && account.getIsAuxAccCustomer()) { // 客户
+            entry.setCustomerId(settle.getCustomerId());
+            key.append("_customerId").append(settle.getCustomerId());
+        }
+        if (account.getIsAuxAccSupplier() != null && account.getIsAuxAccSupplier()) { // 供应商
+            entry.setSupplierId(settle.getSupplierId());
+            key.append("_supplierId").append(settle.getSupplierId());
+        }
+        if (account.getIsAuxAccBankAccount() != null && account.getIsAuxAccBankAccount()) { // 银行账号
+            entry.setBankAccountId(settle.getBankAccountId());
+            key.append("_bankAccountId").append(settle.getBankAccountId());
+        }
+        if (account.getIsMultiCalc() != null && account.getIsMultiCalc()) { // 多币种
+            entry.setCurrencyId(org.getBaseCurrencyId());
+            key.append("_currencyId").append(org.getBaseCurrencyId());
         }
 
         String summary = getSettleSummary(settle, payDocTemplate);
@@ -355,13 +381,10 @@ public class DocHandler {
             entry.setOrigAmountDr(amount);
         }
 
-        StringBuilder key = new StringBuilder(); // key 作为分录合并依据，同时单独排序时作为排序字段
-        Boolean orderByFlag = voucher.getOrderByFlag();
-        if (orderByFlag != null && orderByFlag) {
-            key.append("_flag" + settle.getFlag()).append(orderedEntryMap.size());
-        }
-        orderedEntryMap.put(key.toString(), entry);
-        return entry;
+        InnerFiDocEntryDto result = new InnerFiDocEntryDto();
+        result.setFiDocEntryDto(entry);
+        result.setKey(key.toString());
+        return result;
     }
 
     /**
