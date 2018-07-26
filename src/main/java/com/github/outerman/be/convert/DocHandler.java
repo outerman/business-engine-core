@@ -399,7 +399,19 @@ public class DocHandler {
         if (!StringUtil.isEmpty(summary)) {
             return summary;
         }
-        summary = payDocTemplate.getSummary();
+        Doc doc = getDoc(); // 当非结算分录摘要全部一致时，结算分录摘要取相同值
+        for (DocEntry entry : doc.getEntrys()) {
+            String temp = entry.getSummary();
+            if (StringUtil.isEmpty(summary)) {
+                summary = temp;
+            } else if (!summary.equals(temp)) {
+                summary = null;
+                break;
+            }
+        }
+        if (StringUtil.isEmpty(summary)) {
+            summary = payDocTemplate.getSummary();
+        }
         return summary;
     }
 
