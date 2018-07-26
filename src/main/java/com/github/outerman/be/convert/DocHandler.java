@@ -399,14 +399,7 @@ public class DocHandler {
         if (!StringUtil.isEmpty(summary)) {
             return summary;
         }
-        if (voucher.getSettles().size() != 1) {
-            summary = payDocTemplate.getSummary();
-        } else {
-            summary = voucher.getDetails().get(0).getMemo();
-            if (StringUtil.isEmpty(summary)) {
-                summary = payDocTemplate.getSummary();
-            }
-        }
+        summary = payDocTemplate.getSummary();
         return summary;
     }
 
