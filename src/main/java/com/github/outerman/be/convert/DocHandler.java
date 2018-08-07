@@ -9,6 +9,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.beanutils.BeanMap;
 
+import com.github.outerman.be.BusinessDocEngine;
 import com.github.outerman.be.model.Account;
 import com.github.outerman.be.model.BusinessVoucher;
 import com.github.outerman.be.model.BusinessVoucherDetail;
@@ -176,7 +177,11 @@ public class DocHandler {
         Boolean mergeWithFlag = detail.getMergeWithFlag();
         Boolean orderByFlag = voucher.getOrderByFlag();
         if ((mergeWithFlag != null && mergeWithFlag) || (orderByFlag != null && orderByFlag)) {
-            key.append("_flag" + docTemplate.getFlag());
+            String flag = docTemplate.getFlag();
+            if (!StringUtil.isEmpty(detail.getFlag())) {
+                flag = detail.getFlag();
+            }
+            key.append("_flag" + flag);
         }
         entry.setSourceFlag(docTemplate.getFlag());
         String summary;
@@ -424,11 +429,36 @@ public class DocHandler {
     public Account getAccount(DocTemplate docTemplate, BusinessVoucherDetail detail) {
         Account account;
         String accountCode = docTemplate.getAccountCode();
-        String key = accountCode + "_" + detail.getBankAccountId();
+        Long accountClassification4BA = docTemplate.getAccountClassification4BA();
+        String key = "";
+        if (accountClassification4BA != null) { // 科目分类不为空时，先从档案上对应的科目分类获取科目
+            Long archiveTypeId = null;
+            if (accountClassification4BA.equals(BusinessDocEngine.customer_receivableAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.customer_receivableInAdvanceAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.customer_otherReceivableAccount)) {
+                key += detail.getConsumer();
+                archiveTypeId = BusinessDocEngine.archiveType_customer;
+            } else if (accountClassification4BA.equals(BusinessDocEngine.supplier_payableAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.supplier_payableInAdvanceAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.supplier_otherPayableAccount)) {
+                key += detail.getVendor();
+                archiveTypeId = BusinessDocEngine.archiveType_supplier;
+            } else if (accountClassification4BA.equals(BusinessDocEngine.person_otherReceivableAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.person_otherPayableAccount)) {
+                key += detail.getEmployee();
+                archiveTypeId = BusinessDocEngine.archiveType_person;
+            }
+            key += "_" + archiveTypeId + "_" + accountClassification4BA;
+        }
         if (accountMap.containsKey(key)) {
             account = accountMap.get(key);
         } else {
-            account = accountMap.get(accountCode);
+            key = accountCode + "_" + detail.getBankAccountId();
+            if (accountMap.containsKey(key)) {
+                account = accountMap.get(key);
+            } else {
+                account = accountMap.get(accountCode);
+            }
         }
         if (account != null) {
             key = account.getCode() + "_" + detail.getBusinessCode();

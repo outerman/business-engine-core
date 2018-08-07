@@ -125,6 +125,9 @@ public class BusinessVoucherDetail {
     /** 分录合并规则是否带分录标识 */
     private Boolean mergeWithFlag = false;
 
+    /** 分录标识，分录标识本身是从凭证模板获取，如果明细需要特殊的分录标识，赋值此字段 */
+    private String flag;
+
     public Long getUnitId() {
         return unitId;
     }
@@ -587,6 +590,22 @@ public class BusinessVoucherDetail {
      */
     public void setMergeWithFlag(Boolean mergeWithFlag) {
         this.mergeWithFlag = mergeWithFlag;
+    }
+
+    /**
+     * 获取分录标识，分录标识本身是从凭证模板获取，如果明细需要特殊的分录标识，赋值此字段
+     * @return 分录标识，分录标识本身是从凭证模板获取，如果明细需要特殊的分录标识，赋值此字段
+     */
+    public String getFlag() {
+        return flag;
+    }
+
+    /**
+     * 设置分录标识，分录标识本身是从凭证模板获取，如果明细需要特殊的分录标识，赋值此字段
+     * @param flag 分录标识，分录标识本身是从凭证模板获取，如果明细需要特殊的分录标识，赋值此字段
+     */
+    public void setFlag(String flag) {
+        this.flag = flag;
     }
 
 }
