@@ -16,6 +16,9 @@ public class SettleTemplate implements Serializable {
     /** 科目编码 */
     private String accountCode;
 
+    /** 基础档案用科目分类 */
+    private Long accountClassification4BA;
+
     /** 余额方向：0借 1贷 */
     private Integer balanceDirection;
 
@@ -77,6 +80,22 @@ public class SettleTemplate implements Serializable {
      */
     public void setAccountCode(String accountCode) {
         this.accountCode = accountCode;
+    }
+
+    /**
+     * 获取基础档案用科目分类
+     * @return 基础档案用科目分类
+     */
+    public Long getAccountClassification4BA() {
+        return accountClassification4BA;
+    }
+
+    /**
+     * 设置基础档案用科目分类
+     * @param accountClassification4BA 基础档案用科目分类
+     */
+    public void setAccountClassification4BA(Long accountClassification4BA) {
+        this.accountClassification4BA = accountClassification4BA;
     }
 
     /**

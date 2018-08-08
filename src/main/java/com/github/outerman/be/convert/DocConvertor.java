@@ -63,12 +63,10 @@ public final class DocConvertor {
 
         Map<String, BusinessTemplate> templateMap = new HashMap<>();
         Set<String> accountCodeSet = new HashSet<>();
-        List<BusinessVoucherDetail> detailList = new ArrayList<>();
         for (BusinessVoucher voucher : vouchers) {
             if (!voucher.getValid()) {
                 continue;
             }
-            detailList.addAll(voucher.getDetails());
             for (BusinessVoucherDetail detail : voucher.getDetails()) {
                 String businessCode = detail.getBusinessCode();
                 if (templateMap.containsKey(businessCode)) {
@@ -80,7 +78,7 @@ public final class DocConvertor {
                 accountCodeSet.addAll(businessTemplate.getPaymentTemplate().getAccountCodeList());
             }
         }
-        Map<String, Account> accountMap = provider.getAccountCode(org.getId(), new ArrayList<String>(accountCodeSet), detailList);
+        Map<String, Account> accountMap = provider.getAccountCode(org.getId(), new ArrayList<String>(accountCodeSet), vouchers);
 
         List<Doc> docList = new ArrayList<>();
         for (BusinessVoucher voucher : vouchers) {

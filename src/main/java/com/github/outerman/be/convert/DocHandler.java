@@ -427,32 +427,40 @@ public class DocHandler {
      * @return 科目信息
      */
     public Account getAccount(DocTemplate docTemplate, BusinessVoucherDetail detail) {
-        Account account;
+        Account account = null;
         String accountCode = docTemplate.getAccountCode();
         Long accountClassification4BA = docTemplate.getAccountClassification4BA();
         String key = "";
         if (accountClassification4BA != null) { // 科目分类不为空时，先从档案上对应的科目分类获取科目
+            Long archiveId = null;
             Long archiveTypeId = null;
+            Long defaultAccountClassification = null;
             if (accountClassification4BA.equals(BusinessDocEngine.customer_receivableAccount)
                     || accountClassification4BA.equals(BusinessDocEngine.customer_receivableInAdvanceAccount)
                     || accountClassification4BA.equals(BusinessDocEngine.customer_otherReceivableAccount)) {
-                key += detail.getConsumer();
+                archiveId = detail.getConsumer();
                 archiveTypeId = BusinessDocEngine.archiveType_customer;
+                defaultAccountClassification = BusinessDocEngine.customer_receivableAccount;
             } else if (accountClassification4BA.equals(BusinessDocEngine.supplier_payableAccount)
                     || accountClassification4BA.equals(BusinessDocEngine.supplier_payableInAdvanceAccount)
                     || accountClassification4BA.equals(BusinessDocEngine.supplier_otherPayableAccount)) {
-                key += detail.getVendor();
+                archiveId = detail.getVendor();
                 archiveTypeId = BusinessDocEngine.archiveType_supplier;
+                defaultAccountClassification = BusinessDocEngine.supplier_payableAccount;
             } else if (accountClassification4BA.equals(BusinessDocEngine.person_otherReceivableAccount)
                     || accountClassification4BA.equals(BusinessDocEngine.person_otherPayableAccount)) {
-                key += detail.getEmployee();
+                archiveId = detail.getEmployee();
                 archiveTypeId = BusinessDocEngine.archiveType_person;
             }
-            key += "_" + archiveTypeId + "_" + accountClassification4BA;
+            key = archiveId + "_" + archiveTypeId + "_" + accountClassification4BA;
+            if (accountMap.containsKey(key)) { // 先根据科目分类获取
+                account = accountMap.get(key);
+            } else if (defaultAccountClassification != null) { // 再根据默认科目分类获取
+                key = archiveId + "_" + archiveTypeId + "_" + defaultAccountClassification;
+                account = accountMap.get(key);
+            }
         }
-        if (accountMap.containsKey(key)) {
-            account = accountMap.get(key);
-        } else {
+        if (account == null) {
             key = accountCode + "_" + detail.getBankAccountId();
             if (accountMap.containsKey(key)) {
                 account = accountMap.get(key);
@@ -471,19 +479,52 @@ public class DocHandler {
 
     /**
      * 根据结算凭证模板和流水账结算明细获取对应的科目信息，没有获取到时返回 {@code null}
-     * @param payDocTemplate 结算凭证模板信息
+     * @param settleTemplate 结算凭证模板信息
      * @param settle 流水账结算明细信息
      * @param accountMap 科目信息 map
      * @return 科目信息
      */
-    public Account getAccount(SettleTemplate payDocTemplate, BusinessVoucherSettle settle) {
-        Account account;
-        String accountCode = payDocTemplate.getAccountCode();
-        String key = accountCode + "_" + settle.getBankAccountId();
-        if (accountMap.containsKey(key)) {
-            account = accountMap.get(key);
-        } else {
-            account = accountMap.get(accountCode);
+    public Account getAccount(SettleTemplate settleTemplate, BusinessVoucherSettle settle) {
+        Account account = null;
+        String accountCode = settleTemplate.getAccountCode();
+        String key = "";
+        Long accountClassification4BA = settleTemplate.getAccountClassification4BA();
+        if (accountClassification4BA != null) { // 科目分类不为空时，先从档案上对应的科目分类获取科目
+            Long archiveId = null;
+            Long archiveTypeId = null;
+            Long defaultAccountClassification = null;
+            if (accountClassification4BA.equals(BusinessDocEngine.customer_receivableAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.customer_receivableInAdvanceAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.customer_otherReceivableAccount)) {
+                archiveId = settle.getCustomerId();
+                archiveTypeId = BusinessDocEngine.archiveType_customer;
+                defaultAccountClassification = BusinessDocEngine.customer_receivableAccount;
+            } else if (accountClassification4BA.equals(BusinessDocEngine.supplier_payableAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.supplier_payableInAdvanceAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.supplier_otherPayableAccount)) {
+                archiveId = settle.getSupplierId();
+                archiveTypeId = BusinessDocEngine.archiveType_supplier;
+                defaultAccountClassification = BusinessDocEngine.supplier_payableAccount;
+            } else if (accountClassification4BA.equals(BusinessDocEngine.person_otherReceivableAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.person_otherPayableAccount)) {
+                archiveId = settle.getPersonId();
+                archiveTypeId = BusinessDocEngine.archiveType_person;
+            }
+            key = archiveId + "_" + archiveTypeId + "_" + accountClassification4BA;
+            if (accountMap.containsKey(key)) { // 先根据科目分类获取
+                account = accountMap.get(key);
+            } else if (defaultAccountClassification != null) { // 再根据默认科目分类获取
+                key = archiveId + "_" + archiveTypeId + "_" + defaultAccountClassification;
+                account = accountMap.get(key);
+            }
+        }
+        if (account == null) {
+            key = accountCode + "_" + settle.getBankAccountId();
+            if (accountMap.containsKey(key)) {
+                account = accountMap.get(key);
+            } else {
+                account = accountMap.get(accountCode);
+            }
         }
         return account;
     }
