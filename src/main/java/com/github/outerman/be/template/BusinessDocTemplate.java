@@ -2,14 +2,18 @@ package com.github.outerman.be.template;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 
+import com.github.outerman.be.model.Account;
 import com.github.outerman.be.model.BusinessVoucherDetail;
 import com.github.outerman.be.model.DocTemplate;
 import com.github.outerman.be.model.Org;
+import com.github.outerman.be.util.StringUtil;
 
 /**
  * Created by shenxy on 16/12/28.
@@ -32,8 +36,8 @@ public class BusinessDocTemplate {
     /** 业务凭证模板信息 */
     private Map<String, List<DocTemplate>> docTemplateMap = new HashMap<>();
 
-    /** 业务凭证模板中使用到的科目编码信息 */
-    private List<String> accountCodeList = new ArrayList<>();
+    /** 业务凭证模板中使用到的科目信息 */
+    private List<Account> accounts = new ArrayList<>();
 
     /**
      * 初始化方法，按照企业、业务编码，获取业务凭证模板数据
@@ -46,6 +50,7 @@ public class BusinessDocTemplate {
         this.org = org;
         this.businessCode = businessCode;
 
+        Set<String> accountSet = new HashSet<>();
         List<DocTemplate> all = templateProvider.getDocTemplate(org.getId(), businessCode);
         all.forEach(template -> {
             String key = getKey(org);
@@ -53,8 +58,15 @@ public class BusinessDocTemplate {
                 docTemplateMap.put(key, new ArrayList<>());
             }
             docTemplateMap.get(key).add(template);
-            if (!accountCodeList.contains(template.getAccountCode())) {
-                accountCodeList.add(template.getAccountCode());
+            String accountKey = template.getAccountCode();
+            if (StringUtil.isEmpty(accountKey)) {
+                accountKey = template.getAccountId().toString();
+            }
+            if (!accountSet.contains(accountKey)) {
+                Account account = new Account();
+                account.setId(template.getAccountId());
+                account.setCode(template.getAccountCode());
+                accounts.add(account);
             }
         });
 
@@ -230,19 +242,19 @@ public class BusinessDocTemplate {
     }
 
     /**
-     * 获取业务凭证模板中使用到的科目编码信息
-     * @return 业务凭证模板中使用到的科目编码信息
+     * 获取业务凭证模板中使用到的科目信息
+     * @return 业务凭证模板中使用到的科目信息
      */
-    public List<String> getAccountCodeList() {
-        return accountCodeList;
+    public List<Account> getAccounts() {
+        return accounts;
     }
 
     /**
-     * 设置业务凭证模板中使用到的科目编码信息
-     * @param codeList 业务凭证模板中使用到的科目编码信息
+     * 设置业务凭证模板中使用到的科目信息
+     * @param accounts 业务凭证模板中使用到的科目信息
      */
-    public void setAccountCodeList(List<String> accountCodeList) {
-        this.accountCodeList = accountCodeList;
+    public void setAccounts(List<Account> accounts) {
+        this.accounts = accounts;
     }
 
 }

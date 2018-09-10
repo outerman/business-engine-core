@@ -2,7 +2,6 @@ package com.github.outerman.be.convert;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -62,7 +61,7 @@ public final class DocConvertor {
         }
 
         Map<String, BusinessTemplate> templateMap = new HashMap<>();
-        Set<String> accountCodeSet = new HashSet<>();
+        List<Account> accounts = new ArrayList<>();
         for (BusinessVoucher voucher : vouchers) {
             if (!voucher.getValid()) {
                 continue;
@@ -74,11 +73,11 @@ public final class DocConvertor {
                 }
                 BusinessTemplate businessTemplate = templateManager.fetch(org, businessCode, provider);
                 templateMap.put(businessCode, businessTemplate);
-                accountCodeSet.addAll(businessTemplate.getDocAccountTemplate().getAccountCodeList());
-                accountCodeSet.addAll(businessTemplate.getPaymentTemplate().getAccountCodeList());
+                accounts.addAll(businessTemplate.getDocAccountTemplate().getAccounts());
+                accounts.addAll(businessTemplate.getPaymentTemplate().getAccounts());
             }
         }
-        Map<String, Account> accountMap = provider.getAccountCode(org.getId(), new ArrayList<String>(accountCodeSet), vouchers);
+        Map<String, Account> accountMap = provider.getAccountMap(org.getId(), accounts, vouchers);
 
         List<Doc> docList = new ArrayList<>();
         for (BusinessVoucher voucher : vouchers) {

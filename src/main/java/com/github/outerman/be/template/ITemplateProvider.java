@@ -19,6 +19,6 @@ public interface ITemplateProvider {
 
     List<SettleTemplate> getSettleTemplate(Long orgId, String businessCode);
 
-    Map<String, Account> getAccountCode(Long orgId, List<String> codeList, List<BusinessVoucher> vouchers);
+    Map<String, Account> getAccountMap(Long orgId, List<Account> accounts, List<BusinessVoucher> vouhcers);
 
 }

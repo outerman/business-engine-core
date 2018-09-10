@@ -31,6 +31,9 @@ public class DocTemplate implements Serializable {
     /** 余额方向：0借 1贷 */
     private Integer balanceDirection;
 
+    /** 科目 id */
+    private Long accountId;
+
     /** 科目编码 */
     private String accountCode;
 
@@ -162,6 +165,22 @@ public class DocTemplate implements Serializable {
      */
     public void setBalanceDirection(Integer balanceDirection) {
         this.balanceDirection = balanceDirection;
+    }
+
+    /**
+     * 获取科目 id
+     * @return 科目 id
+     */
+    public Long getAccountId() {
+        return accountId;
+    }
+
+    /**
+     * 设置科目 id
+     * @param accountId 科目 id
+     */
+    public void setAccountId(Long accountId) {
+        this.accountId = accountId;
     }
 
     /**

@@ -13,6 +13,9 @@ public class SettleTemplate implements Serializable {
     /** 业务属性，枚举 businessProperty */
     private Long businessPropertyId;
 
+    /** 科目 id */
+    private Long accountId;
+
     /** 科目编码 */
     private String accountCode;
 
@@ -64,6 +67,22 @@ public class SettleTemplate implements Serializable {
      */
     public void setBusinessPropertyId(Long businessPropertyId) {
         this.businessPropertyId = businessPropertyId;
+    }
+
+    /**
+     * 获取科目 id
+     * @return 科目 id
+     */
+    public Long getAccountId() {
+        return accountId;
+    }
+
+    /**
+     * 设置科目 id
+     * @param accountId 科目 id
+     */
+    public void setAccountId(Long accountId) {
+        this.accountId = accountId;
     }
 
     /**

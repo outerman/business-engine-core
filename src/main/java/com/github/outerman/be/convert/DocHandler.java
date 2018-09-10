@@ -428,7 +428,10 @@ public class DocHandler {
      */
     public Account getAccount(DocTemplate docTemplate, BusinessVoucherDetail detail) {
         Account account = null;
-        String accountCode = docTemplate.getAccountCode();
+        String accountKey = docTemplate.getAccountCode();
+        if (StringUtil.isEmpty(accountKey)) {
+            accountKey = docTemplate.getAccountId().toString();
+        }
         Long accountClassification4BA = docTemplate.getAccountClassification4BA();
         String key = "";
         if (accountClassification4BA != null) { // 科目分类不为空时，先从档案上对应的科目分类获取科目
@@ -461,11 +464,11 @@ public class DocHandler {
             }
         }
         if (account == null) {
-            key = accountCode + "_" + detail.getBankAccountId();
+            key = accountKey + "_" + detail.getBankAccountId();
             if (accountMap.containsKey(key)) {
                 account = accountMap.get(key);
             } else {
-                account = accountMap.get(accountCode);
+                account = accountMap.get(accountKey);
             }
         }
         if (account != null) {
@@ -486,7 +489,10 @@ public class DocHandler {
      */
     public Account getAccount(SettleTemplate settleTemplate, BusinessVoucherSettle settle) {
         Account account = null;
-        String accountCode = settleTemplate.getAccountCode();
+        String accountKey = settleTemplate.getAccountCode();
+        if (StringUtil.isEmpty(accountKey)) {
+            accountKey = settleTemplate.getAccountId().toString();
+        }
         String key = "";
         Long accountClassification4BA = settleTemplate.getAccountClassification4BA();
         if (accountClassification4BA != null) { // 科目分类不为空时，先从档案上对应的科目分类获取科目
@@ -519,11 +525,11 @@ public class DocHandler {
             }
         }
         if (account == null) {
-            key = accountCode + "_" + settle.getBankAccountId();
+            key = accountKey + "_" + settle.getBankAccountId();
             if (accountMap.containsKey(key)) {
                 account = accountMap.get(key);
             } else {
-                account = accountMap.get(accountCode);
+                account = accountMap.get(accountKey);
             }
         }
         return account;

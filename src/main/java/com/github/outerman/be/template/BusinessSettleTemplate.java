@@ -2,11 +2,15 @@ package com.github.outerman.be.template;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import com.github.outerman.be.model.Account;
 import com.github.outerman.be.model.BusinessVoucherSettle;
 import com.github.outerman.be.model.SettleTemplate;
+import com.github.outerman.be.util.StringUtil;
 import com.github.outerman.be.model.Org;
 
 /**
@@ -24,8 +28,8 @@ public class BusinessSettleTemplate {
     /** 结算凭证模板信息 */
     private Map<String, SettleTemplate> settleTemplateMap = new HashMap<>();
 
-    /** 结算凭证模板中使用到的科目编码信息 */
-    private List<String> accountCodeList = new ArrayList<>();
+    /** 结算凭证模板中使用到的科目信息 */
+    private List<Account> accounts = new ArrayList<>();
 
     /**
      * 初始化方法，按照企业、业务编码，获取凭证结算模板数据
@@ -38,13 +42,21 @@ public class BusinessSettleTemplate {
         this.org = org;
         this.businessCode = businessCode;
 
+        Set<String> accountSet = new HashSet<>();
         List<SettleTemplate> templateList = provider.getSettleTemplate(org.getId(), businessCode);
         settleTemplateMap = new HashMap<>();
         for (SettleTemplate template : templateList) {
             String key = "" + template.getBusinessPropertyId() + template.getBankAccountTypeId();
             settleTemplateMap.put(key, template);
-            if (!accountCodeList.contains(template.getAccountCode())) {
-                accountCodeList.add(template.getAccountCode());
+            String accountKey = template.getAccountCode();
+            if (StringUtil.isEmpty(accountKey)) {
+                accountKey = template.getAccountId().toString();
+            }
+            if (!accountSet.contains(accountKey)) {
+                Account account = new Account();
+                account.setId(template.getAccountId());
+                account.setCode(template.getAccountCode());
+                accounts.add(account);
             }
         }
     }
@@ -106,16 +118,16 @@ public class BusinessSettleTemplate {
      * 获取结算凭证模板中使用到的科目编码信息
      * @return 结算凭证模板中使用到的科目编码信息
      */
-    public List<String> getAccountCodeList() {
-        return accountCodeList;
+    public List<Account> getAccounts() {
+        return accounts;
     }
 
     /**
      * 设置结算凭证模板中使用到的科目编码信息
      * @param codeList 结算凭证模板中使用到的科目编码信息
      */
-    public void setAccountCodeList(List<String> accountCodeList) {
-        this.accountCodeList = accountCodeList;
+    public void setAccounts(List<Account> accounts) {
+        this.accounts = accounts;
     }
 
 }
