@@ -175,7 +175,7 @@ public final class DocConvertor {
                     deleted.add(docTemplate.getAccountCode());
                     continue;
                 } else if (!account.getIsEnable()) {
-                    disabled.add(docTemplate.getAccountCode());
+                    disabled.add(account.getCode());
                     continue;
                 }
                 docTemplate.setAccount(account);
@@ -221,7 +221,7 @@ public final class DocConvertor {
                 deleted.add(payDocTemplate.getAccountCode());
                 continue;
             } else if (!account.getIsEnable()) {
-                disabled.add(payDocTemplate.getAccountCode());
+                disabled.add(account.getCode());
                 continue;
             }
             payDocTemplate.setAccount(account);
