@@ -244,7 +244,7 @@ public final class DocConvertor {
         List<String> code = new ArrayList<>();
         code.addAll(disabled);
         code.addAll(deleted);
-        result = String.format(ErrorCode.ACCOUNT_CODE_INVALID, StringUtils.join(code, "、") + "已经停用或删除");
+        result = String.format(ErrorCode.ACCOUNT_CODE_INVALID, StringUtils.join(code, "、") + "已经停用、删除或未设置");
         return result;
     }
 
