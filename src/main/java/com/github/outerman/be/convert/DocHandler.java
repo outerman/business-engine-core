@@ -454,6 +454,10 @@ public class DocHandler {
                     || accountClassification4BA.equals(BusinessDocEngine.person_otherPayableAccount)) {
                 archiveId = detail.getEmployee();
                 archiveTypeId = BusinessDocEngine.archiveType_person;
+            } else if (accountClassification4BA.equals(BusinessDocEngine.inventory_inventoryRelatedAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.inventory_salesCostAccount)) {
+                archiveId = detail.getInventory();
+                archiveTypeId = BusinessDocEngine.archiveType_inventory;
             }
             key = archiveId + "_" + archiveTypeId + "_" + accountClassification4BA;
             if (accountMap.containsKey(key)) { // 先根据科目分类获取

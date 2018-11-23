@@ -33,6 +33,9 @@ public final class BusinessDocEngine {
     /** 人员档案类型 id */
     public static Long archiveType_person = 3000160003L;
 
+    /** 存货档案类型 id */
+    public static Long archiveType_inventory = 3000160005L;
+
     /** 客户：应收科目 */
     public static Long customer_receivableAccount = 3000150001L;
 
@@ -56,6 +59,12 @@ public final class BusinessDocEngine {
 
     /** 人员：其他应付科目 */
     public static Long person_otherPayableAccount = 3000150008L;
+
+    /** 存货：存货对应科目 */
+    public static Long inventory_inventoryRelatedAccount = 3000150009L;
+
+    /** 存货：销售成本科目 */
+    public static Long inventory_salesCostAccount = 3000150010L;
 
     private static DocConvertor convertor = DocConvertor.getInstance();
 
