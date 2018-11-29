@@ -472,7 +472,13 @@ public class DocHandler {
             if (accountMap.containsKey(key)) {
                 account = accountMap.get(key);
             } else {
-                account = accountMap.get(accountKey);
+                // 采购发票生成凭证时会设置科目 id，同时分录 A 在没有从档案上获取到对应科目时，先从发票明细上获取科目
+                if (detail.getAccountId() != null && "A".equals(docTemplate.getFlag())) {
+                    account = accountMap.get(detail.getAccountId().toString());
+                }
+                if (account == null) {
+                    account = accountMap.get(accountKey);
+                }
             }
         }
         if (account != null) {

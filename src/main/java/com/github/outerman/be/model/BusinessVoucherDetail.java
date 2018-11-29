@@ -128,6 +128,9 @@ public class BusinessVoucherDetail {
     /** 分录标识，分录标识本身是从凭证模板获取，如果明细需要特殊的分录标识，赋值此字段 */
     private String flag;
 
+    /** 科目 id */
+    private Long accountId;
+
     public Long getUnitId() {
         return unitId;
     }
@@ -606,6 +609,22 @@ public class BusinessVoucherDetail {
      */
     public void setFlag(String flag) {
         this.flag = flag;
+    }
+
+    /**
+     * 获取科目 id
+     * @return 科目 id
+     */
+    public Long getAccountId() {
+        return accountId;
+    }
+
+    /**
+     * 设置科目 id
+     * @param accountId 科目 id
+     */
+    public void setAccountId(Long accountId) {
+        this.accountId = accountId;
     }
 
 }
