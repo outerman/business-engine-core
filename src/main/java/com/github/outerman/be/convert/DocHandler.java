@@ -476,7 +476,9 @@ public class DocHandler {
                 if (detail.getAccountId() != null && "A".equals(docTemplate.getFlag())) {
                     account = accountMap.get(detail.getAccountId().toString());
                 }
-                if (account == null) {
+                // 当单据明细设置了需要强制从档案的对应科目获取科目信息时，不再从凭证模板获取科目信息
+                List<Long> forceUseArchiveAccountList = detail.getForceUseArchiveAccountList();
+                if (account == null && (forceUseArchiveAccountList == null || !forceUseArchiveAccountList.contains(accountClassification4BA))) {
                     account = accountMap.get(accountKey);
                 }
             }

@@ -1,5 +1,6 @@
 package com.github.outerman.be.model;
 
+import java.util.List;
 import java.util.Map;
 
 public class BusinessVoucherDetail {
@@ -130,6 +131,9 @@ public class BusinessVoucherDetail {
 
     /** 科目 id */
     private Long accountId;
+
+    /** 强制使用档案科目的科目分类 */
+    private List<Long> forceUseArchiveAccountList;
 
     public Long getUnitId() {
         return unitId;
@@ -625,6 +629,22 @@ public class BusinessVoucherDetail {
      */
     public void setAccountId(Long accountId) {
         this.accountId = accountId;
+    }
+
+    /**
+     * 获取强制使用档案科目的科目分类
+     * @return 强制使用档案科目的科目分类
+     */
+    public List<Long> getForceUseArchiveAccountList() {
+        return forceUseArchiveAccountList;
+    }
+
+    /**
+     * 设置强制使用档案科目的科目分类
+     * @param forceUseArchiveAccountList 强制使用档案科目的科目分类
+     */
+    public void setForceUseArchiveAccountList(List<Long> forceUseArchiveAccountList) {
+        this.forceUseArchiveAccountList = forceUseArchiveAccountList;
     }
 
 }
