@@ -36,6 +36,9 @@ public final class BusinessDocEngine {
     /** 存货档案类型 id */
     public static Long archiveType_inventory = 3000160005L;
 
+    /** 资产档案类型 id */
+    public static Long archiveType_asset = 3000160013L;
+
     /** 客户：应收科目 */
     public static Long customer_receivableAccount = 3000150001L;
 
@@ -65,6 +68,15 @@ public final class BusinessDocEngine {
 
     /** 存货：销售成本科目 */
     public static Long inventory_salesCostAccount = 3000150010L;
+
+    /** 资产：资产科目 */
+    public static Long asset_assetAccount = 3000150011L;
+
+    /** 资产：资产累计折旧/摊销科目 */
+    public static Long asset_accuDepreciationAccount = 3000150012L;
+
+    /** 资产：折旧/摊销损益科目 */
+    public static Long asset_depreciationAccount = 3000150013L;
 
     private static DocConvertor convertor = DocConvertor.getInstance();
 

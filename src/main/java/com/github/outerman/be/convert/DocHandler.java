@@ -455,6 +455,11 @@ public class DocHandler {
                     || accountClassification4BA.equals(BusinessDocEngine.inventory_salesCostAccount)) {
                 archiveId = detail.getInventory();
                 archiveTypeId = BusinessDocEngine.archiveType_inventory;
+            } else if (accountClassification4BA.equals(BusinessDocEngine.asset_assetAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.asset_depreciationAccount)
+                    || accountClassification4BA.equals(BusinessDocEngine.asset_accuDepreciationAccount)) {
+                archiveId = detail.getAssetId();
+                archiveTypeId = BusinessDocEngine.archiveType_asset;
             }
             key = archiveId + "_" + archiveTypeId + "_" + accountClassification4BA;
             if (accountMap.containsKey(key)) { // 先根据科目分类获取
