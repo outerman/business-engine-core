@@ -234,13 +234,8 @@ public class DocHandler {
             key.append("_supplierId").append(detail.getVendor());
         }
         if (account.getIsAuxAccInventory() != null && account.getIsAuxAccInventory()) { // 存货
-            if (detail.getAssetId() != null) {
-                entry.setInventoryId(detail.getAssetId());
-                key.append("_inventoryId").append(detail.getAssetId());
-            } else {
-                entry.setInventoryId(detail.getInventory());
-                key.append("_inventoryId").append(detail.getInventory());
-            }
+            entry.setInventoryId(detail.getInventory());
+            key.append("_inventoryId").append(detail.getInventory());
         }
         if (account.getIsAuxAccProject() != null && account.getIsAuxAccProject()) { // 项目
             entry.setProjectId(detail.getProject());
