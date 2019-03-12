@@ -1,5 +1,6 @@
 package com.github.outerman.be;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.github.outerman.be.convert.DocConvertor;
@@ -35,6 +36,9 @@ public final class BusinessDocEngine {
 
     /** 存货档案类型 id */
     public static Long archiveType_inventory = 3000160005L;
+
+    /** 部门档案类型 id */
+    public static Long archiveType_department = 3000160009L;
 
     /** 资产档案类型 id */
     public static Long archiveType_asset = 3000160013L;
@@ -77,6 +81,37 @@ public final class BusinessDocEngine {
 
     /** 资产：折旧/摊销损益科目 */
     public static Long asset_depreciationAccount = 3000150013L;
+
+    /** 部门：计提工资 */
+    public static Long dept_jtgz = 3000150014L;
+
+    /** 部门：计提养老保险 */
+    public static Long dept_jtyanglaobx = 3000150015L;
+
+    /** 部门：计提医疗保险 */
+    public static Long dept_jtyiliaobx = 3000150016L;
+
+    /** 部门：计提失业保险 */
+    public static Long dept_jtshiyebx = 3000150017L;
+
+    /** 部门：计提生育保险 */
+    public static Long dept_jtshengyubx = 3000150018L;
+
+    /** 部门：计提工伤保险 */
+    public static Long dept_jtgsbx = 3000150019L;
+
+    /** 部门：计提补充养老保险 */
+    public static Long dept_jtbcyanglaobx = 3000150020L;
+
+    /** 部门：计提补充医疗保险 */
+    public static Long dept_jtbcyiliaobx = 3000150021L;
+
+    /** 部门：计提公积金 */
+    public static Long dept_jtgjj = 3000150022L;
+
+    /** 部门科目类型列表 */
+    public static List<Long> dept_account = Arrays.asList(dept_jtgz, dept_jtyanglaobx, dept_jtyiliaobx, dept_jtshiyebx,
+            dept_jtshengyubx, dept_jtgsbx, dept_jtbcyanglaobx, dept_jtbcyiliaobx, dept_jtgjj);
 
     private static DocConvertor convertor = DocConvertor.getInstance();
 

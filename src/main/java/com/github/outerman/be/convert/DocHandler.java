@@ -455,6 +455,9 @@ public class DocHandler {
                     || accountClassification4BA.equals(BusinessDocEngine.asset_accuDepreciationAccount)) {
                 archiveId = detail.getAssetId();
                 archiveTypeId = BusinessDocEngine.archiveType_asset;
+            } else if (BusinessDocEngine.dept_account.contains(accountClassification4BA)) {
+                archiveId = detail.getDepartment();
+                archiveTypeId = BusinessDocEngine.archiveType_department;
             }
             key = archiveId + "_" + archiveTypeId + "_" + accountClassification4BA;
             if (accountMap.containsKey(key)) { // 先根据科目分类获取
