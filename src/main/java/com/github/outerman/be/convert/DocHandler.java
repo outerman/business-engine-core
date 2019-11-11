@@ -423,6 +423,13 @@ public class DocHandler {
      */
     public Account getAccount(DocTemplate docTemplate, BusinessVoucherDetail detail) {
         Account account = null;
+        // 生成凭证时设置科目 id，直接从发票明细上获取科目
+        if (detail.getAccountId() != null) {
+            account = accountMap.get(detail.getAccountId().toString());
+            if (account != null) {
+                return account;
+            }
+        }
         String accountKey = docTemplate.getAccountCode();
         if (StringUtil.isEmpty(accountKey)) {
             accountKey = docTemplate.getAccountId().toString();
@@ -469,10 +476,6 @@ public class DocHandler {
             if (accountMap.containsKey(key)) {
                 account = accountMap.get(key);
             } else {
-                // 采购发票生成凭证时会设置科目 id，同时分录 A 在没有从档案上获取到对应科目时，先从发票明细上获取科目
-                if (detail.getAccountId() != null && "A".equals(docTemplate.getFlag())) {
-                    account = accountMap.get(detail.getAccountId().toString());
-                }
                 // 当单据明细设置了需要强制从档案的对应科目获取科目信息时，不再从凭证模板获取科目信息
                 List<Long> forceUseArchiveAccountList = detail.getForceUseArchiveAccountList();
                 if (account == null && (forceUseArchiveAccountList == null || !forceUseArchiveAccountList.contains(accountClassification4BA))) {
