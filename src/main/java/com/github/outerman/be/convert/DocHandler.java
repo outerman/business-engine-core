@@ -423,8 +423,8 @@ public class DocHandler {
      */
     public Account getAccount(DocTemplate docTemplate, BusinessVoucherDetail detail) {
         Account account = null;
-        // 生成凭证时设置科目 id，直接从发票明细上获取科目
-        if (detail.getAccountId() != null) {
+        // 采购发票生成凭证时会设置科目 id，分录 A 生成凭证时直接从发票明细上获取科目
+        if (detail.getAccountId() != null && "A".equals(docTemplate.getFlag())) {
             account = accountMap.get(detail.getAccountId().toString());
             if (account != null) {
                 return account;
