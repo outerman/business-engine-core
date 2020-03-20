@@ -172,6 +172,9 @@ public class DocHandler {
         }
 
         Account account = docTemplate.getAccount();
+        if (account.getDevelopRatio() != null) {
+            amount = DoubleUtil.multi(amount, account.getDevelopRatio());
+        }
         StringBuilder key = new StringBuilder(); // key 作为分录合并依据，同时单独排序时作为排序字段
         DocEntry entry = new DocEntry();
         Boolean mergeWithFlag = detail.getMergeWithFlag();
@@ -421,13 +424,15 @@ public class DocHandler {
      * @param detail 流水账收支明细信息
      * @return 科目信息
      */
-    public Account getAccount(DocTemplate docTemplate, BusinessVoucherDetail detail) {
+    public List<Account> getAccount(DocTemplate docTemplate, BusinessVoucherDetail detail) {
+        List<Account> accounts = new ArrayList<>();
         Account account = null;
         // 采购发票生成凭证时会设置科目 id，分录 A 生成凭证时直接从发票明细上获取科目
         if (detail.getAccountId() != null && "A".equals(docTemplate.getFlag())) {
             account = accountMap.get(detail.getAccountId().toString());
             if (account != null) {
-                return account;
+                accounts.add(account);
+                return accounts;
             }
         }
         String accountKey = docTemplate.getAccountCode();
@@ -469,6 +474,16 @@ public class DocHandler {
             key = archiveId + "_" + archiveTypeId + "_" + accountClassification4BA;
             if (accountMap.containsKey(key)) { // 先根据科目分类获取
                 account = accountMap.get(key);
+                // 处理资产分摊功能，匹配多科目的情况
+                if (BusinessDocEngine.archiveType_asset.equals(archiveTypeId)) {
+                    Integer index = 1;
+                    String ratioKey = key + "_" + index;
+                    while (accountMap.containsKey(ratioKey)) {
+                        accounts.add(accountMap.get(ratioKey));
+                        index++;
+                        ratioKey = key + "_" + index;
+                    }
+                }
             }
         }
         if (account == null) {
@@ -489,7 +504,10 @@ public class DocHandler {
                 account = accountMap.get(key);
             }
         }
-        return account;
+        if (account != null) { // 当为分摊时，取到的科目为第一行
+            accounts.add(0, account);
+        }
+        return accounts;
     }
 
     /**

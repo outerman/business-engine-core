@@ -170,16 +170,19 @@ public final class DocConvertor {
                 return false;
             }
             for (DocTemplate docTemplate : docTemplateList) {
-                Account account = docHandler.getAccount(docTemplate, detail);
-                if (account == null) {
+                List<Account> accounts = docHandler.getAccount(docTemplate, detail);
+                if (accounts.isEmpty()) {
                     deleted.add(docTemplate.getAccountCode());
                     continue;
-                } else if (!account.getIsEnable()) {
-                    disabled.add(account.getCode());
-                    continue;
                 }
-                docTemplate.setAccount(account);
-                docHandler.addEntry(docTemplate, detail);
+                for (Account account : accounts) {
+                    if (!account.getIsEnable()) {
+                        disabled.add(account.getCode());
+                        continue;
+                    }
+                    docTemplate.setAccount(account);
+                    docHandler.addEntry(docTemplate, detail);
+                }
             }
         }
 

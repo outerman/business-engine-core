@@ -112,6 +112,9 @@ public class Account implements Serializable {
     /** 是否启用  */
     private Boolean isEnable;
 
+    /** 占比，生成凭证分摊时使用 */
+    private Double developRatio;
+
     /** 组织机构id */
     public Long getOrgId() {
         return orgId;
@@ -427,6 +430,22 @@ public class Account implements Serializable {
      */
     public void setIsEnable(Boolean isEnable) {
         this.isEnable = isEnable;
+    }
+
+    /**
+     * 获取占比，生成凭证分摊时使用
+     * @return 占比，生成凭证分摊时使用
+     */
+    public Double getDevelopRatio() {
+        return developRatio;
+    }
+
+    /**
+     * 设置占比，生成凭证分摊时使用
+     * @param developRatio 占比，生成凭证分摊时使用
+     */
+    public void setDevelopRatio(Double developRatio) {
+        this.developRatio = developRatio;
     }
 
 }

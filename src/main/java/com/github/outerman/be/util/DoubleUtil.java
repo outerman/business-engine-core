@@ -81,6 +81,39 @@ public final class DoubleUtil {
     }
 
     /**
+     * Double 类型乘法，使用 {@link BigDecimal} 进行计算，精度保留两位小数
+     * @param multiplicand 被乘数
+     * @param multiplicators 乘数
+     * @return
+     */
+    public static Double multi(Double multiplicand, Double... multiplicators) {
+        Double result = doMulti(multiplicand, multiplicators);
+        if (result == null) {
+            return result;
+        }
+        return formatDoubleScale2(result);
+    }
+
+    private static Double doMulti(Double multiplicand, Double... multiplicators) {
+        int length = multiplicators.length;
+        if (null == multiplicand) {
+            return null;
+        }
+        if (length == 0) {
+            return multiplicand;
+        }
+        BigDecimal result = BigDecimal.valueOf(multiplicand);
+        for (int index = 0; index < length; index++) {
+            if (null == multiplicators[index]) {
+                return null;
+            }
+            BigDecimal temp = BigDecimal.valueOf(multiplicators[index]);
+            result = result.multiply(temp);
+        }
+        return result.doubleValue();
+    }
+
+    /**
      * Double 类型除法，当除数为空时直接返回被除数，被除数为 null 返回 null，除数存在 null 或者 0.0 返回 null，使用
      * {@link BigDecimal} 进行计算，精度保留两位小数
      * 
