@@ -172,8 +172,19 @@ public class DocHandler {
         }
 
         Account account = docTemplate.getAccount();
-        if (account.getDevelopRatio() != null) {
-            amount = DoubleUtil.multi(amount, account.getDevelopRatio());
+        if (docTemplate.isLast()) {
+            if (!DoubleUtil.isNullOrZero(docTemplate.getSum())) {
+                amount = DoubleUtil.add(amount, - docTemplate.getSum());
+            }
+        } else {
+            if (account.getDevelopRatio() != null) {
+                amount = DoubleUtil.multi(amount, account.getDevelopRatio());
+            }
+            Double sum = DoubleUtil.add(docTemplate.getSum(), amount);
+            docTemplate.setSum(sum);
+        }
+        if (DoubleUtil.isNullOrZero(amount)) {
+            return null;
         }
         StringBuilder key = new StringBuilder(); // key 作为分录合并依据，同时单独排序时作为排序字段
         DocEntry entry = new DocEntry();

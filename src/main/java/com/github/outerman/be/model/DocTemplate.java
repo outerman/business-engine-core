@@ -55,6 +55,13 @@ public class DocTemplate implements Serializable {
     /** 科目信息 */
     private Account account;
 
+    /** 以下字段用于同一凭证模板取到多条科目信息，例如资产分摊时，最后一条分录倒减金额使用 */
+    /** 合计金额 */
+    private Double sum;
+
+    /** 是否分摊的最后一条分录 */
+    private boolean isLast;
+
     /**
      * 获取业务编码
      * @return 业务编码
@@ -293,6 +300,38 @@ public class DocTemplate implements Serializable {
      */
     public void setAccount(Account account) {
         this.account = account;
+    }
+
+    /**
+     * 获取合计金额
+     * @return 合计金额
+     */
+    public Double getSum() {
+        return sum;
+    }
+
+    /**
+     * 设置合计金额
+     * @param sum 合计金额
+     */
+    public void setSum(Double sum) {
+        this.sum = sum;
+    }
+
+    /**
+     * 获取是否分摊的最后一条
+     * @return 是否分摊的最后一条
+     */
+    public boolean isLast() {
+        return isLast;
+    }
+
+    /**
+     * 设置是否分摊的最后一条
+     * @param isLast 是否分摊的最后一条
+     */
+    public void setLast(boolean isLast) {
+        this.isLast = isLast;
     }
 
 }

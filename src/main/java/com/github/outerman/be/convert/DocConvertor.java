@@ -175,12 +175,17 @@ public final class DocConvertor {
                     deleted.add(docTemplate.getAccountCode());
                     continue;
                 }
-                for (Account account : accounts) {
+                docTemplate.setSum(0.0);
+                // 处理资产分摊功能，匹配多科目时，最后一笔金额倒减
+                for (int index = 0, size = accounts.size(); index < size; index++) {
+                    Account account = accounts.get(index);
                     if (!account.getIsEnable()) {
                         disabled.add(account.getCode());
                         continue;
                     }
                     docTemplate.setAccount(account);
+                    boolean isLast = (size > 1 && index == size - 1);
+                    docTemplate.setLast(isLast);
                     docHandler.addEntry(docTemplate, detail);
                 }
             }
