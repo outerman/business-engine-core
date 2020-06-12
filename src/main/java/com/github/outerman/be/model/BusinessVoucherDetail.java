@@ -135,6 +135,9 @@ public class BusinessVoucherDetail {
     /** 强制使用档案科目的科目分类 */
     private List<Long> forceUseArchiveAccountList;
 
+    /** 业务分录是否合并 */
+    private boolean merge = false;
+
     public Long getUnitId() {
         return unitId;
     }
@@ -645,6 +648,22 @@ public class BusinessVoucherDetail {
      */
     public void setForceUseArchiveAccountList(List<Long> forceUseArchiveAccountList) {
         this.forceUseArchiveAccountList = forceUseArchiveAccountList;
+    }
+
+    /**
+     * 获取业务分录是否合并
+     * @return 业务分录是否合并
+     */
+    public boolean getMerge() {
+        return merge;
+    }
+
+    /**
+     * 设置业务分录是否合并
+     * @param merge 业务分录是否合并
+     */
+    public void setMerge(boolean merge) {
+        this.merge = merge;
     }
 
 }

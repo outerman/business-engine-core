@@ -204,7 +204,10 @@ public class DocHandler {
         } else {
             summary = detail.getMemo();
         }
-        key.append("_summary").append(summary);
+        // 如果结算对方科目合并，则合并 key 不再考虑摘要
+        if (!detail.getMerge()) {
+            key.append("_summary").append(summary);
+        }
         entry.setSummary(summary);
 
         entry.setAccountId(account.getId());
