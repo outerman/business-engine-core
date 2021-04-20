@@ -533,6 +533,12 @@ public class DocHandler {
      */
     public Account getAccount(SettleTemplate settleTemplate, BusinessVoucherSettle settle) {
         Account account = null;
+        if (settle.getAccountId() != null) {
+            account = accountMap.get(settle.getAccountId().toString());
+            if (account != null) {
+                return account;
+            }
+        }
         String accountKey = settleTemplate.getAccountCode();
         if (StringUtil.isEmpty(accountKey)) {
             accountKey = settleTemplate.getAccountId().toString();

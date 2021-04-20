@@ -28,6 +28,9 @@ public class BusinessVoucherSettle {
     /** 备注 */
     private String remark;
 
+    /** 结算科目 id */
+    private Long accountId;
+
     /** 分录标识 */
     private String flag;
 
@@ -163,6 +166,22 @@ public class BusinessVoucherSettle {
      */
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    /**
+     * 获取结算科目 id
+     * @return 结算科目 id
+     */
+    public Long getAccountId() {
+        return accountId;
+    }
+
+    /**
+     * 设置结算科目 id
+     * @param accountId 结算科目 id
+     */
+    public void setAccountId(Long accountId) {
+        this.accountId = accountId;
     }
 
     /**
