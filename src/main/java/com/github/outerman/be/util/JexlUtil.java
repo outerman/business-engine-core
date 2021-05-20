@@ -52,7 +52,7 @@ public final class JexlUtil {
 
     /**
      * Return true if the expression is valid
-     * @param expression
+     * @param expression expression
      * @return true if the expression is valid
      */
     public static boolean isExprValid(String expression) {
@@ -67,9 +67,9 @@ public final class JexlUtil {
 
     /**
      * Evaluate the expression with data
-     * @param expression
-     * @param data
-     * @return
+     * @param expression expression
+     * @param data data
+     * @return result
      * @throws BusinessEngineException
      */
     public static <T> Object evaluate(String expression, T data) throws BusinessEngineException {
@@ -78,10 +78,10 @@ public final class JexlUtil {
 
     /**
      * Evaluate the expression with data, variables in params
-     * @param expression
-     * @param data
-     * @param params
-     * @return
+     * @param expression expression
+     * @param data data
+     * @param params params
+     * @return result
      * @throws BusinessEngineException
      */
     public static <T> Object evaluate(String expression, T data, Map<String, Object> params) throws BusinessEngineException {
@@ -102,8 +102,8 @@ public final class JexlUtil {
 
     /**
      * Parse the expression with JEXL, get {@code ASTIdentifier} node name list
-     * @param expression
-     * @return
+     * @param expression expression
+     * @return result
      */
     public static List<String> getIdentifierName(String expression) {
         Parser lparser = new Parser(new StringReader(";"));
@@ -118,9 +118,9 @@ public final class JexlUtil {
 
     /**
      * Replace the expression with parsedMap
-     * @param expression
-     * @param parsedMap
-     * @return
+     * @param expression expression
+     * @param parsedMap parsedMap
+     * @return result
      */
     public static String getParsedText(String expression, Map<String, String> parsedMap) {
         Parser lparser = new Parser(new StringReader(";"));
@@ -148,8 +148,8 @@ public final class JexlUtil {
 
     /**
      * Get {@code ASTIdentifier} node list with root {@code node}
-     * @param node
-     * @return
+     * @param node node
+     * @return result
      */
     private static List<ASTIdentifier> getIdentifier(JexlNode node) {
         List<ASTIdentifier> result = new ArrayList<>();

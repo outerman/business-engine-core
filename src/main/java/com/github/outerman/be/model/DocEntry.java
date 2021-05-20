@@ -77,7 +77,6 @@ public class DocEntry implements Serializable {
     /** 是否颠倒了借贷方向 */
     private boolean reversal = false;
 
-    /** 摘要[set_Summary]  */
     public String getSummary() {
         return summary;
     }
@@ -86,7 +85,6 @@ public class DocEntry implements Serializable {
         this.summary = summary;
     }
 
-    /** 汇率  */
     public Double getExchangeRate() {
         return exchangeRate;
     }
@@ -95,7 +93,6 @@ public class DocEntry implements Serializable {
         this.exchangeRate = exchangeRate;
     }
 
-    /** 借方原币  */
     public Double getOrigAmountDr() {
         return origAmountDr;
     }
@@ -104,7 +101,6 @@ public class DocEntry implements Serializable {
         this.origAmountDr = origAmountDr;
     }
 
-    /** 贷方原币  */
     public Double getOrigAmountCr() {
         return origAmountCr;
     }
@@ -113,7 +109,6 @@ public class DocEntry implements Serializable {
         this.origAmountCr = origAmountCr;
     }
 
-    /** 借方本币  */
     public Double getAmountDr() {
         return amountDr;
     }
@@ -122,7 +117,6 @@ public class DocEntry implements Serializable {
         this.amountDr = amountDr;
     }
 
-    /** 贷方本币  */
     public Double getAmountCr() {
         return amountCr;
     }
@@ -131,7 +125,6 @@ public class DocEntry implements Serializable {
         this.amountCr = amountCr;
     }
 
-    /** 贷方  */
     public Double getQuantity() {
         return quantity;
     }
@@ -140,7 +133,6 @@ public class DocEntry implements Serializable {
         this.quantity = quantity;
     }
 
-    /** 单价  */
     public Double getPrice() {
         return price;
     }
@@ -149,7 +141,6 @@ public class DocEntry implements Serializable {
         this.price = price;
     }
 
-    /** 计量单位id[set_unit]  */
     public Long getUnitId() {
         return unitId;
     }
@@ -158,7 +149,6 @@ public class DocEntry implements Serializable {
         this.unitId = unitId;
     }
 
-    /** 币种ID[set_currency]  */
     public Long getCurrencyId() {
         return currencyId;
     }
@@ -167,7 +157,6 @@ public class DocEntry implements Serializable {
         this.currencyId = currencyId;
     }
 
-    /** 科目ID[set_account]  */
     public Long getAccountId() {
         return accountId;
     }
@@ -176,7 +165,6 @@ public class DocEntry implements Serializable {
         this.accountId = accountId;
     }
 
-    /** 部门id[set_department]  */
     public Long getDepartmentId() {
         return departmentId;
     }
@@ -185,7 +173,6 @@ public class DocEntry implements Serializable {
         this.departmentId = departmentId;
     }
 
-    /** 人员id[set_person]  */
     public Long getPersonId() {
         return personId;
     }
@@ -194,7 +181,6 @@ public class DocEntry implements Serializable {
         this.personId = personId;
     }
 
-    /** 客户ID  */
     public Long getCustomerId() {
         return customerId;
     }
@@ -203,7 +189,6 @@ public class DocEntry implements Serializable {
         this.customerId = customerId;
     }
 
-    /** 供应商ID  */
     public Long getSupplierId() {
         return supplierId;
     }
@@ -212,7 +197,6 @@ public class DocEntry implements Serializable {
         this.supplierId = supplierId;
     }
 
-    /** 存货id[set_inventory]  */
     public Long getInventoryId() {
         return inventoryId;
     }
@@ -221,7 +205,6 @@ public class DocEntry implements Serializable {
         this.inventoryId = inventoryId;
     }
 
-    /** 项目ID[set_project]  */
     public Long getProjectId() {
         return projectId;
     }
@@ -230,7 +213,6 @@ public class DocEntry implements Serializable {
         this.projectId = projectId;
     }
 
-    /** 账号ID[set_bank_account]  */
     public Long getBankAccountId() {
         return bankAccountId;
     }
@@ -239,7 +221,6 @@ public class DocEntry implements Serializable {
         this.bankAccountId = bankAccountId;
     }
 
-    /** 科目Code[set_account]  */
     public String getAccountCode() {
         return accountCode;
     }

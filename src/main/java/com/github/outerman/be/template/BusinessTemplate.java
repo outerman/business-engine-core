@@ -23,7 +23,7 @@ public class BusinessTemplate {
      * <p>企业 id 为 0 时获取系统预置数据
      * @param org 企业信息
      * @param businessCode 业务类型编码
-     * @param templateProvider
+     * @param templateProvider 模板提供者
      */
     public void init(Org org, String businessCode, ITemplateProvider templateProvider) {
         this.org = org;

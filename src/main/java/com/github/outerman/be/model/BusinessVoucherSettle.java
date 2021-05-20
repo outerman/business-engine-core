@@ -21,6 +21,10 @@ public class BusinessVoucherSettle {
 
     /** 员工 */
     private Long personId;
+    /** 部门*/
+    private Long DepartmentId;
+    /** 项目 */
+    private Long projectId;
 
     /** 业务属性：收入或者支出 */
     private Long businessPropertyId;
@@ -232,4 +236,36 @@ public class BusinessVoucherSettle {
         this.amountMap = amountMap;
     }
 
+
+    /**
+     * 获取项目id
+     * @return 项目id
+     */
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    /**
+     * 设置项目id
+     * @param projectId 项目id
+     */
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
+    /**
+     * 获取部门id
+     * @return 部门id
+     */
+    public Long getDepartmentId() {
+        return DepartmentId;
+    }
+
+    /**
+     * 设置部门id
+     * @param departmentId 部门id
+     */
+    public void setDepartmentId(Long departmentId) {
+        DepartmentId = departmentId;
+    }
 }

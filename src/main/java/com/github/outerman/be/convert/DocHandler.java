@@ -372,7 +372,14 @@ public class DocHandler {
             entry.setCurrencyId(org.getBaseCurrencyId());
             key.append("_currencyId").append(org.getBaseCurrencyId());
         }
-
+        if (account.getIsAuxAccDepartment() != null && account.getIsAuxAccDepartment()) { // 部门
+            entry.setDepartmentId(settle.getDepartmentId());
+            key.append("_departmentId").append(settle.getDepartmentId());
+        }
+        if (account.getIsAuxAccProject() != null && account.getIsAuxAccProject()) { // 项目
+            entry.setProjectId(settle.getProjectId());
+            key.append("_projectId").append(settle.getProjectId());
+        }
         String summary = getSettleSummary(settle, payDocTemplate);
         entry.setSummary(summary);
         entry.setAccountId(account.getId());
@@ -528,7 +535,6 @@ public class DocHandler {
      * 根据结算凭证模板和流水账结算明细获取对应的科目信息，没有获取到时返回 {@code null}
      * @param settleTemplate 结算凭证模板信息
      * @param settle 流水账结算明细信息
-     * @param accountMap 科目信息 map
      * @return 科目信息
      */
     public Account getAccount(SettleTemplate settleTemplate, BusinessVoucherSettle settle) {

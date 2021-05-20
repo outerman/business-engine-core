@@ -36,7 +36,7 @@ public class BusinessSettleTemplate {
      * <p>企业 id 为 0 时获取系统预置数据
      * @param org 企业信息
      * @param businessCode 业务编码
-     * @param provider
+     * @param provider 提供者
      */
     public void init(Org org, String businessCode, ITemplateProvider provider) {
         this.org = org;
@@ -124,7 +124,7 @@ public class BusinessSettleTemplate {
 
     /**
      * 设置结算凭证模板中使用到的科目编码信息
-     * @param codeList 结算凭证模板中使用到的科目编码信息
+     * @param accounts 结算凭证模板中使用到的科目编码信息
      */
     public void setAccounts(List<Account> accounts) {
         this.accounts = accounts;

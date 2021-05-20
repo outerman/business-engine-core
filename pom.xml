@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-
-    <artifactId>business-engine-core</artifactId>
     <groupId>com.github.outerman.be</groupId>
-    <version>1.1.16-SNAPSHOT</version>
+    <artifactId>business-engine-core</artifactId>
+    <version>1.1.17</version>
+    <packaging>jar</packaging>
 
-    <name>business engine</name>
+    <name>business-engine-core</name>
     <url>https://github.com/outerman/business-engine-core</url>
     <description>The tool to transfer a business doc into a financial voucher in china</description>
 
@@ -169,5 +169,12 @@
                 </configuration>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
 </project>

@@ -115,7 +115,6 @@ public class Account implements Serializable {
     /** 占比，生成凭证分摊时使用 */
     private Double developRatio;
 
-    /** 组织机构id */
     public Long getOrgId() {
         return orgId;
     }
@@ -124,7 +123,6 @@ public class Account implements Serializable {
         this.orgId = orgId;
     }
 
-    /** 主键id */
     public Long getId() {
         return id;
     }
@@ -133,7 +131,6 @@ public class Account implements Serializable {
         this.id = id;
     }
 
-    /** 上级会计科目id */
     public Long getParentId() {
         return parentId;
     }
@@ -142,7 +139,6 @@ public class Account implements Serializable {
         this.parentId = parentId;
     }
 
-    /** 科目级次 */
     public int getGrade() {
         return grade;
     }
@@ -151,7 +147,6 @@ public class Account implements Serializable {
         this.grade = grade;
     }
 
-    /** 是否末级 */
     public Boolean getIsEndNode() {
         return isEndNode;
     }
@@ -160,7 +155,6 @@ public class Account implements Serializable {
         this.isEndNode = isEndNode;
     }
 
-    /** 会计科目类别id：资产/负债/共同/权益/成本/损益 */
     public Long getAccountTypeId() {
         return accountTypeId;
     }
@@ -169,7 +163,6 @@ public class Account implements Serializable {
         this.accountTypeId = accountTypeId;
     }
 
-    /** 会计科目编码 */
     public String getCode() {
         return code;
     }
@@ -178,7 +171,6 @@ public class Account implements Serializable {
         this.code = code;
     }
 
-    /** 会计科目名称 */
     public String getName() {
         return name;
     }
@@ -186,8 +178,7 @@ public class Account implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
-
-    /** 级次名称（含所有上级名） */
+    
     public String getGradeName() {
         return gradeName;
     }
@@ -196,7 +187,6 @@ public class Account implements Serializable {
         this.gradeName = gradeName;
     }
 
-    /** 余额方向id：借/贷 */
     public byte getBalanceDirection() {
         return balanceDirection;
     }
@@ -205,7 +195,6 @@ public class Account implements Serializable {
         this.balanceDirection = balanceDirection;
     }
 
-    /** 现金（类型）id：现金、现金等价物、银行存款、{空} */
     public Long getCashTypeId() {
         return cashTypeId;
     }
@@ -214,7 +203,6 @@ public class Account implements Serializable {
         this.cashTypeId = cashTypeId;
     }
 
-    /** 是否附科目 */
     public Boolean getIsIncidentalAcc() {
         return isIncidentalAcc;
     }
@@ -223,7 +211,6 @@ public class Account implements Serializable {
         this.isIncidentalAcc = isIncidentalAcc;
     }
 
-    /** 是否启用辅助核算 */
     public Boolean getIsAuxAccCalc() {
         return isAuxAccCalc;
     }
@@ -232,7 +219,6 @@ public class Account implements Serializable {
         this.isAuxAccCalc = isAuxAccCalc;
     }
 
-    /** 是否辅助核算：部门 */
     public Boolean getIsAuxAccDepartment() {
         return isAuxAccDepartment;
     }
@@ -241,7 +227,6 @@ public class Account implements Serializable {
         this.isAuxAccDepartment = isAuxAccDepartment;
     }
 
-    /** 是否辅助核算：个人 */
     public Boolean getIsAuxAccPerson() {
         return isAuxAccPerson;
     }
@@ -250,7 +235,6 @@ public class Account implements Serializable {
         this.isAuxAccPerson = isAuxAccPerson;
     }
 
-    /** 是否辅助核算：客户 */
     public Boolean getIsAuxAccCustomer() {
         return isAuxAccCustomer;
     }
@@ -259,7 +243,6 @@ public class Account implements Serializable {
         this.isAuxAccCustomer = isAuxAccCustomer;
     }
 
-    /** 是否辅助核算：供应商 */
     public Boolean getIsAuxAccSupplier() {
         return isAuxAccSupplier;
     }
@@ -268,7 +251,6 @@ public class Account implements Serializable {
         this.isAuxAccSupplier = isAuxAccSupplier;
     }
 
-    /** 是否辅助核算：存货 */
     public Boolean getIsAuxAccInventory() {
         return isAuxAccInventory;
     }
@@ -277,7 +259,6 @@ public class Account implements Serializable {
         this.isAuxAccInventory = isAuxAccInventory;
     }
 
-    /** 是否辅助核算：项目 */
     public Boolean getIsAuxAccProject() {
         return isAuxAccProject;
     }
@@ -286,7 +267,6 @@ public class Account implements Serializable {
         this.isAuxAccProject = isAuxAccProject;
     }
 
-    /** 是否辅助核算：银行账号 */
     public Boolean getIsAuxAccBankAccount() {
         return isAuxAccBankAccount;
     }
@@ -295,7 +275,6 @@ public class Account implements Serializable {
         this.isAuxAccBankAccount = isAuxAccBankAccount;
     }
 
-    /** 是否启用数量核算 */
     public Boolean getIsQuantityCalc() {
         return isQuantityCalc;
     }
@@ -304,7 +283,6 @@ public class Account implements Serializable {
         this.isQuantityCalc = isQuantityCalc;
     }
 
-    /** 计量单位id */
     public Long getUnitId() {
         return unitId;
     }
@@ -313,7 +291,6 @@ public class Account implements Serializable {
         this.unitId = unitId;
     }
 
-    /** 是否启用多货币核算 */
     public Boolean getIsMultiCalc() {
         return isMultiCalc;
     }
@@ -322,7 +299,6 @@ public class Account implements Serializable {
         this.isMultiCalc = isMultiCalc;
     }
     
-    /** 币种id */
     public Long getCurrencyId(){
         return currencyId;
     }
@@ -331,7 +307,6 @@ public class Account implements Serializable {
         this.currencyId = currencyId;
     }
 
-    /** 是否启用 */
     public Boolean getStatus() {
         return status;
     }
@@ -340,7 +315,6 @@ public class Account implements Serializable {
         this.status = status;
     }
 
-    /** 是否系统预置 */
     public Boolean getIsSystem() {
         return isSystem;
     }
@@ -349,7 +323,6 @@ public class Account implements Serializable {
         this.isSystem = isSystem;
     }
 
-    /** 企业会计准则id：企业会计准则2007/小企业会计准则2013 */
     public Long getAccountingStandardsId() {
         return accountingStandardsId;
     }
@@ -358,7 +331,6 @@ public class Account implements Serializable {
         this.accountingStandardsId = accountingStandardsId;
     }
 
-    /** 行业id：工业/商贸/服务/其他 */
     public Long getIndustryId() {
         return industryId;
     }
@@ -367,7 +339,6 @@ public class Account implements Serializable {
         this.industryId = industryId;
     }
 
-    /** 时间戳 */
     public Timestamp getTs() {
         return ts;
     }
